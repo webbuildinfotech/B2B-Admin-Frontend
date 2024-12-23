@@ -14,6 +14,7 @@ import { CheckoutProvider } from './sections/vendor-sections/checkout/context';
 
 const AuthProvider = JwtAuthProvider
 
+
 export default function App() {
   useScrollToTop();
 
