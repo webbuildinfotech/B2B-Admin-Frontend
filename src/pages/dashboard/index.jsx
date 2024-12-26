@@ -8,7 +8,7 @@ export default function OverviewAppPage() {
 
   const role = useUserRole()
 
-  const metadata = { title: `Dashboard - ${role}` };
+  const metadata = { title: `Dashboard` };
 
   return (
     <>

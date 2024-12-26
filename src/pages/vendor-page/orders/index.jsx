@@ -4,7 +4,7 @@ import { CONFIG } from 'src/config-global';
 import { OrderListView } from 'src/sections/order/view';
 
 
-const metadata = { title: `Orders - ${CONFIG.site.name}` };
+const metadata = { title: `Orders Reports - ${CONFIG.site.name}` };
 
 export default function Page() {
     return (

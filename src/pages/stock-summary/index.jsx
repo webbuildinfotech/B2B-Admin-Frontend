@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { CONFIG } from 'src/config-global';
 import { StockListView } from "src/sections/stock-summary/view";
 
-const metadata = { title: `Stock Summary - ${CONFIG.site.name}` };
+const metadata = { title: `Stock Summary` };
 
 export default function Page() {
     return (

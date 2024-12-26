@@ -7,7 +7,7 @@ import { VendorListView } from 'src/sections/vendor/view';
 
 export default function Page() {
     const role = useUserRole()
-    const metadata = { title: `Vendors - ${role}` };
+    const metadata = { title: `Vendors` };
     
     return (
         <>
