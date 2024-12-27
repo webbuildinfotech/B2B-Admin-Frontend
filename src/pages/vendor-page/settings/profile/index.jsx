@@ -6,7 +6,7 @@ import { UserProfileView } from 'src/sections/vendor-sections/setting/profile/vi
 
 export default function Page() {
     const role = useUserRole()
-    const metadata = { title: `profile - ${role}` };
+    const metadata = { title: `Profile - ${role}` };
     return (
         <>
             <Helmet>
