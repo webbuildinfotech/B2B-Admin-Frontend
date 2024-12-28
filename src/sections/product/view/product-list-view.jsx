@@ -35,33 +35,9 @@ import { applyFilter } from '../utils';
 import { ProductTableRow } from './table/product-table-row';
 import { ProductTableToolbar } from './table/product-table-toolbar';
 import { useFetchProductData } from '../components/fetch-product';
-// import { MotionLazy } from 'src/components/animate/motion-lazy';
-import { Snackbar } from 'src/components/snackbar';
-import { ProgressBar } from 'src/components/progress-bar';
-import { MotionLazy } from 'src/components/animate/motion-lazy';
-import SplashScreen from 'src/components/loader/loading';
-import { AnimateLogo1, AnimateLogo3 } from 'src/components/animate';
+// import SplashScreen from 'src/components/loader/loading';
+// import { AnimateLogo3 } from 'src/components/animate';
 // ----------------------------------------------------------------------
-
-const centerStyle = {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '40vh',
-};
-
-const textAnimation = {
-    animation: 'colorChange 1.5s infinite',
-};
-
-// Add this keyframes animation to your CSS (or inject it dynamically like before)
-const keyframes = `
-  @keyframes colorChange {
-    0% { color: red; }
-    50% { color: black; }
-    100% { color: red; }
-  }
-  `;
 
 
 export function ProductListView() {
@@ -69,12 +45,8 @@ export function ProductListView() {
     const confirm = useBoolean();
     const confirmSync = useBoolean(); // Separate confirmation state for syncing
     const [loading, setLoading] = useState(false);
-    const [motionLoading, setMotionLoading] = useState(false);
     const [selectedRows, setSelectedRows] = useState([]); // Store selected row IDs
     const [deleting, setDeleting] = useState(false); // Track delete operation
-    // Injecting keyframes directly (Optional, can be in external CSS)
-    const styleSheet = document.styleSheets[0];
-    styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
 
     const { fetchData, fetchDeleteItem, deleteAllItems } = useFetchProductData(); // Destructure fetchData from the custom hook
     const dispatch = useDispatch();
@@ -92,9 +64,7 @@ export function ProductListView() {
 
     //----------------------------------------------------------------------------------------------------
     useEffect(() => {
-        setMotionLoading(true)
         fetchData(); // Call fetchData when the component mounts
-        setMotionLoading(false)
 
     }, []);
 
@@ -245,23 +215,7 @@ export function ProductListView() {
                             sx={{ p: 2.5, pt: 0 }}
                         />
                     )}
-                    {motionLoading ? (
-                        <div
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            height: '40vh',
-                          }}
-                        >
-                          <SplashScreen
-                            logoComponent={<AnimateLogo3 />}
-                            bgcolor="red"
-                            zIndex={9999}
-                            sx={{ padding: 2 }}
-                          />
-                        </div>
-                      ) :(
+               
                         <Box sx={{ position: 'relative' }}>
                             <TableSelectedAction
                                 dense={table.dense}
@@ -323,7 +277,7 @@ export function ProductListView() {
                             </Scrollbar>
 
                         </Box>
-                    )}
+                  
                     <TablePaginationCustom
                         page={table.page}
                         dense={table.dense}
