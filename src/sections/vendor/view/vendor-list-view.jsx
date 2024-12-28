@@ -234,7 +234,8 @@ export function VendorListView() {
                                 />
 
                                 <TableBody>
-                                    {dataFiltered.slice(
+                                    {dataFiltered
+                                        .slice(
                                         table.page * table.rowsPerPage,
                                         table.page * table.rowsPerPage + table.rowsPerPage
                                     ).map((row) => (

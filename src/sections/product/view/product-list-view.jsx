@@ -14,6 +14,7 @@ import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+import { LoadingScreen } from 'src/components/loading-screen';
 import {
     useTable,
     emptyRows,
@@ -34,22 +35,52 @@ import { applyFilter } from '../utils';
 import { ProductTableRow } from './table/product-table-row';
 import { ProductTableToolbar } from './table/product-table-toolbar';
 import { useFetchProductData } from '../components/fetch-product';
-
+// import { MotionLazy } from 'src/components/animate/motion-lazy';
+import { Snackbar } from 'src/components/snackbar';
+import { ProgressBar } from 'src/components/progress-bar';
+import { MotionLazy } from 'src/components/animate/motion-lazy';
+import SplashScreen from 'src/components/loader/loading';
+import { AnimateLogo1, AnimateLogo3 } from 'src/components/animate';
 // ----------------------------------------------------------------------
+
+const centerStyle = {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '40vh',
+};
+
+const textAnimation = {
+    animation: 'colorChange 1.5s infinite',
+};
+
+// Add this keyframes animation to your CSS (or inject it dynamically like before)
+const keyframes = `
+  @keyframes colorChange {
+    0% { color: red; }
+    50% { color: black; }
+    100% { color: red; }
+  }
+  `;
+
+
 export function ProductListView() {
     const table = useTable();
     const confirm = useBoolean();
     const confirmSync = useBoolean(); // Separate confirmation state for syncing
     const [loading, setLoading] = useState(false);
+    const [motionLoading, setMotionLoading] = useState(false);
     const [selectedRows, setSelectedRows] = useState([]); // Store selected row IDs
     const [deleting, setDeleting] = useState(false); // Track delete operation
-
+    // Injecting keyframes directly (Optional, can be in external CSS)
+    const styleSheet = document.styleSheets[0];
+    styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
 
     const { fetchData, fetchDeleteItem, deleteAllItems } = useFetchProductData(); // Destructure fetchData from the custom hook
     const dispatch = useDispatch();
     const _productList = useSelector((state) => state.product?.product || []);
     const [tableData, setTableData] = useState(_productList);
- 
+
     const options = _productList.map(opt => ({
         group: opt.group,
         subGroup1: opt.subGroup1,
@@ -61,7 +92,10 @@ export function ProductListView() {
 
     //----------------------------------------------------------------------------------------------------
     useEffect(() => {
+        setMotionLoading(true)
         fetchData(); // Call fetchData when the component mounts
+        setMotionLoading(false)
+
     }, []);
 
     useEffect(() => {
@@ -169,6 +203,7 @@ export function ProductListView() {
 
     return (
         <>
+
             <DashboardContent maxWidth="2xl">
                 <CustomBreadcrumbs
                     heading="List"
@@ -192,37 +227,6 @@ export function ProductListView() {
                 />
 
                 <Card>
-                    {/*
-                    <Tabs value={filters.state.status} onChange={handleFilterStatus}
-                        sx={{
-                            px: 2.5,
-                            boxShadow: (theme) =>
-                                `inset 0 -2px 0 0 ${varAlpha(theme.vars.palette.grey['500Channel'], 0.08)}`,
-                        }}
-                    >
-                        {STATUS_OPTIONS.map((tab) => (
-                            <Tab
-                                key={tab.value}
-                                iconPosition="end"
-                                value={tab.value}
-                                label={tab.label}
-                                icon={
-                                    <Label
-                                        variant={tab.value === filters.state.status ? 'filled' : 'soft'}
-                                        color={
-                                            (tab.value === 'Active' && 'success') ||
-                                            (tab.value === 'Inactive' && 'error') ||
-                                            (tab.value === 'all' && 'default') || 'default'
-                                        }
-                                    >
-                                        {tab.count} Display the count for each status 
-                                    </Label>
-                                }
-                            />
-                        ))}
-                    </Tabs>
-                */}
-
                     <ProductTableToolbar
                         options={options}
                         filters={filters}
@@ -241,65 +245,85 @@ export function ProductListView() {
                             sx={{ p: 2.5, pt: 0 }}
                         />
                     )}
+                    {motionLoading ? (
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            height: '40vh',
+                          }}
+                        >
+                          <SplashScreen
+                            logoComponent={<AnimateLogo3 />}
+                            bgcolor="red"
+                            zIndex={9999}
+                            sx={{ padding: 2 }}
+                          />
+                        </div>
+                      ) :(
+                        <Box sx={{ position: 'relative' }}>
+                            <TableSelectedAction
+                                dense={table.dense}
+                                numSelected={selectedRows.length}
+                                rowCount={dataFiltered.length}
+                                onSelectAllRows={(checked) => setSelectedRows(checked ? dataFiltered.map(row => row.id) : [])}
+                                action={
+                                    <Tooltip title="Delete Selected">
+                                        <IconButton color="primary" onClick={confirm.onTrue}>
+                                            <Iconify icon="solar:trash-bin-trash-bold" />
+                                        </IconButton>
+                                    </Tooltip>
+                                }
+                            />
 
-                    <Box sx={{ position: 'relative' }}>
-                        <TableSelectedAction
-                            dense={table.dense}
-                            numSelected={selectedRows.length}
-                            rowCount={dataFiltered.length}
-                            onSelectAllRows={(checked) => setSelectedRows(checked ? dataFiltered.map(row => row.id) : [])}
-                            action={
-                                <Tooltip title="Delete Selected">
-                                    <IconButton color="primary" onClick={confirm.onTrue}>
-                                        <Iconify icon="solar:trash-bin-trash-bold" />
-                                    </IconButton>
-                                </Tooltip>
-                            }
-                        />
-                        <Scrollbar>
-                            <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 960 }}>
-                                <TableHeadCustom
-                                    order={table.order}
-                                    orderBy={table.orderBy}
-                                    headLabel={TABLE_PRODUCT_HEAD}
-                                    rowCount={dataFiltered.length}
-                                    numSelected={selectedRows.length}
-                                    onSort={table.onSort}
-                                    onSelectAllRows={(checked) =>
-                                        setSelectedRows(checked ? dataFiltered.map((row) => row.id) : [])
-                                    }
+                            <Scrollbar>
+                                <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 960 }}>
+                                    <TableHeadCustom
+                                        order={table.order}
+                                        orderBy={table.orderBy}
+                                        headLabel={TABLE_PRODUCT_HEAD}
+                                        rowCount={dataFiltered.length}
+                                        numSelected={selectedRows.length}
+                                        onSort={table.onSort}
+                                        onSelectAllRows={(checked) =>
+                                            setSelectedRows(checked ? dataFiltered.map((row) => row.id) : [])
+                                        }
 
-                                />
-
-                                <TableBody>
-                                    {dataFiltered.slice(
-                                        table.page * table.rowsPerPage,
-                                        table.page * table.rowsPerPage + table.rowsPerPage
-                                    ).map((row) => (
-                                        <ProductTableRow
-                                            key={row.id}
-                                            row={row}
-                                            selected={selectedRows.includes(row.id)}
-                                            onSelectRow={() => handleSelectRow(row.id)}
-                                            onDeleteRow={() => handleDeleteRow(row.id)}
-                                            onEditRow={() => handleEditRow(row.id)}
-                                            onViewRow={() => handleViewRow(row.id)}
-
-                                        />
-                                    ))}
-
-                                    <TableEmptyRows
-                                        height={table.dense ? 56 : 56 + 20}
-                                        emptyRows={emptyRows(table.page, table.rowsPerPage, dataFiltered.length)}
                                     />
 
-                                    <TableNoData notFound={notFound} />
-                                </TableBody>
-                            </Table>
-                        </Scrollbar>
+                                    <TableBody>
+                                        {dataFiltered
+                                            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) // Sort by 'created' descending
+                                            .slice(
+                                                table.page * table.rowsPerPage,
+                                                table.page * table.rowsPerPage + table.rowsPerPage
+                                            ).map((row) => (
 
-                    </Box>
+                                                <ProductTableRow
+                                                    key={row.id}
+                                                    row={row}
+                                                    selected={selectedRows.includes(row.id)}
+                                                    onSelectRow={() => handleSelectRow(row.id)}
+                                                    onDeleteRow={() => handleDeleteRow(row.id)}
+                                                    onEditRow={() => handleEditRow(row.id)}
+                                                    onViewRow={() => handleViewRow(row.id)}
 
+                                                />
+                                            ))}
+
+                                        <TableEmptyRows
+                                            height={table.dense ? 56 : 56 + 20}
+                                            emptyRows={emptyRows(table.page, table.rowsPerPage, dataFiltered.length)}
+                                        />
+
+                                        <TableNoData notFound={notFound} />
+                                    </TableBody>
+                                </Table>
+                            </Scrollbar>
+
+                        </Box>
+                    )}
                     <TablePaginationCustom
                         page={table.page}
                         dense={table.dense}
@@ -310,6 +334,7 @@ export function ProductListView() {
                         onRowsPerPageChange={table.onChangeRowsPerPage}
                     />
                 </Card>
+
             </DashboardContent>
 
             {/* Sync Confirmation Dialog */}
