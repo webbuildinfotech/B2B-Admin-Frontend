@@ -1,160 +1,198 @@
-/* eslint-disable import/no-extraneous-dependencies */
-/* eslint-disable new-cap */
-
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { fNumber } from 'src/utils/format-number';
+import { fDate } from 'src/utils/format-time';
+import logo from '../../../../assets/logos/techno.png'
 
-// Function to generate PDF
-export const generatePDF = (filteredData, party) => {
-  // Create a new instance of jsPDF
+
+export const generatePDF = (filteredData, ledger, dateRange) => {
+  const { startDate, endDate } = dateRange || {};
+
+  // Determine financial year dates if no date range is selected
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const financialStartDate = new Date(currentDate.getMonth() >= 3 ? `${currentYear}-04-01` : `${currentYear - 1}-04-01`);
+  const financialEndDate = new Date(financialStartDate);
+  financialEndDate.setFullYear(financialStartDate.getFullYear() + 1);
+  financialEndDate.setDate(financialEndDate.getDate() - 1);
+
+    // Filter data within the financial year
+    const financialYearData = filteredData.filter((item) => {
+      const itemDate = new Date(item.date);
+      return itemDate >= financialStartDate && itemDate <= financialEndDate;
+    });
+
+    const notInFinancialYearData = filteredData.filter((item) => {
+      const itemDate = new Date(item.date);
+      return itemDate < financialStartDate || itemDate > financialEndDate;
+    });
+  
+
+  // Display either the selected date range or the financial year range
+  const dateRangeText = startDate && endDate
+    ? `${fDate(startDate)} to ${fDate(endDate)}`
+    : `${fDate(financialStartDate)} to ${fDate(financialEndDate)}`;
+  // eslint-disable-next-line new-cap
   const doc = new jsPDF();
 
-  // Set the main title
-  doc.setFontSize(20);
+  let pageNumber = 1; // Initialize page number
+
+  // Helper function to add page header and footer
+  const addPageHeaderFooter = (pageNo) => {
+    doc.setFontSize(10);
+    doc.text(`RG Techno`, 30, 10, { align: 'right' });
+    doc.line(10, 282, 200, 282); // Divider
+    doc.text(`Page No: ${pageNo}`, 200, 10, { align: 'right' });
+    if (pageNo > 0) {
+      doc.setDrawColor(0);
+      doc.setLineWidth(0.2);
+      doc.line(10, 282, 200, 282); // Divider
+      doc.text('Continued on next page...', 105, 290, { align: 'center' });
+    }
+  };
+
+    // Add Financial Year Data
+if (financialYearData.length > 0) {
+  // Header Section
+  doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(255, 87, 34); // Orange color similar to your reference
-  doc.text(`Ledger Statement of ${party}`, 15, 20);
-
-  // Get current date in "dd/mm/yyyy" format
-  // const currentDate = new Date();
-  // const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}/${(currentDate.getMonth() + 1).toString().padStart(2, '0')}/${currentDate.getFullYear()}`;
-  // doc.text(formattedDate, 170, 20);
-
-  // Table header and data (Updated to match filteredData)
-  const headers = [['Voucher No', 'Voucher Type', 'Ledger', 'Date', 'Credit Amount', 'Debit Amount']];
-  const data = filteredData.map((item) => [
-    item.voucherNo,
-    item.voucherType,
-    item.ledger,
+  doc.addImage(logo, 'PNG', 10, 5, 20, 20);
+  // doc.text('Sandbox Data', 105, 10, { align: 'center' });
+  doc.setFontSize(10);
+  // doc.text('A', 105, 15, { align: 'center' });
+  // doc.text('Bangalore', 105, 20, { align: 'center' });
+  doc.text(ledger.party, 105, 15, { align: 'center' });
+  // doc.text(ledger.alias || "Alias No Not found", 105, 20, { align: 'center' });
+  // doc.text('Email: abhishek.amsn@gmail.com', 105, 35, { align: 'center' });
+  // doc.text(`Ledger Account: A   B   C`, 105, 40, { align: 'center' });
+  // doc.text(`01-Apr-2024 to 31-Mar-2025`, 105, 25, { align: 'center' });
+  doc.text(dateRangeText, 105, 25, { align: 'center' });
+  
+  const headers = [['Date', 'Particulars', 'Vch Type', 'Vch No.', 'Debit', 'Credit']];
+  const data = financialYearData.map((item) => [
     item.date,
-    `Rs: ${fNumber(item.creditAmount)}`,
+    item.ledger,
+    item.voucherType,
+    item.voucherNo,
     `Rs: ${fNumber(item.debitAmount)}`,
+    `Rs: ${fNumber(item.creditAmount)}`,
   ]);
 
-  // Adding the transaction details table
   doc.autoTable({
     head: headers,
     body: data,
-    startY: 40, // Adjusted start position for the table
-    theme: 'grid', // Optional: styling for better visuals
+    startY: 30,
+    theme: 'plain',
+    margin: { left: 10, right: 10 },
+    styles: { fontSize: 9, cellPadding: 1.5 },
     headStyles: {
-      fillColor: [255, 87, 34], // Orange header
+      fontStyle: 'bold',
+      fillColor: [255, 255, 255],
+      textColor: [0, 0, 0],
+      halign: 'center',
+      valign: 'middle',
+    },
+    bodyStyles: {
+      textColor: [0, 0, 0],
+      halign: 'center',
     },
     columnStyles: {
-      0: { halign: 'center', cellWidth: 30 }, // Voucher No alignment and width (Center aligned)
-      1: { halign: 'center', cellWidth: 30 }, // Voucher Type alignment and width (Center aligned)
-      2: { halign: 'center', cellWidth: 40 }, // Ledger alignment and width (Center aligned)
-      3: { halign: 'center', cellWidth: 30 }, // Date alignment and width (Center aligned)
-      4: { halign: 'right', cellWidth: 30 }, // Credit Amount alignment and width (Right aligned)
-      5: { halign: 'right', cellWidth: 30 }, // Debit Amount alignment and width (Right aligned)
+      0: { halign: 'center', cellWidth: 32, overflow: 'linebreak' },
+      1: { halign: 'center', cellWidth: 32, overflow: 'linebreak' },
+      2: { halign: 'center', cellWidth: 32, overflow: 'linebreak' },
+      3: { halign: 'center', cellWidth: 32, overflow: 'linebreak' },
+      4: { halign: 'center', cellWidth: 32, overflow: 'linebreak' },
+      5: { halign: 'center', cellWidth: 32, overflow: 'linebreak' },
     },
-    didParseCell({ section, column, cell }) {
-      if (section === 'head') {
-        // Set alignment for each header cell based on column index
-        if (column.index === 0 || column.index === 1 || column.index === 2 || column.index === 3) {
-          cell.styles.halign = 'center'; // Center aligned for columns 0, 1, 2, and 3
-        } else if (column.index === 4 || column.index === 5) {
-          cell.styles.halign = 'right'; // Right aligned for columns 4 and 5
-        }
+    didDrawPage: (pageData) => {
+      addPageHeaderFooter(pageNumber);
+      pageNumber += 1;
+    },
+    didDrawCell: (cellData) => {
+      if (cellData.section === 'head') {
+        const { cell } = cellData;
+        const { x, y, width } = cell;
+        doc.setLineWidth(0.1);
+        doc.line(x, y, x + width, y);
+        doc.line(x, y + cell.height, x + width, y + cell.height);
       }
     },
-  });
+  })
+}
 
-  // Calculate total credit and debit amounts
-  const totalCredit = filteredData.reduce((total, item) => total + item.creditAmount, 0);
+    // Add Financial Year Data
+    if (notInFinancialYearData.length > 0) {
+      const startY = doc.previousAutoTable ? doc.previousAutoTable.finalY + 20 : 40;
+      // Header Section
+      doc.setFontSize(12);
+      doc.text('Non-Financial Year Data', 105, startY, { align: 'center' });
+      
+      const headers = [['Date', 'Particulars', 'Vch Type', 'Vch No.', 'Debit', 'Credit']];
+      const data = notInFinancialYearData.map((item) => [
+        item.date,
+        item.ledger,
+        item.voucherType,
+        item.voucherNo,
+        `Rs: ${fNumber(item.debitAmount)}`,
+        `Rs: ${fNumber(item.creditAmount)}`,
+      ]);
+    
+      doc.autoTable({
+        head: headers,
+        body: data,
+        startY: startY + 10,
+        theme: 'plain',
+        margin: { left: 10, right: 10 },
+        styles: { fontSize: 9, cellPadding: 1.5 },
+        headStyles: {
+          fontStyle: 'bold',
+          fillColor: [255, 255, 255],
+          textColor: [0, 0, 0],
+          halign: 'center',
+          valign: 'middle',
+        },
+        bodyStyles: {
+          textColor: [0, 0, 0],
+          halign: 'center',
+        },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 32, overflow: 'linebreak' },
+          1: { halign: 'center', cellWidth: 32, overflow: 'linebreak' },
+          2: { halign: 'center', cellWidth: 32, overflow: 'linebreak' },
+          3: { halign: 'center', cellWidth: 32, overflow: 'linebreak' },
+          4: { halign: 'center', cellWidth: 32, overflow: 'linebreak' },
+          5: { halign: 'center', cellWidth: 32, overflow: 'linebreak' },
+        },
+        didDrawCell: (cellData) => {
+          if (cellData.section === 'head') {
+            const { cell } = cellData;
+            const { x, y, width } = cell;
+            doc.setLineWidth(0.1);
+            doc.line(x, y, x + width, y);
+            doc.line(x, y + cell.height, x + width, y + cell.height);
+          }
+        },
+      })
+    }
+
   const totalDebit = filteredData.reduce((total, item) => total + item.debitAmount, 0);
-  const netAmount = totalCredit - totalDebit;
+  const totalCredit = filteredData.reduce((total, item) => total + item.creditAmount, 0);
+  const finalY = doc.previousAutoTable.finalY + 10;
 
-  // Add the total amounts below the table
-  doc.setFontSize(14);
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(255, 87, 34); // Orange for total section
-  doc.text(`Total Credit Rs: ${fNumber(totalCredit)}`, 15, doc.previousAutoTable.finalY + 10);
-  doc.text(`Total Debit Rs: ${fNumber(totalDebit)}`, 15, doc.previousAutoTable.finalY + 20);
-  doc.text(`Net Amount Rs: ${fNumber(netAmount)}`, 15, doc.previousAutoTable.finalY + 30);
+  const paddingY = 4;
+  const textY = finalY + paddingY;
 
-  // Save the generated PDF
-  doc.save('purchase_order.pdf');
+  doc.setLineWidth(0.5);
+  doc.line(10, textY - paddingY - 1, 200, textY - paddingY - 1);
+  doc.text('By', 20, textY);
+  doc.text('Closing Balance', 50, textY);
+  doc.text(`Rs: ${fNumber(totalDebit)}`, 150, textY, { align: 'center' });
+  doc.text(`Rs: ${fNumber(totalCredit)}`, 190, textY, { align: 'center' });
+  doc.line(10, textY + paddingY - 2, 200, textY + paddingY - 2);
+
+  doc.save('ledger_statement.pdf');
 };
 
 
-
-// Function to generate PDF and trigger print
-export const generatePrint = (filteredData, party) => {
-
-  const doc = new jsPDF();
-
-  // Set the main title
-  doc.setFontSize(20);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(255, 87, 34); // Orange color similar to your reference
-  doc.text(`Ledger Statement of ${party}`, 15, 20);
-
-  // Get current date in "dd/mm/yyyy" format
-  // const currentDate = new Date();
-  // const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}/${(currentDate.getMonth() + 1).toString().padStart(2, '0')}/${currentDate.getFullYear()}`;
-  // doc.text(formattedDate, 170, 20);
-
-  // Table header and data (Updated to match filteredData)
-  const headers = [['Voucher No', 'Voucher Type', 'Ledger', 'Date', 'Credit Amount', 'Debit Amount']];
-  const data = filteredData.map((item) => [
-    item.voucherNo,
-    item.voucherType,
-    item.ledger,
-    item.date,
-    `Rs: ${fNumber(item.creditAmount)}`,
-    `Rs: ${fNumber(item.debitAmount)}`,
-  ]);
-
-  // Adding the transaction details table with page overflow handling
-  doc.autoTable({
-    head: headers,
-    body: data,
-    startY: 40, // Adjusted start position for the table
-    theme: 'grid', // Optional: styling for better visuals
-    headStyles: {
-      fillColor: [255, 87, 34], // Orange header
-    },
-    columnStyles: {
-      0: { halign: 'center', cellWidth: 30 }, // Voucher No alignment and width (Center aligned)
-      1: { halign: 'center', cellWidth: 30 }, // Voucher Type alignment and width (Center aligned)
-      2: { halign: 'center', cellWidth: 40 }, // Ledger alignment and width (Center aligned)
-      3: { halign: 'center', cellWidth: 30 }, // Date alignment and width (Center aligned)
-      4: { halign: 'right', cellWidth: 30 }, // Credit Amount alignment and width (Right aligned)
-      5: { halign: 'right', cellWidth: 30 }, // Debit Amount alignment and width (Right aligned)
-    },
-    didParseCell({ section, column, cell }) {
-      if (section === 'head') {
-        // Set alignment for each header cell based on column index
-        if (column.index === 0 || column.index === 1 || column.index === 2 || column.index === 3) {
-          cell.styles.halign = 'center'; // Center aligned for columns 0, 1, 2, and 3
-        } else if (column.index === 4 || column.index === 5) {
-          cell.styles.halign = 'right'; // Right aligned for columns 4 and 5
-        }
-      }
-    },
-    margin: { top: 20, left: 15, bottom: 20 }, // Add margins to prevent overflow
-    // Optional: Add page break when necessary
-    pageBreak: 'auto',
-  });
-
-  // Calculate total credit and debit amounts
-  const totalCredit = filteredData.reduce((total, item) => total + item.creditAmount, 0);
-  const totalDebit = filteredData.reduce((total, item) => total + item.debitAmount, 0);
-  const netAmount = totalCredit - totalDebit;
-
-  // Add the total amounts below the table
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(255, 87, 34); // Orange for total section
-  doc.text(`Total Credit Rs: ${fNumber(totalCredit)}`, 15, doc.previousAutoTable.finalY + 10);
-  doc.text(`Total Debit Rs: ${fNumber(totalDebit)}`, 15, doc.previousAutoTable.finalY + 20);
-  doc.text(`Net Amount Rs: ${fNumber(netAmount)}`, 15, doc.previousAutoTable.finalY + 30);
-
-  // Trigger the print dialog
-  doc.autoPrint();
-
-  // Open the print dialog directly after generating the PDF
-  window.open(doc.output('bloburl'), '_blank');
-};

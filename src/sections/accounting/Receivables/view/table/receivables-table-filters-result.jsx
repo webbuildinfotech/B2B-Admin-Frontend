@@ -25,17 +25,6 @@ export function ReceivablesTableFiltersResult({ filters, totalResults, onResetPa
 
   return (
     <FiltersResult totalResults={totalResults} onReset={handleReset} sx={sx}>
-      <FiltersBlock label="Status:" isShow={filters.state.status !== 'all'}>
-        <Chip
-          {...chipProps}
-          label={filters.state.status}
-          onDelete={handleRemoveStatus}
-          sx={{ textTransform: 'capitalize' }}
-        />
-      </FiltersBlock>
-
-   
-
       <FiltersBlock label="Keyword:" isShow={!!filters.state.name}>
         <Chip {...chipProps} label={filters.state.name} onDelete={handleRemoveKeyword} />
       </FiltersBlock>

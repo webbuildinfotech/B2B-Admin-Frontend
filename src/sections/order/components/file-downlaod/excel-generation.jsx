@@ -35,7 +35,7 @@ export const exportToExcel = (data, filters, fIsBetween) => {
                 return `${product.itemName || 'N/A'} (Qty: ${orderItem.quantity}, Price: ${fCurrency(product.sellingPrice) || 'N/A'})`;
             })
             .join('; '),
-        UserName: item.user?.name || 'N/A',
+        Particular: item.user?.name || 'N/A',
         Address: `${item.user?.address || 'N/A'}, ${item.user?.state || ''}, ${item.user?.country || ''} - ${item.user?.pincode || ''}`,
         TotalQuantity: item.totalQuantity,
         Discount: item.discount,
@@ -43,7 +43,6 @@ export const exportToExcel = (data, filters, fIsBetween) => {
         DeliveryType: item.delivery,
         OrderDate: item.createdAt,
         GSTNo: item.user?.gstNo || 'N/A',
-        ContactPerson: item.user?.contactPerson || 'N/A',
         Status: item.status,
 
     }));

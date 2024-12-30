@@ -122,6 +122,7 @@
     "swr": "^2.2.5",
     "turndown": "^7.2.0",
     "xlsx": "^0.18.5",
+    "xlsx-style": "^0.8.13",
     "yet-another-react-lightbox": "^3.20.0",
     "yup": "^1.4.0",
     "zod": "^3.23.8"

@@ -41,7 +41,7 @@ export function VendorView() {
           { name: 'Vendors', href: paths?.vendors?.root },
           { name: 'View' },
         ]}
-        sx={{ mb: { xs: 3, md: 5 } }}
+        sx={{ mb: { xs: 1, md: 2 } }}
       />
 
       <Stack spacing={4} sx={{ pt: 3, px: 3 }}>
@@ -119,41 +119,39 @@ export function VendorView() {
             </Card>
           </Grid>
           {/* Card 2: Contact Information */}
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Contact Information
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
+       <Grid item xs={12}>
+  <Card>
+    <CardContent>
+      <Typography variant="h6" gutterBottom>
+        Contact Information
+      </Typography>
+      <Divider sx={{ mb: 2 }} />
 
-                <Grid container spacing={2}>
-                  {[
-                    { label: 'Contact Person', value: vendors.contactperson, icon: 'mdi:account', color: 'primary.main' },
-                    { label: 'Phone', value: vendors.phone, icon: 'mdi:phone', color: 'success.main' },
-                    { label: 'Email', value: vendors.email, icon: 'mdi:email', color: 'info.main' },
-                    { label: 'Address', value: vendors.address, icon: 'mdi:home', color: 'warning.main' },
-                    { label: 'Pincode', value: vendors.pincode, icon: 'mdi:pin', color: 'error.main' },
-                  ].map((item) => (
-                    <Grid item xs={12} sm={6} key={item.label}>
-                      <Box display="flex" alignItems="center">
-                       
-                        <Box>
-                        {renderIcon(item.icon, item.color)}
-                          <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                            {item.label}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {item.value || 'Not Available'}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Grid>
-                  ))}
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
+      <Stack spacing={2}>
+        {[
+          { label: 'Contact Person', value: vendors.contactperson, icon: 'mdi:account', color: 'primary.main' },
+          { label: 'Phone', value: vendors.phone, icon: 'mdi:phone', color: 'success.main' },
+          { label: 'Email', value: vendors.email, icon: 'mdi:email', color: 'info.main' },
+          { label: 'Address', value: vendors.address, icon: 'mdi:home', color: 'warning.main' },
+          { label: 'Pincode', value: vendors.pincode, icon: 'mdi:pin', color: 'error.main' },
+        ].map((item) => (
+          <Box display="flex" alignItems="center" key={item.label}>
+            {renderIcon(item.icon, item.color)}
+            <Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                {item.label}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {item.value || 'Not Available'}
+              </Typography>
+            </Box>
+          </Box>
+        ))}
+      </Stack>
+    </CardContent>
+  </Card>
+</Grid>
+
 
         </Grid>
       </Stack>

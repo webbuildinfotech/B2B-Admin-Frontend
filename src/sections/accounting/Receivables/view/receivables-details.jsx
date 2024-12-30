@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
@@ -23,6 +23,9 @@ import { useParams } from 'react-router';
 import { useSelector } from 'react-redux';
 import { writeFile, utils } from 'xlsx';
 import { generatePDF } from '../utils/generatePDF';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { ReceivablesTableFiltersResult } from './table/receivables-table-filters-result';
+
 
 export function ReceivablesListDetails() {
     const { fetchByIdData } = useFetchData();
@@ -32,16 +35,60 @@ export function ReceivablesListDetails() {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
+
     // Search state
     const [searchQuery, setSearchQuery] = useState('');
+    // const [startDate, setStartDate] = useState(null);
+    // const [endDate, setEndDate] = useState(null);
+    // const [dateError, setDateError] = useState('');
+
+    // const handleStartDateChange = (date) => {
+    //     setStartDate(date);
+    //     // Clear any previous error when start date is updated
+    //     if (endDate && new Date(date) > new Date(endDate)) {
+    //         setDateError('Start date must be earlier than the end date.');
+    //     } else {
+    //         setDateError('');
+    //     }
+    // };
+
+    // const handleEndDateChange = (date) => {
+    //     setEndDate(date);
+    //     if (startDate && new Date(date) < new Date(startDate)) {
+    //         setDateError('End date must be later than the start date.');
+    //     } else {
+    //         setDateError('');
+    //         // Apply the filter only when end date is set
+    //         if (startDate && date) {
+    //             // Trigger the filtering logic
+    //             setPage(0); // Reset to the first page
+    //         }
+    //     }
+    // };
 
     // Filtered data
     const filteredBills = receivable?.bills?.filter((bill) =>
         Object.values(bill).some((value) =>
             String(value).toLowerCase().includes(searchQuery.toLowerCase())
         )
-    );
-  
+    )
+    // ?.filter((voucher) => {
+    //     const voucherDate = new Date(voucher.billDate);
+    //     // Only filter by date if both startDate and endDate are selected
+    //     if (startDate && endDate) {
+    //         if (voucherDate < new Date(startDate)) return false;
+    //         if (voucherDate > new Date(endDate)) return false;
+    //     }
+    //     return true;
+    // });
+
+    const handleResetFilters = useCallback(() => {
+        // setStartDate(null);
+        // setEndDate(null);
+        setSearchQuery('');
+        setPage(0);
+    }, []);
+
 
     useEffect(() => {
         fetchByIdData(id);
@@ -53,7 +100,7 @@ export function ReceivablesListDetails() {
             return;
         }
         // Call the generatePDF function to generate and download the PDF
-        generatePDF(filteredBills, receivable.customerName);
+        generatePDF(filteredBills, receivable);
     }
 
     // const handleExportData = () => {
@@ -89,6 +136,9 @@ export function ReceivablesListDetails() {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0); // Reset to the first page
     };
+    const isFilterApplied = !!searchQuery 
+
+
 
     const renderFooter = (
         <Box gap={2} display="flex" alignItems="center" flexWrap="wrap" sx={{ py: 3 }}>
@@ -196,14 +246,65 @@ export function ReceivablesListDetails() {
                 <Divider sx={{ mt: 5, borderStyle: 'dashed' }} />
 
                 <TextField
-                    label="Search"
+                    label="Search..."
                     variant="outlined"
                     fullWidth
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    sx={{ mb: 2, mt: 2 }}
-                />
+                    sx={{
 
+                        mb: 2,
+                        mt: 2,
+
+                    }}
+                />
+                {/* 
+                    <DatePicker
+                        label="Start Date"
+                        value={startDate}
+                        onChange={handleStartDateChange}
+                        slotProps={{ textField: { fullWidth: true } }}
+                        sx={{
+                            flex: '1 1 200px', // Adjusts based on available space
+                            minWidth: '150px', // Ensures a minimum width
+                        }}
+                    />
+                    <DatePicker
+                        label="End Date"
+                        value={endDate}
+                        onChange={handleEndDateChange}
+                        slotProps={{
+                            textField: {
+                                fullWidth: true,
+                                error: !!dateError,
+                                helperText: dateError || null,
+                            },
+                        }}
+                        sx={{
+                            flex: '1 1 200px', // Adjusts based on available space
+                            minWidth: '150px', // Ensures a minimum width
+                        }}
+                    />
+                    */}
+
+
+
+                {isFilterApplied && (
+                    <ReceivablesTableFiltersResult
+                        filters={{
+                            state: {  name: searchQuery },
+                            // setState: ({ startDate: newStartDate, endDate: newEndDate, name: newName }) => {
+                            //     setStartDate(newStartDate ?? null);
+                            //     setEndDate(newEndDate ?? null);
+                            //     setSearchQuery(newName ?? '');
+                            // },
+                            onResetState: handleResetFilters,
+                        }}
+                        totalResults={filteredBills?.length || 0}
+                        onResetPage={() => setPage(0)}
+                        sx={{ mb: 3 }}
+                    />
+                )}
                 {renderList}
 
                 <Divider sx={{ mt: 5, borderStyle: 'dashed' }} />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
@@ -23,6 +23,9 @@ import { useParams } from 'react-router';
 import { useSelector } from 'react-redux';
 import { writeFile, utils } from 'xlsx'; // Library for Excel export
 import { generatePDF } from '../utils/generatePDF';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { formHelperTextClasses } from '@mui/material/FormHelperText';
+import { LedgerTableFiltersResult } from './table/ledger-table-filters-result';
 
 export function LedgerListDetails({ invoice }) {
     const { fetchByIdData } = useFetchData();
@@ -35,26 +38,94 @@ export function LedgerListDetails({ invoice }) {
 
     // Search state
     const [searchQuery, setSearchQuery] = useState('');
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
+    const [dateError, setDateError] = useState('');
 
-    // Filtered vouchers
-    const filteredVouchers = ledger?.vouchers?.filter((voucher) =>
-        Object.values(voucher).some((value) =>
-            String(value).toLowerCase().includes(searchQuery.toLowerCase())
-        )
-    );
-
-    useEffect(() => {
-        fetchByIdData(id);
-    }, []);
-
-      const handleDownloadPdf = () => {
-        if (!filteredVouchers || filteredVouchers.length === 0) {
-          console.error('No data available for download.');
-          return;
+    const handleStartDateChange = (date) => {
+        setStartDate(date);
+        // Clear any previous error when start date is updated
+        if (endDate && new Date(date) > new Date(endDate)) {
+            setDateError('Start date must be earlier than the end date.');
+        } else {
+            setDateError('');
         }
+    };
+    
+    const handleEndDateChange = (date) => {
+        setEndDate(date);
+        if (startDate && new Date(date) < new Date(startDate)) {
+            setDateError('End date must be later than the start date.');
+        } else {
+            setDateError('');
+            // Apply the filter only when end date is set
+            if (startDate && date) {
+                // Trigger the filtering logic
+                setPage(0); // Reset to the first page
+            }
+        }
+    };
+    
+    const filteredVouchers = ledger?.vouchers
+        ?.filter((voucher) => 
+            Object.values(voucher).some((value) => 
+                String(value).toLowerCase().includes(searchQuery.toLowerCase())
+            )
+        )
+        ?.filter((voucher) => {
+            const voucherDate = new Date(voucher.date);
+            // Only filter by date if both startDate and endDate are selected
+            if (startDate && endDate) {
+                if (voucherDate < new Date(startDate)) return false;
+                if (voucherDate > new Date(endDate)) return false;
+            }
+            return true;
+        });
+
+        useEffect(() => {
+            fetchByIdData(id);
+        }, []);
+    
+    // Filtered vouchers
+    // const filteredVouchers = ledger?.vouchers?.filter((voucher) =>
+    //     Object.values(voucher).some((value) =>
+    //         String(value).toLowerCase().includes(searchQuery.toLowerCase())
+    //     )
+    // )?.filter((voucher) => {
+    //     const voucherDate = new Date(voucher.date);
+    //     if (startDate && voucherDate < new Date(startDate)) return false;
+    //     if (endDate && voucherDate > new Date(endDate)) return false;
+    //     return true;
+    // });
+
+ 
+    // const handleStartDateChange = (date) => {
+    //     setStartDate(date);
+    //     if (endDate && new Date(date) > new Date(endDate)) {
+    //         setDateError('Start date must be earlier than the end date.');
+    //     } else {
+    //         setDateError('');
+    //     }
+    // };
+
+    // const handleEndDateChange = (date) => {
+    //     setEndDate(date);
+    //     if (startDate && new Date(date) < new Date(startDate)) {
+    //         setDateError('End date must be later than the start date.');
+    //     } else {
+    //         setDateError('');
+    //     }
+    // };
+
+    const handleDownloadPdf = () => {
+        if (!filteredVouchers || filteredVouchers.length === 0) {
+            console.error('No data available for download.');
+            return;
+        }
+        const dateRange = { startDate, endDate };
         // Call the generatePDF function to generate and download the PDF
-        generatePDF(filteredVouchers,ledger.customerName);
-      }
+        generatePDF(filteredVouchers, ledger,dateRange);
+    }
 
     // const handleExportData = () => {
     //     if (!filteredVouchers?.length) {
@@ -79,6 +150,13 @@ export function LedgerListDetails({ invoice }) {
     //     writeFile(workbook, `Ledger_${id}.xlsx`);
     // };
 
+    const handleResetFilters = useCallback(() => {
+        setStartDate(null);
+        setEndDate(null);
+        setSearchQuery('');
+        setPage(0);
+    }, []);
+
     // Handle pagination changes
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -88,6 +166,8 @@ export function LedgerListDetails({ invoice }) {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0); // Reset to the first page
     };
+
+    const isFilterApplied = !!searchQuery || !!startDate || !!endDate;
 
     const renderFooter = (
         <Box gap={2} display="flex" alignItems="center" flexWrap="wrap" sx={{ py: 3 }}>
@@ -109,7 +189,7 @@ export function LedgerListDetails({ invoice }) {
                     <TableRow>
                         <TableCell>#</TableCell>
                         <TableCell>Voucher No</TableCell>
-                        <TableCell>Ledger</TableCell>
+                        <TableCell>Particulars</TableCell>
                         <TableCell>Date</TableCell>
                         <TableCell>Voucher Type</TableCell>
                         <TableCell align="center">Debit Balance</TableCell>
@@ -156,11 +236,13 @@ export function LedgerListDetails({ invoice }) {
                 ]}
                 action={
                     <Button variant="contained" onClick={handleDownloadPdf}>
-                       Download
+                        Download
                     </Button>
                 }
                 sx={{ mb: { xs: 3, md: 5 } }}
             />
+
+
 
             <Card sx={{ pt: 5, px: 5 }}>
                 <Box
@@ -208,15 +290,76 @@ export function LedgerListDetails({ invoice }) {
                     </Stack>
                 </Box>
                 <Divider sx={{ mt: 4, borderStyle: 'dashed' }} />
+                <Box
+                    display="flex"
+                    gap={2}
+                    flexWrap="wrap"
+                    sx={{
+                        mb: 2,
+                        alignItems: 'center', // Center items vertically for better alignment
+                    }}
+                >
 
-                <TextField
-                    label="Search"
-                    variant="outlined"
-                    fullWidth
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    sx={{ mb: 2,mt:2 }}
-                />
+                    <TextField
+                        label="Search..."
+                        variant="outlined"
+                        fullWidth
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        sx={{
+                            flex: '1 1 100%', // Takes full width on smaller screens
+                            mb: 2,
+                            mt: 2,
+                            maxWidth: { xs: '100%', md: 600 }, // Adjust width for medium and smaller screens
+                        }}
+                    />
+                    <DatePicker
+                        label="Start Date"
+                        value={startDate}
+                        onChange={handleStartDateChange}
+                        slotProps={{ textField: { fullWidth: true } }}
+                        sx={{
+                            flex: '1 1 200px', // Adjusts based on available space
+                            minWidth: '150px', // Ensures a minimum width
+                        }}
+                    />
+                    <DatePicker
+                        label="End Date"
+                        value={endDate}
+                        onChange={handleEndDateChange}
+                        slotProps={{
+                            textField: {
+                                fullWidth: true,
+                                error: !!dateError,
+                                helperText: dateError || null,
+                            },
+                        }}
+                        sx={{
+                            flex: '1 1 200px', // Adjusts based on available space
+                            minWidth: '150px', // Ensures a minimum width
+                        }}
+                    />
+                </Box>
+
+                {isFilterApplied && (
+                    <LedgerTableFiltersResult
+                        filters={{
+                            state: { startDate, endDate, name: searchQuery },
+                            setState: ({ startDate: newStartDate, endDate: newEndDate, name: newName }) => {
+                                setStartDate(newStartDate ?? null);
+                                setEndDate(newEndDate ?? null);
+                                setSearchQuery(newName ?? '');
+                            },
+                            onResetState: handleResetFilters,
+                        }}
+                        totalResults={filteredVouchers?.length || 0}
+                        onResetPage={() => setPage(0)}
+                        sx={{ mb: 3 }}
+                    />
+                )}
+                
+                
+
 
                 {renderList}
 

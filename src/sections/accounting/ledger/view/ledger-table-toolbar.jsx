@@ -8,7 +8,7 @@ import { Iconify } from 'src/components/iconify';
 import { CustomPopover, usePopover } from 'src/components/custom-popover';
 import { fIsBetween } from 'src/utils/format-time';
 import { IconButton, MenuItem, MenuList, Tooltip } from '@mui/material';
-import { generatePDF, generatePrint } from '../utils/generatePDF';
+import { generatePDF } from '../utils/generatePDF';
 
 // ----------------------------------------------------------------------
 
@@ -58,28 +58,28 @@ export function LedgerTableToolbar({ filters, onResetPage, dateError, data }) {
     generatePDF(data);
   }
 
-  const handlePrint = () => {
-    if (!data || data.length === 0) {
-      console.error('No data available for Print.');
-      return;
-    }
+  // const handlePrint = () => {
+  //   if (!data || data.length === 0) {
+  //     console.error('No data available for Print.');
+  //     return;
+  //   }
 
-    // const { startDate, endDate } = filters.state;
+  //   // const { startDate, endDate } = filters.state;
 
-    // Filter data based on the date range
+  //   // Filter data based on the date range
 
-    // const filteredData = startDate && endDate
-    //   ? data.filter((item) => fIsBetween(item.date, startDate, endDate))
-    //   : data;
-    // Generate printable content
-    const printableContent = generatePrint(data);
+  //   // const filteredData = startDate && endDate
+  //   //   ? data.filter((item) => fIsBetween(item.date, startDate, endDate))
+  //   //   : data;
+  //   // Generate printable content
+  //   const printableContent = generatePrint(data);
 
-    // Open a new window and print the content
-    const newWindow = window.open('', '_blank');
-    newWindow.document.write(printableContent);
-    newWindow.document.close();
-    newWindow.print();
-  };
+  //   // Open a new window and print the content
+  //   const newWindow = window.open('', '_blank');
+  //   newWindow.document.write(printableContent);
+  //   newWindow.document.close();
+  //   newWindow.print();
+  // };
 
 
   return (
@@ -155,7 +155,7 @@ export function LedgerTableToolbar({ filters, onResetPage, dateError, data }) {
           <MenuItem
             onClick={() => {
               popover.onClose();
-              handlePrint()
+              // handlePrint()
             }}
           >
             <Iconify icon="solar:printer-minimalistic-bold" />
