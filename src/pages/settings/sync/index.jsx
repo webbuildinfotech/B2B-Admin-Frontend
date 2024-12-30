@@ -1,7 +1,8 @@
 
 import { Helmet } from 'react-helmet-async';
 import { CONFIG } from 'src/config-global';
-import { SyncView } from 'src/sections/setting/sync/view/sync-view';
+import { MainSetting } from 'src/sections/setting/sync/view/main';
+
 
 const metadata = { title: `Sync - ${CONFIG.site.name}` };
 
@@ -12,7 +13,7 @@ export default function Page() {
                 <title> {metadata.title}</title>
             </Helmet>
 
-            <SyncView/>
+            <MainSetting/>
         </>
     );
 }

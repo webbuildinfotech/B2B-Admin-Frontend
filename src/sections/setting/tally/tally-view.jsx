@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import {
     Box, Card, CardContent, Typography, Button, Dialog, DialogTitle,
-    DialogContent, TextField, DialogActions, Grid, Snackbar
+    DialogContent, TextField, DialogActions, Grid, Snackbar,
+    Divider
 } from "@mui/material";
 import { DashboardContent } from "src/layouts/dashboard";
 import { CustomBreadcrumbs } from "src/components/custom-breadcrumbs";
@@ -67,26 +68,21 @@ export function TallyView() {
     };
 
     return (
-        <DashboardContent maxWidth="2xl" sx={{ backgroundColor: "#f0f3f5", padding: "20px" }}>
-            <CustomBreadcrumbs
-                heading="Tally Settings"
-                links={[
-                    { name: "Dashboard", href: paths.dashboard.root },
-                    { name: "Tally Settings", href: paths?.settings.tally },
-                ]}
-            />
 
-            <Box sx={{ marginTop: 4 }}>
-                <Grid container spacing={2}>
+        <div>
+            <Card mt={4}>
+            <Typography variant="h5" p={2}>Tally Settings</Typography>
+            <Divider/>
+                <Grid container spacing={1}>
                     {ledgerData
                         .slice() // Create a copy of the array to avoid mutating the original state
                         .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)) // Sort by createdAt in ascending order 
                         .map((ledger) => (
 
-                            <Grid item xs={12} sm={6} key={ledger.id}>
+                            <Grid item xs={12} sm={12} key={ledger.id} m={1}>
                                 <Card
                                     sx={{
-                                        backgroundColor: "#eaf4f1",
+                                        backgroundColor: "#fff",
                                         border: "1px solid #007b5e",
                                         boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
                                         cursor: "pointer",
@@ -95,7 +91,7 @@ export function TallyView() {
                                 >
                                     <CardContent>
                                         <Typography
-                                            variant="h6"
+                                           
                                             sx={{
                                                 fontWeight: "bold",
                                                 color: "#007b5e",
@@ -107,7 +103,6 @@ export function TallyView() {
                                             variant="body1"
                                             sx={{
                                                 color: "#333",
-                                                marginTop: "10px",
                                             }}
                                         >
                                             {ledger.value || "Not Set"}
@@ -117,7 +112,7 @@ export function TallyView() {
                             </Grid>
                         ))}
                 </Grid>
-            </Box>
+            </Card>
 
             {/* Dialog for Editing */}
             {selectedLedger && (
@@ -192,6 +187,6 @@ export function TallyView() {
                 onClose={() => setSnackbar({ ...snackbar, open: false })}
                 message={snackbar.message}
             />
-        </DashboardContent>
+        </div>
     );
 }

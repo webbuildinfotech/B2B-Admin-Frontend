@@ -69,16 +69,13 @@ export const paths = {
     create: `/create`,
     edit: (id) => `/edit/${id}`,
     view: (id) => `/view/${id}`,
-
-    contact_us: `/settings/contact-us`,
-    terms_conditions: `/settings/terms-conditions`,
     profile: `/settings/profile-settings`,
     banner: `/settings/banner`,
     createBanner: `/create`,
     editBanner: (id) => `/edit/${id}`,
     viewBanner: (id) => `/view/${id}`,
-    sync: `/settings/sync`,
-    tally: `/settings/tally`,
+    sync: `/settings/basic`,
+    // tally: `/settings/tally`,
   },
 
   payments: {

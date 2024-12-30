@@ -18,7 +18,7 @@ import { LedgerListDetails } from 'src/sections/accounting/ledger/view/ledger-de
 
 // Overview
 const IndexPage = lazy(() => import('src/pages/dashboard'));
-const UsersPage = lazy(() => import('src/pages/users'));
+// const UsersPage = lazy(() => import('src/pages/users'));
 const ProductPage = lazy(() => import('src/pages/products'));
 const StockPage = lazy(() => import('src/pages/stock-summary'));
 const OrderPage = lazy(() => import('src/pages/orders'));
@@ -27,8 +27,8 @@ const ReceivablesPage = lazy(() => import('src/pages/accounting/Receivables'));
 const VendorPage = lazy(() => import('src/pages/vendors'));
 const FAQPage = lazy(() => import('src/pages/settings/faq'));
 const BannerPage = lazy(() => import('src/pages/settings/banner'));
-const ContactPage = lazy(() => import('src/pages/settings/contact-us'));
-const TermsPage = lazy(() => import('src/pages/settings/terms-conditions'));
+// const ContactPage = lazy(() => import('src/pages/settings/contact-us'));
+// const TermsPage = lazy(() => import('src/pages/settings/terms-conditions'));
 const ProfilePage = lazy(() => import('src/pages/vendor-page/settings/profile'));
 const LogoutPage = lazy(() => import('src/pages/settings/logout'));
 
@@ -131,18 +131,15 @@ export const adminRoute =[
         { path: 'faq/create', element: <FAQCreateView /> },
         { path: 'faq/edit/:id', element: <FAQEditView /> },
         { path: 'faq/view/:id', element: <FAQView /> },
-        { path: 'contact-us', element: <ContactPage /> },
+        // { path: 'contact-us', element: <ContactPage /> },
         // { path: 'privacy-policy', element: <PrivacyPage /> },
-        { path: 'terms-conditions', element: <TermsPage /> },
+        // { path: 'terms-conditions', element: <TermsPage /> },
         { path: 'profile-settings', element: <ProfilePage /> },
         { path: 'banner', element: <BannerPage /> },
         { path: 'banner/create', element: <BannerCreateView /> },
         { path: 'banner/edit/:id', element: <BannerEditView /> },
         { path: 'banner/view/:id', element: <BannerView /> },
-        { path: 'sync', element: <SyncPage /> },
-        { path: 'tally', element: <TallyPage /> },
-
-
+        { path: 'basic', element: <SyncPage /> },
       ],
     },
 

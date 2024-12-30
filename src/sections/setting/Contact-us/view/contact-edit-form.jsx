@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as zod from 'zod';
-import {Card,Stack, Typography} from '@mui/material';
+import {Box, Card,Stack, Typography} from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { Field, Form } from 'src/components/hook-form';
 import { useDispatch } from 'react-redux';
@@ -58,14 +58,11 @@ export default function ContactEditForm() {
 
     return (
 
-        <DashboardContent maxWidth='2xl'>
+        <Box mt={2}>
             <CustomBreadcrumbs
-                heading="Contact"
                 links={[
-                    { name: 'Dashboard', href: paths.dashboard.root },
-                    { name: 'List' },
+                    {name: '' },
                 ]}
-                sx={{ mb: { xs: 3, md: 5 } }}
             />
             <Form methods={methods} onSubmit={onSubmit}>
                 <Stack spacing={3}>
@@ -84,6 +81,6 @@ export default function ContactEditForm() {
                 </Stack>
             </Form>
 
-        </DashboardContent>
+        </Box>
     );
 }

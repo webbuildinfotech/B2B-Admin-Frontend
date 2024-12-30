@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as zod from 'zod';
 import {
+    Box,
     Card, CardHeader, Divider, Stack, Typography,
 } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
@@ -52,10 +53,8 @@ export default function TermEditForm() {
     const onSubmit = handleSubmit(async (data) => {
         setLoading(true);
         try {
-            const response = await dispatch(createTerm(data));
-            if (response) {
-                navigate('/settings/terms-conditions');
-            }
+            await dispatch(createTerm(data));
+
         } catch (error) {
             console.error('Submission failed', error);
         } finally {
@@ -65,14 +64,11 @@ export default function TermEditForm() {
 
     return (
 
-        <DashboardContent maxWidth='2xl'>
+        <Box mt={2}>
             <CustomBreadcrumbs
-                heading="Term & Conditions"
                 links={[
-                    { name: 'Dashboard', href: paths.dashboard.root },
-                    { name: 'List' },
+                    { name: '' },
                 ]}
-                sx={{ mb: { xs: 3, md: 5 } }}
             />
             <Form methods={methods} onSubmit={onSubmit}>
                 <Stack spacing={3}>
@@ -91,6 +87,6 @@ export default function TermEditForm() {
                 </Stack>
             </Form>
 
-        </DashboardContent>
+        </Box>
     );
 }
