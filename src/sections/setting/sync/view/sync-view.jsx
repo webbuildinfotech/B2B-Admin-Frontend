@@ -182,10 +182,26 @@ export function SyncView() {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setDialogOpen(false)} color="secondary">
+                    <Button onClick={() => setDialogOpen(false)} color="secondary"  sx={{
+                        backgroundColor: "#F44336", // Red background
+
+                        color: "white", // White text
+                        border: "2px solid  #388E3C", // Green border
+                        "&:hover": {
+                            backgroundColor: "#D32F2F", // Darker green on hover
+                        },
+                    }}>
                         Cancel
                     </Button>
-                    <Button onClick={currentAction} color="primary">
+                    <Button onClick={currentAction} color="primary"  sx={{
+                        backgroundColor: "#4CAF50", // Green background
+
+                            color: "white", // White text
+                            border: "2px solid #D32F2F", // Red border
+                            "&:hover": {
+                                backgroundColor: "#388E3C", // Darker red on hover
+                            },
+                        }}>
                         Confirm
                     </Button>
                 </DialogActions>

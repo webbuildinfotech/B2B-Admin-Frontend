@@ -45,7 +45,7 @@ export function OrderTableToolbar({ filters, onResetPage, dateError, data }) {
     },
     [filters, onResetPage]
   );
-  
+
   const handlePrint = () => {
     if (!data || data.length === 0) {
       console.error('No data available for export.');
@@ -65,22 +65,22 @@ export function OrderTableToolbar({ filters, onResetPage, dateError, data }) {
       return;
     }
 
-      // Generate printable content
-  const printableContent = generatePrintableContent(filteredData);
-  
+    // Generate printable content
+    const printableContent = generatePrintableContent(filteredData);
+
     // Open a new window and print the content
     const newWindow = window.open('', '_blank');
     newWindow.document.write(printableContent);
     newWindow.document.close();
     newWindow.print();
   };
-  
+
 
 
   const handleExport = () => {
     exportToExcel(data, filters, fIsBetween);
   };
-  
+
 
   return (
     <>
@@ -132,11 +132,31 @@ export function OrderTableToolbar({ filters, onResetPage, dateError, data }) {
               ),
             }}
           />
-          <Tooltip title="Print & Export">
-          <IconButton onClick={popover.onOpen}>
-            <Iconify icon="eva:more-vertical-fill" />
-          </IconButton>
-          </Tooltip>
+        <Tooltip title="Export">
+  <MenuItem
+    onClick={() => {
+      popover.onClose();
+      handleExport(); // Call export function on "Export" button click
+    }}
+    sx={{
+      border: '2px solid #1976d2', // Blue border
+      borderRadius: '8px', // Rounded corners
+      padding: '10px 20px', // Add spacing for a better look
+      margin: '5px 0', // Space between menu items
+      '&:hover': {
+        backgroundColor: '#f0f0f0', // Light grey hover effect
+        borderColor: '#1565c0', // Darker blue on hover
+      },
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px', // Space between icon and text
+    }}
+  >
+    <Iconify icon="solar:export-bold" />
+    Export
+  </MenuItem>
+</Tooltip>
+
         </Stack>
       </Stack>
 
@@ -146,12 +166,13 @@ export function OrderTableToolbar({ filters, onResetPage, dateError, data }) {
         onClose={popover.onClose}
         slotProps={{ arrow: { placement: 'right-top' } }}
       >
+        {/*
         <MenuList>
         
           <MenuItem
             onClick={() => {
               popover.onClose();
-              handlePrint()
+              // handlePrint()
             }}
           >
             <Iconify icon="solar:printer-minimalistic-bold" />
@@ -169,6 +190,7 @@ export function OrderTableToolbar({ filters, onResetPage, dateError, data }) {
             Export
           </MenuItem>
         </MenuList>
+        */}
       </CustomPopover>
     </>
   );

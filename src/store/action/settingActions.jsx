@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 import axiosInstance from "src/configs/axiosInstance";
-import {BANNER_GET_BY_LIST, BANNER_LIST, CONTACT_GET_BY_LIST, CONTACT_LIST, FAQ_GET_BY_LIST, FAQ_LIST, FETCH_TALLY_DATA, SYNC_GET_BY_LIST, SYNC_LIST, TERM_GET_BY_LIST, TERM_LIST, UPDATE_TALLY } from "../constants/actionTypes";
+import {BANNER_GET_BY_LIST, BANNER_LIST, CONTACT_GET_BY_LIST, CONTACT_LIST, FAQ_GET_BY_LIST, FAQ_LIST, FETCH_TALLY_DATA, LOGO, PATH_TALLY, SYNC_GET_BY_LIST, SYNC_LIST, TERM_GET_BY_LIST, TERM_LIST, UPDATE_TALLY } from "../constants/actionTypes";
 
 // FAQ Settings
 export const FAQList = () => async (dispatch) => {
@@ -359,3 +359,67 @@ export const fetchTallyAPIData = () => async (dispatch) => {
     }
   };
   
+
+export const LogoList = () => async (dispatch) => {
+    try {
+        const response = await axiosInstance.get('/logo');
+         dispatch({
+            type: LOGO,
+            payload: response.data, // Assuming response contains the customers data
+        });
+        return true;
+    } catch (error) {
+        // Check if error response exists and handle error message
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors
+};
+
+export const createLogo = (data) => async (dispatch) => {
+    try {
+        const response = await axiosInstance.post('/logo/upload', data);
+        if (response && response.status >= 200 && response.status < 300) {
+            toast.success(response.data.message || 'Logo Updated successfully!');
+            return true;
+        }
+        return response;
+    } catch (error) {
+        // Check if error response exists and handle error message
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors
+};
+
+export const createTallyPath = (data) => async (dispatch) => {
+    try {
+        const response = await axiosInstance.post('/tally-path', data);
+        if (response && response.status >= 200 && response.status < 300) {
+            toast.success(response.data.message || 'Path Updated successfully!');
+            return true;
+        }
+        return response;
+    } catch (error) {
+        // Check if error response exists and handle error message
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors
+};
+
+export const pathList = () => async (dispatch) => {
+    try {
+        const response = await axiosInstance.get('/tally-path');
+         dispatch({
+            type: PATH_TALLY,
+            payload: response.data, // Assuming response contains the customers data
+        });
+        return true;
+    } catch (error) {
+        // Check if error response exists and handle error message
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors
+};

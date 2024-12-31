@@ -3,6 +3,9 @@ export const USER_LIST = "USER_LIST";
 export const ADDRESS_LIST = "ADDRESS_LIST";
 export const ADDRESS_BY_LIST = "ADDRESS_BY_LIST"
 
+export const LOGO = "LOGO"
+
+export const PATH_TALLY = "PATH_TALLY"
 
 export const DASHBOARD_LENGTH = "DASHBOARD_LENGTH"
 export const MONTHLY_ORDER_LIST = "MONTHLY_ORDER_LIST"

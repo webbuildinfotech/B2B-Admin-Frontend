@@ -7,6 +7,8 @@ import { paths } from 'src/routes/paths';
 import { Grid } from '@mui/material';
 import TermEditForm from '../../terms-conditions/view/term-edit-form';
 import ContactEditForm from '../../Contact-us/view/contact-edit-form';
+import { Logo } from '../../logo/view/logo';
+import { TallyPathSetting } from '../../logo/view/path';
 
 export function MainSetting() {
     return (
@@ -29,6 +31,16 @@ export function MainSetting() {
                     <TallyView />
                 </Grid>
             </Grid>
+
+            <Grid container spacing={4} mt={1}>
+            <Grid item xs={12} md={6}>
+            <Logo/>
+            </Grid>
+            <Grid item xs={12} md={6}>
+                <TallyPathSetting />
+            </Grid>
+        </Grid>
+          
         </DashboardContent>
     );
 }

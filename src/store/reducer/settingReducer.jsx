@@ -1,4 +1,4 @@
-import { SYNC_GET_BY_LIST, SYNC_LIST, FAQ_LIST, FAQ_GET_BY_LIST, CONTACT_GET_BY_LIST, CONTACT_LIST, TERM_LIST, TERM_GET_BY_LIST, BANNER_LIST, BANNER_GET_BY_LIST, FETCH_TALLY_DATA, UPDATE_TALLY } from "../constants/actionTypes";
+import { SYNC_GET_BY_LIST, SYNC_LIST, FAQ_LIST, FAQ_GET_BY_LIST, CONTACT_GET_BY_LIST, CONTACT_LIST, TERM_LIST, TERM_GET_BY_LIST, BANNER_LIST, BANNER_GET_BY_LIST, FETCH_TALLY_DATA, UPDATE_TALLY, LOGO, PATH_TALLY } from "../constants/actionTypes";
 
 const initialState = {
     faq: [],
@@ -12,6 +12,9 @@ const initialState = {
     syncData: [],
     getBySyncData: '',
     tallyFetchData: [],
+    logo: '',
+    path: ''
+
 
 };
 const settingReducer = (state = initialState, { type, payload } = {}) => {
@@ -68,26 +71,39 @@ const settingReducer = (state = initialState, { type, payload } = {}) => {
                 banner: payload,
             };
 
+
+        case LOGO:
+            return {
+                ...state,
+                logo: payload,
+            };
+
+        case PATH_TALLY:
+            return {
+                ...state,
+                path: payload,
+            };
+
         case BANNER_GET_BY_LIST:
             return {
                 ...state,
                 getByBanner: payload,
             };
 
-            case FETCH_TALLY_DATA:
+        case FETCH_TALLY_DATA:
             return {
-              ...state,
-              tallyFetchData: payload,
+                ...state,
+                tallyFetchData: payload,
             };
 
-            case UPDATE_TALLY:
+        case UPDATE_TALLY:
             return {
                 ...state,
                 tallyFetchData: state.tallyFetchData.map((ledger) =>
                     ledger.id === payload.id ? payload : ledger
                 ),
             };
-        
+
 
         default:
             return state;

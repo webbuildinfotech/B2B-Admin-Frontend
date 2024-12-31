@@ -1,4 +1,4 @@
-import { useId, forwardRef } from 'react';
+import { useId, forwardRef, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import NoSsr from '@mui/material/NoSsr';
@@ -7,13 +7,21 @@ import { useTheme } from '@mui/material/styles';
 import { RouterLink } from 'src/routes/components';
 
 import { logoClasses } from './classes';
-import pngLogo from './assets/tech.png'
+import { useFetchData } from 'src/sections/setting/logo/utils/fetch';
+import { useSelector } from 'react-redux';
 
 // ----------------------------------------------------------------------
 
 export const Logo = forwardRef(
   ({ width = 72, height = 72, disableLink = false, className, href = '/', sx, ...other }, ref) => {
     const theme = useTheme();
+
+    const { fetchData } = useFetchData();
+    const logoList = useSelector((state) => state.setting?.logo || []);
+
+    useEffect(() => {
+      fetchData();
+    }, []);
 
     const gradientId = useId();
 
@@ -28,7 +36,7 @@ export const Logo = forwardRef(
      * const logo = ( <Box alt="logo" component="img" src={`${CONFIG.site.basePath}/logo/logo-single.svg`} width={width} height={height} /> );
      */
     const logo = (
-      <img alt="logo" src={isDark ? pngLogo : pngLogo} width={width} height={height}/>
+      <img alt="logo" src={isDark ? logoList.logoImage : logoList.logoImage} width={width} height={height} />
     );
 
     return (
