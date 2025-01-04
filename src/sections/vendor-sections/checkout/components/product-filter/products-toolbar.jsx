@@ -43,7 +43,9 @@ export function ProductToolbar({ options, filters, clearFilters }) {
             subGroup1: prev.subGroup1.filter(sub => availableSubGroup1.includes(sub)),
             subGroup2: prev.subGroup2.filter(sub => availableSubGroup2.includes(sub)),
         }));
-    }, [availableSubGroup1, availableSubGroup2, filters]);
+    // }, [availableSubGroup1, availableSubGroup2, filters]);
+    }, []);
+
 
     // Clear all filters
     useEffect(() => {

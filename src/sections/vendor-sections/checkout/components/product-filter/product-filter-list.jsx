@@ -14,6 +14,9 @@ import { useSetState } from 'src/hooks/use-set-state';
 import { ProductToolbar } from './products-toolbar';
 import { applyFilterData } from '../filterApply/filter-data';
 import { addToCart, cartList } from 'src/store/action/cartActions';
+import ListboxComponent from './ListboxComponent';
+
+
 
 export function ProductFilterView() {
     const { fetchData } = useFetchProductData(); // Destructure fetchData from the custom hook
@@ -125,6 +128,7 @@ export function ProductFilterView() {
                         onClose={() => setAutocompleteOpen(false)}
                         onChange={handleProductChange}
                         disableCloseOnSelect // Keep the dropdown open after selecting an option
+                        ListboxComponent={ListboxComponent} // Use updated ListboxComponent
                         renderOption={(props, option, { selected }) => (
                             <li {...props}>
                                 <Checkbox
