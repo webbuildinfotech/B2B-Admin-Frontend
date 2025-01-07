@@ -6,7 +6,8 @@ import {
     Typography,
     Checkbox,
     Autocomplete,
-    TextField
+    TextField,
+    CircularProgress
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFetchProductData } from 'src/sections/vendor-sections/product/components/fetch-product';
@@ -23,6 +24,7 @@ export function ProductFilterView() {
     const _productList = useSelector((state) => state.product?.product || []);
     const [tableData, setTableData] = useState(_productList);
     const [autocompleteOpen, setAutocompleteOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // State for loader
     const clearFiltersRef = useRef(null);
 
     const options = _productList.map((opt) => ({
@@ -69,6 +71,7 @@ export function ProductFilterView() {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        setIsLoading(true); // Start the loader
         const productsToAdd = selectedProducts.map((product) => ({
             productId: product.id
             // quantity: 100, // Default quantity is 100
@@ -85,6 +88,9 @@ export function ProductFilterView() {
 
         } catch (error) {
             console.error('Submission failed', error);
+            setIsLoading(false); // Stop the loader
+        } finally {
+            setIsLoading(false); // Stop the loader
         }
     };
 
@@ -99,10 +105,10 @@ export function ProductFilterView() {
 
     return (
         <div>
-            <ProductToolbar 
-            options={options} 
-            filters={filters}
-            clearFilters={clearFiltersRef}
+            <ProductToolbar
+                options={options}
+                filters={filters}
+                clearFilters={clearFiltersRef}
             />
             <Box
                 component="form"
@@ -154,7 +160,7 @@ export function ProductFilterView() {
 
                 </FormControl>
 
-             
+
 
                 {/* Apply Button */}
                 <Button
@@ -165,9 +171,10 @@ export function ProductFilterView() {
                     size="large"
                     type="submit"
                     variant="contained"
-
+                    disabled={isLoading} // Disable button when loading
+                    startIcon={isLoading && <CircularProgress size={20} />} // Add loader icon
                 >
-                    Apply
+                    {isLoading ? 'Applying...' : 'Apply'}
                 </Button>
             </Box>
         </div>

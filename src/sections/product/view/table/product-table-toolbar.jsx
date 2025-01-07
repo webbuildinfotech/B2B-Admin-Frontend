@@ -13,9 +13,9 @@ export function ProductTableToolbar({ options, filters, onResetPage }) {
     const [availableSubGroup2, setAvailableSubGroup2] = useState([]);
     const [selectedSubGroup2, setSelectedSubGroup2] = useState(filters.state.subGroup2 || []);
 
-    const uniqueGroups = Array.from(
-        new Set(options.map((option) => option.group))
-    );
+    // const uniqueGroups = Array.from(
+    //     new Set(options.map((option) => option.group))
+    // );
 
     useEffect(() => {
         const filteredOptions = options.filter(
@@ -96,33 +96,14 @@ export function ProductTableToolbar({ options, filters, onResetPage }) {
         <Stack sx={{ p: 2.5, pr: { xs: 2.5, md: 1 } }}>
           <Grid container spacing={2}>
             {/* Group Filter with Search */}
-            <Grid item xs={12} sm={6} md={4}>
-              <Autocomplete
-                multiple
-                options={uniqueGroups}
-                value={selectedGroups}
-                onChange={handleFilterGroup}
-                renderInput={(params) => (
-                  <TextField {...params} label="Group" placeholder="Search Group" />
-                )}
-                disableCloseOnSelect
-                renderOption={(props, option, { selected }) => (
-                  <li {...props}>
-                    <Checkbox
-                      style={{ marginRight: 8 }}
-                      checked={selectedGroups.includes(option)}
-                    />
-                    {option}
-                  </li>
-                )}
-              />
-            </Grid>
+          
         
             {/* SubGroup1 Filter with Search */}
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} sm={6} md={6}>
               <Autocomplete
                 multiple
-                options={availableSubGroup1}
+                options={[...new Set(options.map(opt => opt.subGroup1))].sort((a, b) => a.localeCompare(b))}
+               
                 value={selectedSubGroup1}
                 onChange={handleFilterSubGroup1}
                 renderInput={(params) => (
@@ -142,10 +123,11 @@ export function ProductTableToolbar({ options, filters, onResetPage }) {
             </Grid>
         
             {/* SubGroup2 Filter with Search */}
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} sm={6} md={6}>
               <Autocomplete
                 multiple
-                options={availableSubGroup2}
+                options={[...new Set(options.map(opt => opt.subGroup2))].sort((a, b) => a.localeCompare(b))}
+               
                 value={selectedSubGroup2}
                 onChange={handleFilterSubGroup2}
                 renderInput={(params) => (
