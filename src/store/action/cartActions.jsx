@@ -54,12 +54,13 @@ export const deleteCartItem = (id) => async (dispatch) => {
 };
 
 
-export const addQuantity = (id, quantity) => async (dispatch) => {
+export const addQuantity = (id, quantity, noOfPkg) => async (dispatch) => {
 
     try {
-        await axiosInstance.patch(`/cart/updateQuantity/${id}`,{ quantity });
+        await axiosInstance.put(`/cart/updateQuantity/${id}`, { noOfPkg, quantity });
         return true;
     } catch (error) {
+        console.log(error)
         // Check if error response exists and handle error message
         const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);

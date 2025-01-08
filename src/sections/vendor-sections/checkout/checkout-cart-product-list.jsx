@@ -11,6 +11,8 @@ import { useState } from 'react';
 const TABLE_HEAD = [
   { id: 'product', label: 'Product', align: 'center' },
   { id: 'price', label: 'Price' },
+  { id: 'std_pkg', label: 'Standard Packaging', align: 'center' },
+  { id: 'no_pkg', label: 'No Of Package' },
   { id: 'quantity', label: 'Quantity', align: 'center' },
   { id: 'available', label: 'Available', align: 'center' },
   { id: 'totalAmount', label: 'Total Price', align: 'center' },

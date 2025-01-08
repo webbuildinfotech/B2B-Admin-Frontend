@@ -7,7 +7,7 @@ const useCart = () => {
   const dispatch = useDispatch();
   
   const addToCartData = useSelector((state) => state.cart?.cart || []);
-  
+
   useEffect(() => {
     dispatch(cartList());
   }, [dispatch]);
@@ -18,6 +18,7 @@ const useCart = () => {
     stockQuantity: item.stockQuantity,
     userId: item.userId,
     price: item.product.sellingPrice,
+    noOfPkg: item.noOfPkg,
     description: item.product.description,
     totalAmount: item.product.sellingPrice * item.quantity,
     name: item.product.itemName,

@@ -167,7 +167,7 @@ export function CheckoutCart() {
           </Button>
         }
       />
-      <Grid xs={12} md={8}>
+      <Grid xs={12} md={9}>
         <Card sx={{ mb: 3 }}>
           <CardHeader
             title={
@@ -213,7 +213,7 @@ export function CheckoutCart() {
 
       </Grid>
 
-      <Grid xs={12} md={4}>
+      <Grid xs={12} md={3}>
         <CheckoutSummary
           total={total}
           discount={discount}
