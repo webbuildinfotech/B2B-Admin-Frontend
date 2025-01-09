@@ -30,7 +30,6 @@ export function CheckoutCart() {
   const [deleting, setDeleting] = useState(false);
   const [itemsToRemove, setItemsToRemove] = useState([]);
 
-
   const totalItems = mappedData.reduce((acc, item) => acc + item.quantity, 0);
   const subtotal = mappedData.reduce((acc, item) => acc + item.totalAmount, 0);
   // Calculate the total after applying the discount

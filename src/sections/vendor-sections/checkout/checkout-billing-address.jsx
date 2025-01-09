@@ -30,6 +30,9 @@ export function CheckoutBillingAddress() {
   const dispatch = useDispatch();
   const mappedData = useCart();
 
+  const noOfPackages = mappedData.reduce((acc, item) => acc + item.noOfPkg, 0);
+  const stdPackages = mappedData.reduce((acc, item) => acc + item.stdPkg, 0);
+
   const subtotal = mappedData.reduce((acc, item) => acc + item.totalAmount, 0);
   const quantity = mappedData.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -118,6 +121,8 @@ export function CheckoutBillingAddress() {
 
     try {
       const orderData = {
+        noOfPkgs : noOfPackages,
+        stdPkgs : stdPackages,
         totalPrice: subtotal,
         totalQuantity: quantity,
         addressId: selectedAddressId,

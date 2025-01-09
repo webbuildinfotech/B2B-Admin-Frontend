@@ -48,9 +48,9 @@ export function StockListView() {
     const [loading, setLoading] = useState(false);
     const [selectedRows, setSelectedRows] = useState([]); // Store selected row IDs
     const [deleting, setDeleting] = useState(false); // Track delete operation
-   
 
-    const { fetchData,deleteAllItems } = useFetchStockData(); // Destructure fetchData from the custom hook
+
+    const { fetchData, deleteAllItems } = useFetchStockData(); // Destructure fetchData from the custom hook
     const dispatch = useDispatch();
     const _stock = useSelector((state) => state.stock?.stock || []);
     const [tableData, setTableData] = useState(_stock);
@@ -80,7 +80,7 @@ export function StockListView() {
     }, []);
 
 
-    
+
     const handleDeleteSelectedRows = useCallback(async () => {
         setDeleting(true); // Start loading for delete operation
         try {
@@ -233,19 +233,22 @@ export function StockListView() {
                                 />
 
                                 <TableBody>
-                                    {dataFiltered.slice(
-                                        table.page * table.rowsPerPage,
-                                        table.page * table.rowsPerPage + table.rowsPerPage
-                                    ).map((row) => (
-                                        <StockTableRow
-                                            key={row.id}
-                                            row={row}
-                                            selected={selectedRows.includes(row.id)}
-                                            onSelectRow={() => handleSelectRow(row.id)}
+                                    {dataFiltered
+                                        .sort((a, b) => a.itemName.localeCompare(b.itemName))
+
+                                        .slice(
+                                            table.page * table.rowsPerPage,
+                                            table.page * table.rowsPerPage + table.rowsPerPage
+                                        ).map((row) => (
+                                            <StockTableRow
+                                                key={row.id}
+                                                row={row}
+                                                selected={selectedRows.includes(row.id)}
+                                                onSelectRow={() => handleSelectRow(row.id)}
 
 
-                                        />
-                                    ))}
+                                            />
+                                        ))}
 
                                     <TableEmptyRows
                                         height={table.dense ? 56 : 56 + 20}

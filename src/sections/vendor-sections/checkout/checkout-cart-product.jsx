@@ -21,7 +21,6 @@ import { DUMMY_IMAGE } from 'src/components/constants';
 
 export function CheckoutCartProduct({ productID, row, onDownload, onDelete }) {
 
-  const stdPackage = 12
   // const noOfPkg = 5
 
   const isDownloadable = !!row.dimensionalFiles; // Check if pdfPath is available
@@ -38,11 +37,15 @@ export function CheckoutCartProduct({ productID, row, onDownload, onDelete }) {
   const handleQuantityChange = (e) => {
     let newQuantity = e.target.value.trim() === "" ? "" : parseInt(e.target.value, 10); // Handle empty input
 
-    // Handle empty quantity case
-    if (newQuantity === "") {
-      toast.error("Please enter quantity");
-      setIsTickVisible(false);
-    } 
+    // Reset the error message if input starts being valid
+    setErrorMessage("");
+
+    // Prevent 0 as a valid input
+    if (newQuantity === 0) {
+      setErrorMessage("Quantity cannot be 0. Please enter a valid quantity.");
+      setQuantity(1); // Reset to 1 if user tries to enter 0
+      return;
+    }
     // Check if the product is unavailable
     if (available === 0) {
       setProductUnavailableMessage("Product not available currently");
@@ -54,11 +57,11 @@ export function CheckoutCartProduct({ productID, row, onDownload, onDelete }) {
     // Check for negative quantity
     if (newQuantity < 0) {
       newQuantity = 0; // Reset to 0 if negative quantity is entered
-      toast.error("No Of Packages cannot be negative");
+      setErrorMessage("No Of Packages cannot be negative");
     } else if (newQuantity === 0) {
-      toast.error(`Maximum 1 Package add`); // Show error message if quantity exceeds available stock
-    } else if (stdPackage * newQuantity > available) {
-      toast.error(`The maximum available quantity is ${available}. Please reduce the number of packages to proceed.`);
+      setErrorMessage(`Maximum 1 Package add`); // Show error message if quantity exceeds available stock
+    } else if (row.stdPkg * newQuantity > available) {
+      setErrorMessage(`The maximum available quantity is ${available}. Please reduce the number of packages to proceed.`);
       // Show error message if quantity exceeds available stock
       newQuantity = 1; // Limit the quantity to the available stock
     }
@@ -74,7 +77,7 @@ export function CheckoutCartProduct({ productID, row, onDownload, onDelete }) {
         setIsTickVisible(true); // Show green tick only if quantity is valid
         // Only submit if quantity is greater than 0
         if (newQuantity > 0) {
-          const noOfPackages = stdPackage * newQuantity
+          const noOfPackages = row.stdPkg * newQuantity
           submitQuantity(noOfPackages, newQuantity);
         }
       }
@@ -125,7 +128,7 @@ export function CheckoutCartProduct({ productID, row, onDownload, onDelete }) {
       </TableCell>
 
       <TableCell>{fCurrency(row.price)}</TableCell>
-      <TableCell align="center">{stdPackage}</TableCell>
+      <TableCell align="center">{row.stdPkg}</TableCell>
 
       <TableCell align="center">
         {available === 0 ? (
@@ -165,9 +168,25 @@ export function CheckoutCartProduct({ productID, row, onDownload, onDelete }) {
             }}
           />
         )}
+
+        {/* Show error message if quantity exceeds available stock or if it's negative */}
+        {errorMessage && (
+          <Typography
+            variant="caption" // Small text style
+            color="error"
+            sx={{
+              display: 'inline-block', // Ensure it aligns inline
+              marginTop: '4px', // Small spacing from input
+              fontSize: '0.75rem', // Reduce font size for concise display
+              whiteSpace: 'nowrap', // Prevent text wrapping
+            }}
+          >
+            {errorMessage}
+          </Typography>
+        )}
       </TableCell>
 
-      <TableCell align="center">{stdPackage * quantity}</TableCell>
+      <TableCell align="center">{row.stdPkg * quantity}</TableCell>
 
 
       <TableCell align="center">{available}</TableCell>

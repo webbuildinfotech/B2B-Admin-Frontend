@@ -13,6 +13,7 @@ import { ProductDetailsCarousel } from './product-details-carousel';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableRow } from '@mui/material';
 
 export function ProductDetailsSummary({ products, disableActions, ...other }) {
+
   const dispatch = useDispatch();
   const { id } = useParams();
 
@@ -46,16 +47,20 @@ export function ProductDetailsSummary({ products, disableActions, ...other }) {
                 <Table size="small" aria-label="classification table">
                   <TableBody>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Group</TableCell>
-                      <TableCell>{products?.group || '-'}</TableCell>
-                    </TableRow>
-                    <TableRow>
                       <TableCell sx={{ fontWeight: 'bold' }}>SubGroup1</TableCell>
                       <TableCell>{products?.subGroup1 || '-'}</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold' }}>SubGroup2</TableCell>
                       <TableCell>{products?.subGroup2 || '-'}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Standard Package</TableCell>
+                      <TableCell>{products?.stdPkg || '-'}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Standard Weight</TableCell>
+                      <TableCell>{products?.stdWeight || '-'}</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
@@ -144,7 +149,7 @@ export function ProductDetailsSummary({ products, disableActions, ...other }) {
                   <strong>GST Applicable Date:</strong> <span>{formatDateIndian(products?.gstApplicableDate) || 'No Data Available'}</span>
                 </Typography>
                 <Typography variant="body2">
-                  <strong>GST Rate:</strong> <span>{products?.gstRate || 'No Data Available'}</span>
+                  <strong>GST Rate:</strong> <span>{products?.gstRate}</span>
                 </Typography>
                 <Typography variant="body2">
                   <strong>Base Unit:</strong> <span>{products?.baseUnit || 'No Data Available'}</span>

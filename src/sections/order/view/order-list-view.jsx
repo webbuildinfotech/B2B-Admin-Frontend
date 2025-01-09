@@ -80,6 +80,8 @@ export function OrderListView() {
         { id: 'name', label: 'Customer' },
       ]
       : []),
+    { id: 'stdPkg', label: 'Standard Packages', align: 'center' }, // New column for discount
+    { id: 'noOfPkg', label: 'No Of Packages', align: 'center' }, // New column for discount
     { id: 'totalQuantity', label: 'Quantity', align: 'center' },
     { id: 'discount', label: 'Discount (%)', align: 'center' }, // New column for discount
     { id: 'finalAmount', label: 'Final Amount', align: 'center' }, // New column for amount after discount  

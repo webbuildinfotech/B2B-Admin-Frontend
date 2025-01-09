@@ -167,7 +167,7 @@ export function BannerListView() {
 
                                 <TableBody>
                                     {dataFiltered
-                                        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Sort by 'created' descending
+                                        .sort((a, b) => new Date(b.name) - new Date(a.name)) // Sort by 'created' descending
                                         .slice(
                                         table.page * table.rowsPerPage,
                                         table.page * table.rowsPerPage + table.rowsPerPage

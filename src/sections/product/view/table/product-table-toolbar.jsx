@@ -18,33 +18,24 @@ export function ProductTableToolbar({ options, filters, onResetPage }) {
     // );
 
     useEffect(() => {
-        const filteredOptions = options.filter(
-            (option) => selectedGroups.length === 0 || selectedGroups.includes(option.group)
-        );
-
-        const availableSubGroup1Set = new Set();
-        const availableSubGroup2Set = new Set();
-
-        filteredOptions.forEach((option) => {
-            availableSubGroup1Set.add(option.subGroup1);
-            if (
-                selectedGroups.includes(option.group) ||
-                selectedSubGroup1.includes(option.subGroup1)
-            ) {
-                availableSubGroup2Set.add(option.subGroup2);
-            }
-        });
-
-        setAvailableSubGroup1(Array.from(availableSubGroup1Set));
-        setAvailableSubGroup2(Array.from(availableSubGroup2Set));
-
-        filters.setState((prev) => ({
-            ...prev,
-            subGroup1: prev.subGroup1.filter((sub) => availableSubGroup1Set.has(sub)),
-            subGroup2: prev.subGroup2.filter((sub) => availableSubGroup2Set.has(sub)),
-        }));
-    }, [selectedGroups, selectedSubGroup1, options]);
-
+      const filteredOptions = options.filter(
+          (option) =>
+              selectedSubGroup1.length === 0 || selectedSubGroup1.includes(option.subGroup1)
+      );
+  
+      const availableSubGroup2Set = new Set();
+      filteredOptions.forEach((option) => {
+          availableSubGroup2Set.add(option.subGroup2);
+      });
+  
+      setAvailableSubGroup2(Array.from(availableSubGroup2Set));
+  
+      filters.setState((prev) => ({
+          ...prev,
+          subGroup2: prev.subGroup2.filter((sub) => availableSubGroup2Set.has(sub)),
+      }));
+  }, [selectedSubGroup1, options]);
+  
     const handleFilterGroup = useCallback(
         (event, newValue) => {
             onResetPage();
@@ -126,14 +117,15 @@ export function ProductTableToolbar({ options, filters, onResetPage }) {
             <Grid item xs={12} sm={6} md={6}>
               <Autocomplete
                 multiple
-                options={[...new Set(options.map(opt => opt.subGroup2))].sort((a, b) => a.localeCompare(b))}
-               
+                options={availableSubGroup2.sort((a, b) => a.localeCompare(b))}
                 value={selectedSubGroup2}
                 onChange={handleFilterSubGroup2}
                 renderInput={(params) => (
                   <TextField {...params} label="Sub-Group 2" placeholder="Search Sub-Group 2" />
                 )}
                 disableCloseOnSelect
+                disabled={selectedSubGroup1.length === 0} // Disable until SubGroup1 is selected
+             
                 renderOption={(props, option, { selected }) => (
                   <li {...props}>
                     <Checkbox

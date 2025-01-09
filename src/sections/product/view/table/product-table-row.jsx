@@ -60,10 +60,6 @@ export function ProductTableRow({ row, selected, onEditRow, onSelectRow, onDelet
                                     {row.itemName}
                                 </Link>
                             </Tooltip>
-
-                            <Box component="span" sx={{ color: 'text.disabled' }}>
-                                {row.group}
-                            </Box>
                         </Stack>
                     </Stack>
                 </TableCell>
