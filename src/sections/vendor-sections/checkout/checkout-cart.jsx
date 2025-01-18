@@ -166,7 +166,7 @@ export function CheckoutCart() {
           </Button>
         }
       />
-      <Grid xs={12} md={9}>
+      <Grid xs={12} md={12}>
         <Card sx={{ mb: 3 }}>
           <CardHeader
             title={
@@ -212,7 +212,7 @@ export function CheckoutCart() {
 
       </Grid>
 
-      <Grid xs={12} md={3}>
+      <Grid xs={12} md={12}>
         <CheckoutSummary
           total={total}
           discount={discount}
@@ -220,8 +220,13 @@ export function CheckoutCart() {
           onApplyDiscount={handleApplyDiscount}
         />
 
+        <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+        }}
+      >
         <Button
-          fullWidth
           size="large"
           type="submit"
           variant="contained"
@@ -230,6 +235,8 @@ export function CheckoutCart() {
         >
           Check out
         </Button>
+      </Box>
+      
       </Grid>
     </Grid>
   );

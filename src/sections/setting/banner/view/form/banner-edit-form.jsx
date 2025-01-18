@@ -10,7 +10,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import { toast } from 'src/components/snackbar';
 import { Form, Field, schemaHelper } from 'src/components/hook-form';
 import { useRouter } from 'src/routes/hooks';
-import { Box, Stack } from '@mui/material';
+import { Box, FormControl, InputLabel, MenuItem, Select, Stack } from '@mui/material';
 import { editBanner } from 'src/store/action/settingActions';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
@@ -18,8 +18,19 @@ import { useNavigate } from 'react-router';
 // Define schema for multiple file uploads
 export const BannerFormSchema = zod.object({
     name: zod.string().min(1, { message: 'Name is required!' }),
+    type: zod.string().min(1, { message: 'Type is required!' }),
     bannerImages: schemaHelper.file({ message: { required_error: 'Cover is required!' } })
 });
+
+// Define the BannerType enum
+const BannerType = {
+    Home: 'Home',
+    Contact: 'Contact',
+    About: 'About',
+    Dealer: 'Dealer',
+    Resource: 'Resource',
+    FAQs: 'FAQs',
+};
 
 export function BannerEditForm({ currentBanner }) {
     const [loading, setLoading] = useState(false);
@@ -30,6 +41,7 @@ export function BannerEditForm({ currentBanner }) {
     const defaultValues = useMemo(
         () => ({
             name: currentBanner?.name || '',
+            type: currentBanner?.type || BannerType.Home,
             bannerImages: currentBanner?.BannerImages?.[0] || null,
         }),
         [currentBanner]
@@ -52,6 +64,7 @@ export function BannerEditForm({ currentBanner }) {
     const onSubmit = handleSubmit(async (data) => {
         const formData = new FormData();
         formData.append('name', data.name);
+        formData.append('type', data.type);
         
         // If multiple files are allowed, use a loop to append them all
         if (data.bannerImages) {
@@ -75,6 +88,10 @@ export function BannerEditForm({ currentBanner }) {
         setValue('bannerImages', null);
     }, [setValue]);
 
+    const handleChangeType = useCallback(({ target: { value } }) => {
+        setValue('type', value);
+    }, [setValue]);
+
     const renderBannerDetails = (
         <Card>
             <CardHeader title="Banner Details" />
@@ -82,6 +99,23 @@ export function BannerEditForm({ currentBanner }) {
 
             <Stack spacing={3} sx={{ p: 3 }}>
                 <Field.Text name="name" label="Banner Name" />
+
+                <FormControl fullWidth>
+                <InputLabel id="type-select-label">Type</InputLabel>
+                <Select
+                    labelId="type-select-label"
+                    id="type-select"
+                    value={watch('type')}
+                    onChange={handleChangeType}
+                    label="Type"
+                >
+                    {Object.values(BannerType).map((type) => (
+                        <MenuItem key={type} value={type}>
+                            {type}
+                        </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
 
                 <Stack spacing={1.5}>
                     <Typography variant="subtitle2">Banner Images</Typography>

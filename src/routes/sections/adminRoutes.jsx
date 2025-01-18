@@ -15,6 +15,9 @@ import { PaymentCreateView } from 'src/sections/payments/payment-form';
 import { PaymentEditView } from 'src/sections/payments/payment-edit';
 import { PaymentViewUi } from 'src/sections/payments/payment-vendor-view';
 import { LedgerListDetails } from 'src/sections/accounting/ledger/view/ledger-details';
+import { GalleryCreateView } from 'src/sections/setting/gallery/view/operation/gallery-create';
+import { GalleryEditView } from 'src/sections/setting/gallery/view/operation/gallery-edit';
+import { GalleryView } from 'src/sections/setting/gallery/view/operation/gallery-view';
 
 // Overview
 const IndexPage = lazy(() => import('src/pages/dashboard'));
@@ -35,6 +38,7 @@ const LogoutPage = lazy(() => import('src/pages/settings/logout'));
 const LogPage = lazy(() => import('src/pages/log-history'));
 
 const PaymentPage = lazy(() => import('src/pages/payments'));
+const GalleryPage = lazy(() => import('src/pages/settings/gallery'));
 
 
 
@@ -140,6 +144,13 @@ export const adminRoute =[
         { path: 'banner/edit/:id', element: <BannerEditView /> },
         { path: 'banner/view/:id', element: <BannerView /> },
         { path: 'basic', element: <SyncPage /> },
+
+        { path: 'gallery', element: <GalleryPage /> },
+        { path: 'gallery/create', element: <GalleryCreateView /> },
+        { path: 'gallery/edit/:id', element: <GalleryEditView /> },
+        { path: 'gallery/view/:id', element: <GalleryView /> },
+
+
       ],
     },
 

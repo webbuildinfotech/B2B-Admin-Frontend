@@ -1,4 +1,4 @@
-import { SYNC_GET_BY_LIST, SYNC_LIST, FAQ_LIST, FAQ_GET_BY_LIST, CONTACT_GET_BY_LIST, CONTACT_LIST, TERM_LIST, TERM_GET_BY_LIST, BANNER_LIST, BANNER_GET_BY_LIST, FETCH_TALLY_DATA, UPDATE_TALLY, LOGO, PATH_TALLY } from "../constants/actionTypes";
+import { SYNC_GET_BY_LIST, SYNC_LIST, FAQ_LIST, FAQ_GET_BY_LIST, CONTACT_GET_BY_LIST, CONTACT_LIST, TERM_LIST, TERM_GET_BY_LIST, BANNER_LIST, BANNER_GET_BY_LIST, FETCH_TALLY_DATA, UPDATE_TALLY, LOGO, PATH_TALLY, GALLERY_LIST, GALLERY_GET_BY_LIST } from "../constants/actionTypes";
 
 const initialState = {
     faq: [],
@@ -13,7 +13,11 @@ const initialState = {
     getBySyncData: '',
     tallyFetchData: [],
     logo: '',
-    path: ''
+    path: '',
+
+    gallery: [],
+    getByGallery: ''
+
 
 
 };
@@ -102,6 +106,18 @@ const settingReducer = (state = initialState, { type, payload } = {}) => {
                 tallyFetchData: state.tallyFetchData.map((ledger) =>
                     ledger.id === payload.id ? payload : ledger
                 ),
+            };
+
+        case GALLERY_LIST:
+            return {
+                ...state,
+                gallery: payload,
+            };
+
+        case GALLERY_GET_BY_LIST:
+            return {
+                ...state,
+                getByGallery: payload,
             };
 
 

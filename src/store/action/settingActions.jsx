@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 import axiosInstance from "src/configs/axiosInstance";
-import {BANNER_GET_BY_LIST, BANNER_LIST, CONTACT_GET_BY_LIST, CONTACT_LIST, FAQ_GET_BY_LIST, FAQ_LIST, FETCH_TALLY_DATA, LOGO, PATH_TALLY, SYNC_GET_BY_LIST, SYNC_LIST, TERM_GET_BY_LIST, TERM_LIST, UPDATE_TALLY } from "../constants/actionTypes";
+import {BANNER_GET_BY_LIST, BANNER_LIST, CONTACT_GET_BY_LIST, CONTACT_LIST, FAQ_GET_BY_LIST, FAQ_LIST, FETCH_TALLY_DATA, GALLERY_GET_BY_LIST, GALLERY_LIST, LOGO, PATH_TALLY, SYNC_GET_BY_LIST, SYNC_LIST, TERM_GET_BY_LIST, TERM_LIST, UPDATE_TALLY } from "../constants/actionTypes";
 
 // FAQ Settings
 export const FAQList = () => async (dispatch) => {
@@ -422,4 +422,87 @@ export const pathList = () => async (dispatch) => {
         toast.error(errorMessage);
     }
     return false; // Return false for any errors
+};
+
+
+// Banner
+export const galleryList = () => async (dispatch) => {
+    try {
+        const response = await axiosInstance.get('/gallery/all');
+         dispatch({
+            type: GALLERY_LIST,
+            payload: response.data, // Assuming response contains the customers data
+        });
+        return true;
+    } catch (error) {
+        // Check if error response exists and handle error message
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors
+};
+
+export const galleryGetByList = (id) => async (dispatch) => {
+    try {
+        const response = await axiosInstance.get(`/gallery/${id}`);
+        dispatch({
+            type: GALLERY_GET_BY_LIST,
+            payload: response.data, // Assuming response contains the customers data
+        });
+        return true;
+    } catch (error) {
+        // Check if error response exists and handle error message
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors
+};
+
+export const createGallery = (data) => async (dispatch) => {
+    try {
+        const response = await axiosInstance.post('/gallery/create', data);
+        if (response && response.status >= 200 && response.status < 300) {
+            toast.success(response.data.message || 'gallery created successfully!');
+            return true;
+        }
+        return true;
+    } catch (error) {
+        // Check if error response exists and handle error message
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors
+};
+
+export const editGallery = (id, data) => async (dispatch) => {
+    try {
+        const response = await axiosInstance.put(`/gallery/update/${id}`, data);
+
+        // Check if the response is successful
+        if (response && response.status >= 200 && response.status < 300) {
+            toast.success(response.data.message || 'gallery updated successfully!');
+            return true; // Indicate successful update
+        }
+    } catch (error) {
+        // Handle errors appropriately
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors or unsuccessful attempts
+};
+
+export const deleteGallery = (id) => async (dispatch) => {
+    try {
+        const response = await axiosInstance.delete(`/gallery/delete/${id}`);
+        // Check if the response is successful
+        if (response && response.status >= 200 && response.status < 300) {
+            toast.success(response.data.message || 'gallery deleted successfully!');
+            return true; // Indicate successful deletion
+        }
+    } catch (error) {
+        // Handle errors appropriately
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors or unsuccessful attempts
 };

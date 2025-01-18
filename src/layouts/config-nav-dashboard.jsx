@@ -142,6 +142,7 @@ export const useNavData = () => {
           path: paths.settings.root,
           icon: ICONS.settings,
           children: [
+            { title: 'Gallery', path: paths.settings.gallery },
             { title: 'Profile', path: paths.settings.profile },
             { title: 'Basic Setting', path: paths.settings.sync },
             { title: 'Banner Setting', path: paths.settings.banner },

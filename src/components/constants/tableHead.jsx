@@ -84,6 +84,14 @@ export const TABLE_TERM_HEAD = [
 
 export const TABLE_BANNER_HEAD = [
   { id: 'bannerImage', label: 'Banner Image' },
+  { id: 'type', label: 'Type' },
+  { id: 'name', label: 'name' },
+  { id: 'action', label: 'Actions' },
+];
+
+export const TABLE_GALLERY_HEAD = [
+  { id: 'image', label: 'Image' },
+  { id: 'type', label: 'Type' },
   { id: 'name', label: 'name' },
   { id: 'action', label: 'Actions' },
 ];

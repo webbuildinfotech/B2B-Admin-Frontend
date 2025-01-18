@@ -29,7 +29,7 @@ export function BannerView() {
     return (
         <DashboardContent maxWidth="2xl">
             <CustomBreadcrumbs
-                heading="Banner Details"
+                heading="Banner View"
                 links={[
                     { name: 'Dashboard', href: paths.dashboard.root },
                     { name: 'Banner', href: paths?.settings?.banner },
@@ -38,7 +38,7 @@ export function BannerView() {
                 sx={{ mb: { xs: 3, md: 5 } }}
             />
 
-            <PageContentLayout>
+          
                 <Box
                     sx={{
                         width: 1,
@@ -85,7 +85,7 @@ export function BannerView() {
                         </Box>
                     )}
                 </Box>
-            </PageContentLayout>
+          
         </DashboardContent>
     );
 }

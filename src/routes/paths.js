@@ -76,6 +76,15 @@ export const paths = {
     viewBanner: (id) => `/view/${id}`,
     sync: `/settings/basic`,
     // tally: `/settings/tally`,
+
+    gallery: `/settings/gallery`,
+    createGallery: `/create`,
+    editGallery: (id) => `/edit/${id}`,
+    viewGallery: (id) => `/view/${id}`,
+
+
+
+
   },
 
   payments: {

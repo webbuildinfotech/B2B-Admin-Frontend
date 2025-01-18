@@ -1,4 +1,4 @@
-import Box from '@mui/material/Box';
+
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -13,14 +13,14 @@ import { useBoolean } from 'src/hooks/use-boolean';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { usePopover, CustomPopover } from 'src/components/custom-popover';
-import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom'; // Import Link from react-router-dom
-import { useFetchBannerData } from '../../components/fetch-banner';
-import { Avatar } from '@mui/material';
 
-export function BannerTableRow({ row, selected, onEditRow, onSelectRow, onDeleteRow }) {
+import { Avatar } from '@mui/material';
+import { useFetchData } from '../../components/fetch';
+
+export function GalleryTableRow({ row, selected, onEditRow, onSelectRow, onDeleteRow }) {
     const confirm = useBoolean();
-    const { fetchBannerData } = useFetchBannerData();
+    const { fetchData } = useFetchData();
 
     const popover = usePopover();
 
@@ -33,35 +33,32 @@ export function BannerTableRow({ row, selected, onEditRow, onSelectRow, onDelete
                 <TableCell>
                     <Avatar
                         variant="rounded"
-                        alt={row.BannerImages}
-                        src={row.BannerImages ? row?.BannerImages?.[0] : "No File"} // Get the first image link and trim whitespace
+                        alt={row.GalleryImages}
+                        src={row.GalleryImages ? row?.GalleryImages?.[0] : "No File"} // Get the first image link and trim whitespace
                         sx={{ width: 100, height: 100 }} />
                 </TableCell>
 
-
-                <TableCell
-                >
+                <TableCell>
                     {row.type || 'Not available'}
                 </TableCell>
 
-                <TableCell
-                >
+                <TableCell>
                     {row.name || 'Not available'}
                 </TableCell>
 
                 <TableCell>
                     <Stack direction="row" alignItems="center">
                         <Tooltip title="Quick Edit" arrow>
-                            <Link component={RouterLink} to={`/settings/banner/edit/${row.id}`} sx={{ textDecoration: 'none' }}>
+                            <Link component={RouterLink} to={`/settings/gallery/edit/${row.id}`} sx={{ textDecoration: 'none' }}>
                                 <IconButton>
                                     <Iconify icon="solar:pen-bold" />
                                 </IconButton>
                             </Link>
-                            </Tooltip>
+                        </Tooltip>
                         <Tooltip title="More Actions" arrow>
-                        <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
-                            <Iconify icon="eva:more-vertical-fill" />
-                        </IconButton>
+                            <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
+                                <Iconify icon="eva:more-vertical-fill" />
+                            </IconButton>
                         </Tooltip>
                     </Stack>
                 </TableCell>
@@ -86,7 +83,7 @@ export function BannerTableRow({ row, selected, onEditRow, onSelectRow, onDelete
                     </MenuItem>
                     <MenuItem
                         component={RouterLink} // Set the component to Link
-                        to={`/settings/banner/view/${row.id}`} // Set the destination URL
+                        to={`/settings/gallery/view/${row.id}`} // Set the destination URL
                         sx={{ color: 'green' }} // Keep your existing styling
                     >
                         <Iconify icon="solar:eye-bold" />
@@ -99,11 +96,11 @@ export function BannerTableRow({ row, selected, onEditRow, onSelectRow, onDelete
                 open={confirm.value}
                 onClose={confirm.onFalse}
                 title="Delete Banner"
-                content="Are you sure you want to delete this banner?"
+                content="Are you sure you want to delete?"
                 action={
                     <Button variant="contained" color="error" onClick={() => {
                         onDeleteRow();
-                        fetchBannerData();
+                        fetchData();
                         confirm.onFalse();
                     }}>
                         Delete

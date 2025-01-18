@@ -31,6 +31,7 @@ const LogoutPage = lazy(() => import('src/pages/settings/logout'));
 
 const LogPage = lazy(() => import('src/pages/log-history'));
 
+const GalleryPage = lazy(() => import('src/pages/settings/gallery'));
 
 // Vendor
 const ItemPage = lazy(() => import('src/pages/vendor-page/items'));
@@ -137,6 +138,9 @@ export const dashboardRoutes = [
       { path: 'banner/view/:id', element: <BannerView /> },
 
       { path: 'sync', element: <SyncPage /> },
+
+      { path: 'gallery', element: <GalleryPage /> },
+
 
     ],
   },

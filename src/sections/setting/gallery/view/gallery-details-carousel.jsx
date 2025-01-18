@@ -13,7 +13,7 @@ const DUMMY_IMAGE = 'https://media.istockphoto.com/id/1409329028/vector/no-pictu
 
 // ----------------------------------------------------------------------
 
-export function BannerDetailsCarousel({ image }) {
+export function GalleryDetailsCarousel({ image }) {
 
   const singleImage = image || DUMMY_IMAGE; // Use provided image or fallback to dummy image
   const carousel = useCarousel();
@@ -32,13 +32,13 @@ export function BannerDetailsCarousel({ image }) {
         <Box sx={{ mb: 2.5, position: 'relative' }}>
 
 
-          <Carousel carousel={carousel} sx={{ borderRadius: 2, maxWidth: '100%', mx: 'auto' }}>
+          <Carousel carousel={carousel} sx={{ borderRadius: 2, maxWidth: '50%', mx: 'auto' }}>
             <Image
               alt="Product Image"
               src={singleImage}
-              ratio="3/1"
+              ratio="1/1"
               onClick={() => lightbox.onOpen(singleImage)}
-              sx={{ cursor: 'zoom-in', width: 'auto', height: '100%' }}
+              sx={{ cursor: 'zoom-in', width: 'auto', height: 'auto' }}
             />
           </Carousel>
         </Box>
