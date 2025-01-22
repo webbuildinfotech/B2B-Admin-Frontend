@@ -11,7 +11,7 @@ import { toast } from 'src/components/snackbar';
 import { Form, Field, schemaHelper } from 'src/components/hook-form';
 import { useRouter } from 'src/routes/hooks';
 import { Box, FormControl, InputLabel, MenuItem, Select, Stack } from '@mui/material';
-import { editGallery } from 'src/store/action/settingActions';
+import { deleteAllGallery, deleteSingleGallery, editGallery } from 'src/store/action/settingActions';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,15 +21,18 @@ export const GalleryFormSchema = zod.object({
     type: zod.enum(['gallery', 'certificate'], { message: 'Type is required!' }),
     galleryImages: zod
         .array(
-            zod
-                .instanceof(File)
-                .refine((file) => file.size <= 3145728, 'Each file must be less than 3MB.')
+            zod.union([
+                zod
+                    .instanceof(File)
+                    .refine((file) => file.size <= 3145728, 'Each file must be less than 3MB.'),
+                zod.string(), // Allow existing uploaded images as strings (e.g., URLs or IDs)
+            ])
         )
         .optional(),
 });
 
 export function GalleryEditForm({ currentGallery }) {
-   
+
     const [loading, setLoading] = useState(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -86,15 +89,44 @@ export function GalleryEditForm({ currentGallery }) {
 
     const handleRemoveFile = useCallback(
         (inputFile) => {
+            // Determine if the file is a local file (not uploaded yet)
+            const isLocalFile = inputFile instanceof File;
+
+            // Call the API only if the file is not a local file
+            if (!isLocalFile) {
+                dispatch(deleteSingleGallery(currentGallery.id, inputFile));
+                const filtered = values.galleryImages?.filter((file) => file !== inputFile);
+                setValue('galleryImages', filtered, { shouldValidate: true });
+            }
+
+            // Filter out the removed file from the galleryImages array
             const filtered = values.galleryImages?.filter((file) => file !== inputFile);
             setValue('galleryImages', filtered, { shouldValidate: true });
         },
-        [setValue, values.galleryImages]
+        [dispatch, setValue, values.galleryImages, currentGallery.id]
     );
 
-    const handleRemoveAllFiles = useCallback(() => {
-        setValue('galleryImages', [], { shouldValidate: true });
-    }, [setValue]);
+
+    const handleRemoveAllFiles = useCallback(
+        async () => {
+            try {
+                // Dispatch the deleteAllGallery action
+                await dispatch(deleteAllGallery(currentGallery.id));
+            } catch (error) {
+                console.error('Error removing all files:', error);
+            } finally {
+                // Clear the galleryImages field and log the success message
+                setValue('galleryImages', [], { shouldValidate: true });
+                console.log('All files removed successfully.');
+                navigate('/settings/gallery');
+            }
+        },
+        [dispatch, currentGallery.id, setValue]
+    );
+
+
+
+
 
     return (
         <Form methods={methods} onSubmit={onSubmit}>

@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 import axiosInstance from "src/configs/axiosInstance";
-import {BANNER_GET_BY_LIST, BANNER_LIST, CONTACT_GET_BY_LIST, CONTACT_LIST, FAQ_GET_BY_LIST, FAQ_LIST, FETCH_TALLY_DATA, GALLERY_GET_BY_LIST, GALLERY_LIST, LOGO, PATH_TALLY, SYNC_GET_BY_LIST, SYNC_LIST, TERM_GET_BY_LIST, TERM_LIST, UPDATE_TALLY } from "../constants/actionTypes";
+import { BANNER_GET_BY_LIST, BANNER_LIST, CONTACT_GET_BY_LIST, CONTACT_LIST, FAQ_GET_BY_LIST, FAQ_LIST, FETCH_TALLY_DATA, GALLERY_GET_BY_LIST, GALLERY_LIST, LOGO, PATH_TALLY, SYNC_GET_BY_LIST, SYNC_LIST, TERM_GET_BY_LIST, TERM_LIST, UPDATE_TALLY } from "../constants/actionTypes";
 
 // FAQ Settings
 export const FAQList = () => async (dispatch) => {
@@ -89,7 +89,7 @@ export const deleteFAQ = (faqId) => async (dispatch) => {
 export const contactList = () => async (dispatch) => {
     try {
         const response = await axiosInstance.get('/contact');
-         dispatch({
+        dispatch({
             type: CONTACT_LIST,
             payload: response.data, // Assuming response contains the customers data
         });
@@ -124,8 +124,8 @@ export const createContact = (contactData) => async (dispatch) => {
 export const termList = () => async (dispatch) => {
     try {
         const response = await axiosInstance.get('/terms-conditions');
-         dispatch({
-            type:TERM_LIST,
+        dispatch({
+            type: TERM_LIST,
             payload: response.data, // Assuming response contains the customers data
         });
         return response.data;
@@ -139,7 +139,7 @@ export const termList = () => async (dispatch) => {
 
 export const createTerm = (termData) => async (dispatch) => {
     try {
-        const response = await axiosInstance.post('/terms-conditions',termData);
+        const response = await axiosInstance.post('/terms-conditions', termData);
         if (response && response.status >= 200 && response.status < 300) {
             toast.success(response.data.message || 'terms-conditions created successfully!');
             return true;
@@ -157,7 +157,7 @@ export const createTerm = (termData) => async (dispatch) => {
 export const bannerList = () => async (dispatch) => {
     try {
         const response = await axiosInstance.get('/banner/all');
-         dispatch({
+        dispatch({
             type: BANNER_LIST,
             payload: response.data, // Assuming response contains the customers data
         });
@@ -241,7 +241,7 @@ export const deleteBanner = (bannerId) => async (dispatch) => {
 export const syncSettingList = () => async (dispatch) => {
     try {
         const response = await axiosInstance.get('/sync-control-settings/');
-         dispatch({
+        dispatch({
             type: SYNC_LIST,
             payload: response.data, // Assuming response contains the customers data
         });
@@ -309,7 +309,7 @@ export const deleteSyncSetting = (id) => async (dispatch) => {
         const response = await axiosInstance.delete(`/sync-control-settings/${id}`);
         // Check if the response is successful
         if (response && response.status >= 200 && response.status < 300) {
-            toast.success(response.data.message );
+            toast.success(response.data.message);
             return true; // Indicate successful deletion
         }
     } catch (error) {
@@ -325,45 +325,45 @@ export const deleteSyncSetting = (id) => async (dispatch) => {
 
 export const fetchTallyAPIData = () => async (dispatch) => {
     try {
-      const response = await axiosInstance.get('/tally-settings'); // Backend API endpoint
-      dispatch({ type: FETCH_TALLY_DATA, payload: response.data });
-      return true;
+        const response = await axiosInstance.get('/tally-settings'); // Backend API endpoint
+        dispatch({ type: FETCH_TALLY_DATA, payload: response.data });
+        return true;
     } catch (error) {
         // Handle errors appropriately
         const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);
     }
     return false; // Return false for any errors or unsuccessful attempt
-  };
-  
-  export const updateTallyAPI = (id,data) => async (dispatch) => {
+};
+
+export const updateTallyAPI = (id, data) => async (dispatch) => {
     try {
-      await axiosInstance.put(`/tally-settings/${id}`,data); // Backend API endpoint
-      dispatch({ type: UPDATE_TALLY, payload: data });
-      return true;
+        await axiosInstance.put(`/tally-settings/${id}`, data); // Backend API endpoint
+        dispatch({ type: UPDATE_TALLY, payload: data });
+        return true;
     } catch (error) {
         // Handle errors appropriately
         const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);
     }
     return false; // Return false for any errors or unsuccessful attempts
-  };
+};
 
-  export const fetchTallyById = (id) => async (dispatch) => {
+export const fetchTallyById = (id) => async (dispatch) => {
     try {
-      const response = await axiosInstance.get(`/tally-settings/${id}`); // API call to get ledger by ID
-      return response.data; // Return the fetched ledger details
+        const response = await axiosInstance.get(`/tally-settings/${id}`); // API call to get ledger by ID
+        return response.data; // Return the fetched ledger details
     } catch (error) {
-      console.error('Error fetching tally data by ID:', error);
-      return null;
+        console.error('Error fetching tally data by ID:', error);
+        return null;
     }
-  };
-  
+};
+
 
 export const LogoList = () => async (dispatch) => {
     try {
         const response = await axiosInstance.get('/logo');
-         dispatch({
+        dispatch({
             type: LOGO,
             payload: response.data, // Assuming response contains the customers data
         });
@@ -411,7 +411,7 @@ export const createTallyPath = (data) => async (dispatch) => {
 export const pathList = () => async (dispatch) => {
     try {
         const response = await axiosInstance.get('/tally-path');
-         dispatch({
+        dispatch({
             type: PATH_TALLY,
             payload: response.data, // Assuming response contains the customers data
         });
@@ -429,7 +429,7 @@ export const pathList = () => async (dispatch) => {
 export const galleryList = () => async (dispatch) => {
     try {
         const response = await axiosInstance.get('/gallery/all');
-         dispatch({
+        dispatch({
             type: GALLERY_LIST,
             payload: response.data, // Assuming response contains the customers data
         });
@@ -497,6 +497,42 @@ export const deleteGallery = (id) => async (dispatch) => {
         // Check if the response is successful
         if (response && response.status >= 200 && response.status < 300) {
             toast.success(response.data.message || 'gallery deleted successfully!');
+            return true; // Indicate successful deletion
+        }
+    } catch (error) {
+        // Handle errors appropriately
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors or unsuccessful attempts
+};
+
+// Delete specific image
+export const deleteSingleGallery = (id, imagesToDelete) => async (dispatch) => {
+    try {
+        const response = await axiosInstance.delete(`/gallery/images/${id}`, {
+            data: { imagesToDelete: [imagesToDelete] }, // Send the image to delete in the body
+        });
+
+        // Check if the response is successful
+        if (response && response.status >= 200 && response.status < 300) {
+            return true; // Indicate successful deletion
+        }
+    } catch (error) {
+        // Handle errors appropriately
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors or unsuccessful attempts
+};
+
+// All Delete specific image
+export const deleteAllGallery = (id) => async (dispatch) => {
+    try {
+        const response = await axiosInstance.delete(`/gallery/images-all/${id}`);
+
+        // Check if the response is successful
+        if (response && response.status >= 200 && response.status < 300) {
             return true; // Indicate successful deletion
         }
     } catch (error) {
