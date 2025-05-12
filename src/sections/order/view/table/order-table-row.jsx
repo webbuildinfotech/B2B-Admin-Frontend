@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Paper from '@mui/material/Paper';
@@ -21,8 +21,11 @@ import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { usePopover, CustomPopover } from 'src/components/custom-popover';
 import { RouterLink } from 'src/routes/components';
-import { Tooltip, Typography } from '@mui/material';
+import { Chip, Tooltip, Typography } from '@mui/material';
 import useUserRole from 'src/layouts/components/user-role';
+import StatusChangeModal from '../../components/StatusChangeModal';
+import { handleStatusUpdate } from 'src/store/action/orderActions';
+import { useDispatch } from 'react-redux';
 
 // ----------------------------------------------------------------------
 
@@ -37,6 +40,30 @@ export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
   const popover = usePopover();
 
   const userRole = useUserRole();
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const dispatch = useDispatch();
+  const handleOpen = () => setModalOpen(true);
+  const handleClose = () => setModalOpen(false);
+
+  const handleConfirm = async (newStatus) => {
+    await dispatch(handleStatusUpdate(row.id, newStatus));
+    setModalOpen(false);
+  };
+
+
+  const getColor = (status) => {
+    switch (status) {
+      case 'completed':
+        return 'success';
+      case 'pending':
+        return 'warning';
+      case 'cancelled':
+        return 'error';
+      default:
+        return 'default';
+    }
+  };
 
   const renderPrimary = (
     <TableRow hover selected={selected}>
@@ -89,17 +116,14 @@ export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
       </TableCell>
 
       <TableCell>
-        <Label
-          variant="soft"
-          color={
-            (row.status === 'completed' && 'success') ||
-            (row.status === 'pending' && 'warning') ||
-            (row.status === 'cancelled' && 'error') ||
-            'default'
-          }
-        >
-          {row?.status}
-        </Label>
+        <Tooltip>
+          <Chip
+            label={row.status.charAt(0).toUpperCase() + row.status.slice(1)}
+            color={getColor(row.status)}
+            sx={{ cursor: userRole === 'Admin' ? 'pointer' : 'not-allowed' }}
+            onClick={userRole === 'Admin' ? handleOpen : undefined}
+          />
+        </Tooltip>
       </TableCell>
 
       <TableCell align="center" sx={{ cursor: "pointer" }}>
@@ -228,6 +252,13 @@ export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
           </MenuItem>
         </MenuList>
       </CustomPopover>
+
+      <StatusChangeModal
+        open={modalOpen}
+        currentStatus={row.status}
+        handleClose={handleClose}
+        handleConfirm={handleConfirm}
+      />
 
       <ConfirmDialog
         open={confirm.value}

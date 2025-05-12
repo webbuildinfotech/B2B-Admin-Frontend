@@ -41,12 +41,19 @@ export function AddressNewForm({ open, onClose, onCreate, onEdit, editData }) {
   const { reset, handleSubmit, formState: { isSubmitting } } = methods;
 
 
-    // Reset the form whenever `open` is true for a new address or `editData` changes
-    useEffect(() => {
-      if (open) {
-        reset(editData || {}); // Reset form fields to empty for a new address, or prefill if editing
-      }
-    }, [open, editData, reset]);
+  // Reset the form whenever `open` is true for a new address or `editData` changes
+  useEffect(() => {
+    if (open) {
+      // if (open) {
+      reset({
+        state: editData?.state || '',
+        street_address: editData?.street_address || '',
+        zip_code: editData?.zip_code || '',
+        mobile: editData?.mobile || '',
+        country: editData?.country || '',
+      })
+    }
+  }, [open, editData, reset]);
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -91,7 +98,10 @@ export function AddressNewForm({ open, onClose, onCreate, onEdit, editData }) {
               <Field.Text name="state" label="State" />
               <Field.Text name="zip_code" label="Zip Code" />
             </Box>
-            <Field.CountrySelect name="country" label="Country" placeholder="Choose a country" />
+            <Field.CountrySelect
+              name="country"
+              label="Country"
+              placeholder="Choose a country" />
           </Stack>
         </DialogContent>
         <DialogActions>

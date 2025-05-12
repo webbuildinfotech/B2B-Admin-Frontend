@@ -8,7 +8,7 @@ export const syncOrder = () => async (dispatch) => {
 
         if (data) {
             const { message, status } = data;
-          
+
             if (status === 'success') {
                 toast.success(message);
             } else if (status === 'error') {
@@ -124,4 +124,16 @@ export const deleteAllItem = (ids) => async (dispatch) => {
         toast.error(errorMessage);
     }
     return false; // Return false for any errors or unsuccessful attempts
+};
+
+
+export const handleStatusUpdate = (orderId, newStatus) => async (dispatch) => {
+    try {
+        await axiosInstance.put(`/order/update-status/${orderId}`, { status: newStatus });
+        toast.success('Status updated successfully');
+        dispatch(orderList()); // refresh list
+        // Refresh table data here
+    } catch (err) {
+        toast.error('Failed to update status');
+    }
 };

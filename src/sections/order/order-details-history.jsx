@@ -34,14 +34,28 @@ export function OrderDetailsHistory({ orderDate, history }) {
       }}
     >
       <Stack spacing={0.5}>
-        <Box sx={{ color: 'text.disabled',fontWeight: 'bold' }}>Order time</Box>
-        {fDateTime(orderDate)}
+        <Box sx={{ color: 'text.disabled', fontWeight: 'bold' }}>Order time</Box>
+        {fDateTime(orderDate.createdAt)}
       </Stack>
-   
+
       <Stack spacing={0.5}>
-        <Box sx={{ color: 'text.disabled',fontWeight: 'bold' }}>Completion time</Box>
-        {fDateTime(orderDate)}
+        <Box sx={{ color: 'text.disabled', fontWeight: 'bold' }}>
+          {orderDate?.status === 'completed'
+            ? 'Completion time'
+            : orderDate?.status === 'cancelled'
+              ? 'Cancellation time'
+              : 'Completion time'}
+        </Box>
+
+        <Box sx={{ color: 'text.disabled' }}>
+          {orderDate?.status === 'completed'
+            ? fDateTime(orderDate?.completedAt)
+            : orderDate?.status === 'cancelled'
+              ? fDateTime(orderDate?.cancelledAt)
+              : 'Not completed yet'}
+        </Box>
       </Stack>
+
     </Paper>
   );
 
@@ -50,7 +64,7 @@ export function OrderDetailsHistory({ orderDate, history }) {
       sx={{ p: 0, m: 0, [`& .${timelineItemClasses.root}:before`]: { flex: 0, padding: 0 } }}
     >
       {history?.map((item, index) => {
-       
+
         const firstTimeline = index === 0;
 
         const lastTimeline = index === history.length - 1;
@@ -58,7 +72,17 @@ export function OrderDetailsHistory({ orderDate, history }) {
         return (
           <TimelineItem key={item.title}>
             <TimelineSeparator>
-              <TimelineDot color={(firstTimeline && 'primary') || 'grey'} />
+              <TimelineDot
+                color={
+                  item.title === 'Order Cancelled'
+                    ? 'error'
+                    : item.active
+                      ? 'primary'
+                      : 'grey'
+                }
+              />
+
+
               {lastTimeline ? null : <TimelineConnector />}
             </TimelineSeparator>
 
@@ -84,7 +108,7 @@ export function OrderDetailsHistory({ orderDate, history }) {
         direction={{ xs: 'column-reverse', md: 'row' }}
         sx={{ p: 3 }}
       >
-       {renderTimeline}
+        {renderTimeline}
 
         {renderSummary}
       </Stack>

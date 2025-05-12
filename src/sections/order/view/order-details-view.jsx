@@ -35,12 +35,37 @@ export function OrderDetailsView() {
   }, [])
 
 
-  const timeline = [
-    { title: 'Delivery successful', time: order?.createdAt },
-    { title: 'Transporting to [2]', time: order?.createdAt },
-    { title: 'Transporting to [1]', time: order?.createdAt },
-    { title: 'Order has been created', time: order?.createdAt },
-  ]
+const timeline = [
+  {
+    title: 'Order has been created',
+    time: order?.createdAt,
+    active: true,
+  },
+  ...(order?.status === 'completed'
+    ? [
+        {
+          title: 'Delivery successful',
+          time: order?.completedAt || "",
+          active: true,
+        },
+      ]
+    : order?.status === 'cancelled'
+    ? [
+        {
+          title: 'Order Cancelled',
+          time: order?.cancelledAt || "",
+          active: true,
+        },
+      ]
+    : [
+        {
+          title: 'Delivery successful',
+          time: order?.completedAt || "",
+          active: false,
+        },
+      ]),
+];
+
 
 
   return (
@@ -67,7 +92,7 @@ export function OrderDetailsView() {
 
             />
 
-            <OrderDetailsHistory orderDate={order?.createdAt} history={timeline} />
+            <OrderDetailsHistory orderDate={order} history={timeline} />
           </Stack>
         </Grid>
 

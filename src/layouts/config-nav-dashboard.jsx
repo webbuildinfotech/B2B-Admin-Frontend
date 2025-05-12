@@ -12,13 +12,15 @@ const ICONS = {
   products: icon('ic-product'),
   vendors: icon('ic-kanban'),
   orders: icon('ic-order'),
-  settings: icon('ic-lock'),
+  settings: icon('ic-blog'),
   stocks: icon('ic-job'),
   ledger: icon('ic-invoice'),
   logout: icon('ic-external'),
   account: icon('ic-tour'),
   analytics: icon('ic-analytics'),
   receivables: icon('ic-ecommerce'),
+  payments: icon('ic-analytics'), // ✅ New
+  logs: icon('ic-ecommerce'),         // ✅ New
 };
 
 export const useNavData = () => {
@@ -162,7 +164,7 @@ export const useNavData = () => {
         {
           title: 'Make Payment',
           path: paths.payments.root,
-          icon: ICONS.dashboard,
+          icon: ICONS.payments,
         },
       ]
     },
@@ -176,7 +178,7 @@ export const useNavData = () => {
         {
           title: 'Make Payment',
           path: paths.payments.viewPayment,
-          icon: ICONS.dashboard,
+          icon: ICONS.payments,
         },
       ]
     },
@@ -187,7 +189,7 @@ export const useNavData = () => {
     {
       subheader: 'Logs',
       items: [
-        { title: 'Logs', path: paths.logs.root, icon: ICONS.dashboard },
+        { title: 'Logs', path: paths.logs.root, icon: ICONS.logs },
       ],
     },
 
