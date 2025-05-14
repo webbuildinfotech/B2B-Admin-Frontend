@@ -248,7 +248,7 @@ export function ProductListView() {
 
                                     <TableBody>
                                         {dataFiltered
-                                            .sort((a, b) => a.itemName.localeCompare(b.itemName)) // Sort by 'created' descending
+                                            // .sort((a, b) => a.itemName.localeCompare(b.itemName)) // Sort by 'created' descending
                                             .slice(
                                                 table.page * table.rowsPerPage,
                                                 table.page * table.rowsPerPage + table.rowsPerPage

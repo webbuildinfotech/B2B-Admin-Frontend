@@ -235,7 +235,7 @@ export function VendorListView() {
 
                                 <TableBody>
                                     {dataFiltered
-                                        .sort((a, b) => a.name.localeCompare(b.name))
+                                        // .sort((a, b) => a.name.localeCompare(b.name))
                                         .slice(
                                         table.page * table.rowsPerPage,
                                         table.page * table.rowsPerPage + table.rowsPerPage
