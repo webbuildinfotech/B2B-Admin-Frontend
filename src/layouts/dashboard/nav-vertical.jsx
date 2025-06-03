@@ -14,15 +14,13 @@ export function NavVertical({ sx, data, slots, isNavMini, layoutQuery, onToggleN
   const renderNavVertical = (
     <>
       {slots?.topArea ?? (
-        <Box sx={{ pl: 3.5,backgroundColor: 'rgb(230, 77, 84)' }}>
+        <Box sx={{ pl: 3.5, backgroundColor: 'rgb(245, 124, 0)' }}>
           <Logo />
         </Box>
       )}
 
       <Scrollbar fillContent>
         <NavSectionVertical data={data} sx={{ px: 2, flex: '1 1 auto' }} {...other} />
-
-        
       </Scrollbar>
     </>
   );
@@ -30,8 +28,12 @@ export function NavVertical({ sx, data, slots, isNavMini, layoutQuery, onToggleN
   const renderNavMini = (
     <>
       {slots?.topArea ?? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 0,backgroundColor: 'rgb(230, 77, 84)'}}>
-          <Logo />
+        <Box sx={{ display: 'flex', py: 0, backgroundColor: 'rgb(245, 124, 0)' }}>
+          <Logo
+            sx={{
+              width: '72px',
+            }}
+          />
         </Box>
       )}
 

@@ -13,7 +13,7 @@ import { useSelector } from 'react-redux';
 // ----------------------------------------------------------------------
 
 export const Logo = forwardRef(
-  ({ width = 72, height = 72, disableLink = false, className, href = '/', sx, ...other }, ref) => {
+  ({ disableLink = false, className, href = '/', sx, ...other }, ref) => {
     const theme = useTheme();
 
     const { fetchData } = useFetchData();
@@ -26,30 +26,42 @@ export const Logo = forwardRef(
     const gradientId = useId();
 
     const PRIMARY_LIGHT = theme.vars.palette.primary.light;
-
     const PRIMARY_MAIN = theme.vars.palette.primary.main;
-
     const isDark = theme.palette.mode === 'dark';
 
-    /*
-     * OR using local (public folder)
-     * const logo = ( <Box alt="logo" component="img" src={`${CONFIG.site.basePath}/logo/logo-single.svg`} width={width} height={height} /> );
-     */
     const logo = (
-      <img alt="logo" src={isDark ? logoList.logoImage : logoList.logoImage} width={width} height={height} />
+      <img 
+        alt="logo" 
+        src={isDark ? logoList.logoImage : logoList.logoImage} 
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+        }}
+      />
     );
 
     return (
       <NoSsr
         fallback={
           <Box
-            width={width}
-            height={height}
             className={logoClasses.root.concat(className ? ` ${className}` : '')}
             sx={{
               flexShrink: 0,
               display: 'inline-flex',
               verticalAlign: 'middle',
+              width: {
+                xs: '80px',   // Mobile
+                sm: '100px',  // Tablet
+                md: '120px',  // Desktop
+                lg: '150px',  // Large Desktop
+              },
+              height: {
+                xs: '40px',   // Mobile
+                sm: '50px',   // Tablet
+                md: '60px',   // Desktop
+                lg: '72px',   // Large Desktop
+              },
               ...sx,
             }}
           />
@@ -59,14 +71,24 @@ export const Logo = forwardRef(
           ref={ref}
           component={RouterLink}
           href={href}
-          width={width}
-          height={height}
           className={logoClasses.root.concat(className ? ` ${className}` : '')}
           aria-label="logo"
           sx={{
             flexShrink: 0,
             display: 'inline-flex',
             verticalAlign: 'middle',
+            width: {
+              xs: '80px',   // Mobile
+              sm: '100px',  // Tablet
+              md: '120px',  // Desktop
+              lg: '150px',  // Large Desktop
+            },
+            height: {
+              xs: '40px',   // Mobile
+              sm: '50px',   // Tablet
+              md: '60px',   // Desktop
+              lg: '72px',   // Large Desktop
+            },
             ...(disableLink && { pointerEvents: 'none' }),
             ...sx,
           }}

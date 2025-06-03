@@ -88,3 +88,7 @@ input[type='number']::-webkit-inner-spin-button {
   margin: 0;
   -webkit-appearance: none;
 }
+.css-exmzxe{
+  background-color: rgb(245, 124, 0);
+  /* padding-top: 5px !important; */
+}

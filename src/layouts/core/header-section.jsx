@@ -69,7 +69,11 @@ export function HeaderSection({
       className={layoutClasses.header}
       sx={{
         zIndex: 'var(--layout-header-zIndex)',
-        backgroundColor: 'rgb(230, 77, 84)', // Change AppBar color to red
+        // backgroundColor: 'rgb(230, 77, 84)', // Change AppBar color to red
+        backgroundColor: 'rgb(245, 124, 0)', // Change AppBar color to yellow
+        // backgroundColor: 'rgb(255, 102, 0)', // Change AppBar color to yellow
+
+
         ...sx,
       }}
       {...other}
