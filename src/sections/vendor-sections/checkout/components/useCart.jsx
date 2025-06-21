@@ -13,7 +13,7 @@ const useCart = () => {
     dispatch(cartList());
   }, [dispatch]);
 
-  const mappedData = addToCartData.map((item) => ({
+  const mappedData = addToCartData?.map((item) => ({
     id: item.id,
     quantity: item.quantity,
     stockQuantity: item.stockQuantity,

@@ -58,7 +58,7 @@ export const generatePrintableContent = (data) => `
       <img src=${logo} alt="Company Logo" />
       <div class="company-details">
         <h1>Sales Orders</h1>
-        <p>Company Name: RG Techno</p>
+        <p>Company Name: Intecomart</p>
         <p>State: Karnataka, Code: 29</p>
       </div>
     </div>

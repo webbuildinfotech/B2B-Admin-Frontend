@@ -40,7 +40,7 @@ export const generatePDF = (filteredData, ledger, dateRange) => {
   // Helper function to add page header and footer
   const addPageHeaderFooter = (pageNo) => {
     doc.setFontSize(10);
-    doc.text(`RG Techno`, 30, 10, { align: 'right' });
+    doc.text(`Intecomart`, 30, 10, { align: 'right' });
     doc.line(10, 282, 200, 282); // Divider
     doc.text(`Page No: ${pageNo}`, 200, 10, { align: 'right' });
     if (pageNo > 0) {
