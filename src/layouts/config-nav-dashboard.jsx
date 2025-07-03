@@ -79,7 +79,7 @@ export const useNavData = () => {
           title: 'Inventory',
           path: paths.stocks.root,
           icon: ICONS.stocks,
-          children: [{ title: 'Stocks', path: paths.stocks.root }],
+          children: [{ title: 'Stocks Summary', path: paths.stocks.root }],
         },
 
 

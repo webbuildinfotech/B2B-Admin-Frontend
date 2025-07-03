@@ -236,6 +236,44 @@ export const deleteBanner = (bannerId) => async (dispatch) => {
     return false; // Return false for any errors or unsuccessful attempts
 };
 
+export const deleteBannerImage = (bannerId, imageUrls) => async (dispatch) => {
+    try {
+        const response = await axiosInstance.delete(`/banner/images/${bannerId}`, {
+            data: {
+                bannerImages: imageUrls // Send as object with bannerImages key
+            }
+        });
+        
+        // Check if the response is successful
+        if (response && response.status >= 200 && response.status < 300) {
+            toast.success(response.data.message || 'Banner images deleted successfully!');
+            return true; // Indicate successful deletion
+        }
+    } catch (error) {
+        // Handle errors appropriately
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors or unsuccessful attempts
+};
+
+export const deleteBannerAllImage = (bannerId) => async (dispatch) => {
+    try {
+  
+        const response = await axiosInstance.delete(`/banner/images-all/${bannerId}`);
+        // Check if the response is successful
+        if (response && response.status >= 200 && response.status < 300) {
+            toast.success(response.data.message || 'banner deleted successfully!');
+            return true; // Indicate successful deletion
+        }
+    } catch (error) {
+        // Handle errors appropriately
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors or unsuccessful attempts
+};
+
 // Syncs Data Settings
 
 export const syncSettingList = () => async (dispatch) => {
@@ -508,11 +546,12 @@ export const deleteGallery = (id) => async (dispatch) => {
 };
 
 // Delete specific image
-export const deleteSingleGallery = (id, imagesToDelete) => async (dispatch) => {
+export const deleteSingleGallery = (id, imageUrls) => async (dispatch) => {
     try {
         const response = await axiosInstance.delete(`/gallery/images/${id}`, {
-            data: { imagesToDelete: [imagesToDelete] }, // Send the image to delete in the body
-        });
+            data: {
+                galleryImages: imageUrls // Send as object with bannerImages key
+            }  });
 
         // Check if the response is successful
         if (response && response.status >= 200 && response.status < 300) {

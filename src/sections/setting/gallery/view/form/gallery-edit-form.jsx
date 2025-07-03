@@ -88,23 +88,34 @@ export function GalleryEditForm({ currentGallery }) {
     });
 
     const handleRemoveFile = useCallback(
-        (inputFile) => {
-            // Determine if the file is a local file (not uploaded yet)
-            const isLocalFile = inputFile instanceof File;
-
-            // Call the API only if the file is not a local file
-            if (!isLocalFile) {
-                dispatch(deleteSingleGallery(currentGallery.id, inputFile));
-                const filtered = values.galleryImages?.filter((file) => file !== inputFile);
-                setValue('galleryImages', filtered, { shouldValidate: true });
-            }
-
-            // Filter out the removed file from the galleryImages array
-            const filtered = values.galleryImages?.filter((file) => file !== inputFile);
-            setValue('galleryImages', filtered, { shouldValidate: true });
-        },
-        [dispatch, setValue, values.galleryImages, currentGallery.id]
-    );
+        async (file, fieldName) => {
+            try {
+              const isLocalFile = file instanceof File;
+      
+              if (isLocalFile) {
+                // Local file को remove करें
+                setValue(
+                  fieldName,
+                  values[fieldName].filter((item) => item !== file)
+                );
+              } else {
+      
+                const result = await dispatch(deleteSingleGallery(currentGallery.id, [file]));
+          
+                if (result) {
+                    setValue(
+                      fieldName,
+                      values[fieldName].filter((item) => item !== file)
+                    );
+                  }
+                }
+              } catch (error) {
+                console.error('Error deleting image:', error);
+                toast.error('Failed to delete image');
+              }
+            },
+            [dispatch, currentGallery?.id, setValue, values]
+          );
 
 
     const handleRemoveAllFiles = useCallback(
@@ -166,7 +177,7 @@ export function GalleryEditForm({ currentGallery }) {
                             thumbnail
                             name="galleryImages"
                             maxSize={3145728}
-                            onRemove={handleRemoveFile}
+                            onRemove={(file) => handleRemoveFile(file, 'galleryImages')}
                             onRemoveAll={handleRemoveAllFiles}
                         />
                     </Stack>

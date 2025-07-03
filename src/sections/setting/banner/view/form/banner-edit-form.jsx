@@ -11,132 +11,194 @@ import { toast } from 'src/components/snackbar';
 import { Form, Field, schemaHelper } from 'src/components/hook-form';
 import { useRouter } from 'src/routes/hooks';
 import { Box, FormControl, InputLabel, MenuItem, Select, Stack } from '@mui/material';
-import { editBanner } from 'src/store/action/settingActions';
+
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
+import {
+  deleteBannerAllImage,
+  deleteBannerImage,
+  editBanner,
+} from 'src/store/action/settingActions';
 
 // Define schema for multiple file uploads
 export const BannerFormSchema = zod.object({
-    name: zod.string().min(1, { message: 'Name is required!' }),
-    type: zod.string().min(1, { message: 'Type is required!' }),
-    bannerImages: schemaHelper.file({ message: { required_error: 'Cover is required!' } })
+  name: zod.string().min(1, { message: 'Name is required!' }),
+  type: zod.string().min(1, { message: 'Type is required!' }),
+  bannerImages: zod.any().optional(), // Allow any type for multiple files
 });
 
 // Define the BannerType enum
 const BannerType = {
-    Home: 'Home',
-    Contact: 'Contact',
-    About: 'About',
-    Dealer: 'Dealer',
-    Resource: 'Resource',
-    FAQs: 'FAQs',
+  Home: 'Home',
+  Contact: 'Contact',
+  About: 'About',
+  Dealer: 'Dealer',
+  Resource: 'Resource',
+  FAQs: 'FAQs',
 };
 
 export function BannerEditForm({ currentBanner }) {
-    const [loading, setLoading] = useState(false);
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const router = useRouter();
 
-    const defaultValues = useMemo(
-        () => ({
-            name: currentBanner?.name || '',
-            type: currentBanner?.type || BannerType.Home,
-            bannerImages: currentBanner?.BannerImages?.[0] || null,
-        }),
-        [currentBanner]
-    );
+  const defaultValues = useMemo(
+    () => ({
+      name: currentBanner?.name || '',
+      type: currentBanner?.type || BannerType.Home,
+      bannerImages: currentBanner?.BannerImages || [],
+    }),
+    [currentBanner]
+  );
 
-    const methods = useForm({
-        resolver: zodResolver(BannerFormSchema),
-        defaultValues,
+  const methods = useForm({
+    resolver: zodResolver(BannerFormSchema),
+    defaultValues,
+  });
+
+  const {
+    reset,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { isSubmitting },
+  } = methods;
+  const values = watch();
+
+  useEffect(() => {
+    if (currentBanner) {
+      reset(defaultValues);
+    }
+  }, [currentBanner, defaultValues, reset]);
+
+  const onSubmit = handleSubmit(async (data) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('type', data.type);
+
+    // Handle multiple banner images
+    const bannerImages = values.bannerImages || [];
+    bannerImages.forEach((image) => {
+      formData.append('bannerImages', image);
     });
 
-    const { reset, handleSubmit, setValue, watch, formState: { isSubmitting } } = methods;
-    const values = watch();
+    setLoading(true);
+    try {
+      const response = await dispatch(editBanner(currentBanner.id, formData));
+      if (response) {
+        navigate('/settings/banner');
+      }
+    } catch (error) {
+      console.error('Submission failed', error);
+    } finally {
+      setLoading(false);
+    }
+  });
 
-    useEffect(() => {
-        if (currentBanner) {
-            reset(defaultValues);
+  const handleRemoveFile = useCallback(
+    async (file, fieldName) => {
+      try {
+        const isLocalFile = file instanceof File;
+
+        if (isLocalFile) {
+          // Local file को remove करें
+          setValue(
+            fieldName,
+            values[fieldName].filter((item) => item !== file)
+          );
+        } else {
+          // Server से existing image को delete करें
+          const result = await dispatch(
+            deleteBannerImage(currentBanner.id, [file])
+          );
+          if (result) {
+            setValue(
+              fieldName,
+              values[fieldName].filter((item) => item !== file)
+            );
+          }
         }
-    }, [currentBanner, defaultValues, reset]);
+      } catch (error) {
+        console.error('Error deleting image:', error);
+        toast.error('Failed to delete image');
+      }
+    },
+    [dispatch, currentBanner?.id, setValue, values]
+  );
 
-    const onSubmit = handleSubmit(async (data) => {
-        const formData = new FormData();
-        formData.append('name', data.name);
-        formData.append('type', data.type);
-        
-        // If multiple files are allowed, use a loop to append them all
-        if (data.bannerImages) {
-            formData.append('bannerImages', data.bannerImages);
+  const handleRemoveAllFiles = useCallback(
+    async (fieldName) => {
+      try {
+        const result = await dispatch(deleteBannerAllImage(currentBanner.id));
+        if (result) {
+          setValue(fieldName, []);
         }
+      } catch (error) {
+        console.error('Error deleting all images:', error);
+      }
+    },
+    [dispatch, currentBanner?.id, setValue, values]
+  );
 
-        setLoading(true);
-        try {
-            const response = await dispatch(editBanner(currentBanner.id, formData));
-            if (response) {
-                navigate('/settings/banner');
-            }
-        } catch (error) {
-            console.error('Submission failed', error);
-        } finally {
-            setLoading(false);
-        }
-    });
+  const handleChangeType = useCallback(
+    ({ target: { value } }) => {
+      setValue('type', value);
+    },
+    [setValue]
+  );
 
-    const handleRemoveFile = useCallback(() => {
-        setValue('bannerImages', null);
-    }, [setValue]);
+  const renderBannerDetails = (
+    <Card>
+      <CardHeader title="Banner Details" />
+      <Divider sx={{ mt: 1 }} />
 
-    const handleChangeType = useCallback(({ target: { value } }) => {
-        setValue('type', value);
-    }, [setValue]);
+      <Stack spacing={3} sx={{ p: 3 }}>
+        <Field.Text name="name" label="Banner Name" />
 
-    const renderBannerDetails = (
-        <Card>
-            <CardHeader title="Banner Details" />
-            <Divider sx={{ mt: 1 }} />
+        <FormControl fullWidth>
+          <InputLabel id="type-select-label">Type</InputLabel>
+          <Select
+            labelId="type-select-label"
+            id="type-select"
+            value={watch('type')}
+            onChange={handleChangeType}
+            label="Type"
+            disabled
+          >
+            {Object.values(BannerType).map((type) => (
+              <MenuItem key={type} value={type}>
+                {type}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-            <Stack spacing={3} sx={{ p: 3 }}>
-                <Field.Text name="name" label="Banner Name" />
+        <Stack spacing={1.5}>
+          <Typography variant="subtitle2">Banner Images</Typography>
 
-                <FormControl fullWidth>
-                <InputLabel id="type-select-label">Type</InputLabel>
-                <Select
-                    labelId="type-select-label"
-                    id="type-select"
-                    value={watch('type')}
-                    onChange={handleChangeType}
-                    label="Type"
-                >
-                    {Object.values(BannerType).map((type) => (
-                        <MenuItem key={type} value={type}>
-                            {type}
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
+          <Field.Upload
+            multiple
+            thumbnail
+            name="bannerImages"
+            maxSize={3145728}
+            onRemove={(file) => handleRemoveFile(file, 'bannerImages')}
+            onRemoveAll={() => handleRemoveAllFiles('bannerImages')}
+          />
+        </Stack>
 
-                <Stack spacing={1.5}>
-                    <Typography variant="subtitle2">Banner Images</Typography>
+        <Box display="flex" justifyContent="flex-end">
+          <LoadingButton type="submit" variant="contained" size="large" loading={isSubmitting}>
+            {currentBanner ? 'Save changes' : 'Create banner'}
+          </LoadingButton>
+        </Box>
+      </Stack>
+    </Card>
+  );
 
-                    <Field.Upload name="bannerImages" maxSize={3145728} onDelete={handleRemoveFile} />
-                </Stack>
-
-                <Box display="flex" justifyContent="flex-end">
-                    <LoadingButton type="submit" variant="contained" size="large" loading={isSubmitting}>
-                        {currentBanner ? 'Save changes' : 'Create banner'}
-                    </LoadingButton>
-                </Box>
-            </Stack>
-        </Card>
-    );
-
-    return (
-        <Form methods={methods} onSubmit={onSubmit}>
-            <Stack>
-                {renderBannerDetails}
-            </Stack>
-        </Form>
-    );
+  return (
+    <Form methods={methods} onSubmit={onSubmit}>
+      <Stack>{renderBannerDetails}</Stack>
+    </Form>
+  );
 }

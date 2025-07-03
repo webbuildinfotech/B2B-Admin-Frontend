@@ -12,6 +12,7 @@ import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router';
 import { galleryGetByList } from 'src/store/action/settingActions';
+import { GalleryDetailsCarousel } from '../gallery-details-carousel';
 import { fDate, fTime } from 'src/utils/format-time';
 
 export function GalleryView() {
@@ -30,7 +31,7 @@ export function GalleryView() {
     }
 
     return (
-        <DashboardContent maxWidth="2xl">
+        <DashboardContent maxWidth="xl">
             <CustomBreadcrumbs
                 heading="Gallery View"
                 links={[
@@ -77,45 +78,65 @@ export function GalleryView() {
                     </Box>
                 </Box>
 
-                <Grid container spacing={3} sx={{ mt: 3 }}>
-                    {gallery?.GalleryImages?.map((image, index) => (
-                        <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
-                            <Card
-                                sx={{
-                                    height: '100%',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    justifyContent: 'space-between',
-                                    boxShadow: 3,
-                                    transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-                                    '&:hover': {
-                                        transform: 'scale(1.05)',
-                                        boxShadow: 6,
-                                    },
-                                }}
-                            >
-                                <CardMedia
-                                    component="img"
-                                    height="200"
-                                    image={image}
-                                    alt={`Gallery image ${index + 1}`}
-                                    sx={{
-                                        objectFit: 'cover',
-                                        transition: 'transform 0.3s ease-in-out',
-                                        '&:hover': {
-                                            transform: 'scale(1.1)',
-                                        },
-                                    }}
-                                />
-                                <CardContent>
-                                    <Typography variant="caption" color="text.secondary">
-                                        Image {index + 1}
-                                    </Typography>
-                                </CardContent>
-                            </Card>
+                {/* Gallery Carousel - Main View */}
+                {gallery?.GalleryImages && (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            mt: 3,
+                            mb: 4,
+                        }}
+                    >
+                        <GalleryDetailsCarousel images={gallery.GalleryImages} />
+                    </Box>
+                )}
+
+                {/* Gallery Grid View - Thumbnails */}
+                {gallery?.GalleryImages && gallery.GalleryImages.length > 1 && (
+                    <Box sx={{ mt: 4 }}>
+                        <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
+                            All Images ({gallery.GalleryImages.length})
+                        </Typography>
+                        <Grid container spacing={2}>
+                            {gallery.GalleryImages.map((image, index) => (
+                                <Grid item xs={6} sm={4} md={3} lg={2} key={index}>
+                                    <Card
+                                        sx={{
+                                            height: 'auto',
+                                            cursor: 'pointer',
+                                            boxShadow: 2,
+                                            transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+                                            '&:hover': {
+                                                transform: 'scale(1.05)',
+                                                boxShadow: 4,
+                                            },
+                                        }}
+                                    >
+                                        <CardMedia
+                                            component="img"
+                                            // height="120"
+                                            image={image}
+                                            alt={`Gallery thumbnail ${index + 1}`}
+                                            sx={{
+                                                objectFit: 'cover',
+                                                transition: 'transform 0.3s ease-in-out',
+                                                '&:hover': {
+                                                    transform: 'scale(1.1)',
+                                                },
+                                            }}
+                                        />
+                                        <CardContent sx={{ p: 1 }}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', display: 'block' }}>
+                                                Image {index + 1}
+                                            </Typography>
+                                        </CardContent>
+                                    </Card>
+                                </Grid>
+                            ))}
                         </Grid>
-                    ))}
-                </Grid>
+                    </Box>
+                )}
             </Box>
         </DashboardContent>
     );

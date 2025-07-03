@@ -73,7 +73,7 @@ export function BannerView() {
                         </Box>
                     </Box>
 
-                    {banner?.BannerImages?.[0] && (
+                    {banner?.BannerImages && (
                         <Box
                             sx={{
                                 display: 'flex',
@@ -81,7 +81,8 @@ export function BannerView() {
                                 mt: 3,
                             }}
                         >
-                            <BannerDetailsCarousel image={banner.BannerImages?.[0]} />
+                            {console.log('Banner Images:', banner.BannerImages)}
+                            <BannerDetailsCarousel images={banner.BannerImages} />
                         </Box>
                     )}
                 </Box>
