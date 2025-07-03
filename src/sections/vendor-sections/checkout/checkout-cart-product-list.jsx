@@ -12,7 +12,7 @@ const TABLE_HEAD = [
   { id: 'product', label: 'Product', align: 'center' },
   { id: 'price', label: 'Price' },
   { id: 'std_pkg', label: 'Standard Packaging', align: 'center' },
-  { id: 'no_pkg', label: 'No Of Package' },
+  { id: 'no_pkg', label: 'No Of Package', align: 'center' },
   { id: 'quantity', label: 'Quantity', align: 'center' },
   { id: 'available', label: 'Available', align: 'center' },
   { id: 'totalAmount', label: 'Total Price', align: 'center' },
