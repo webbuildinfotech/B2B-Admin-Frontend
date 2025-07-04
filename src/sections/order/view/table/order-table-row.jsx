@@ -30,8 +30,13 @@ import { useDispatch } from 'react-redux';
 // ----------------------------------------------------------------------
 
 export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteRow, onDownload }) {
+  // const isDownloadable = !!row.invoicePdf; // Check if pdfPath is available
+  const userRole = useUserRole();
 
-  const isDownloadable = !!row.invoicePdf; // Check if pdfPath is available
+
+  const isDownloadable =
+    !!row.invoicePdf &&
+    (userRole === 'Admin' || (userRole === 'Vendor' && row.status === 'completed'));
 
   const confirm = useBoolean();
 
@@ -39,7 +44,6 @@ export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
 
   const popover = usePopover();
 
-  const userRole = useUserRole();
 
   const [modalOpen, setModalOpen] = useState(false);
   const dispatch = useDispatch();
@@ -50,7 +54,6 @@ export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
     await dispatch(handleStatusUpdate(row.id, newStatus));
     setModalOpen(false);
   };
-
 
   const getColor = (status) => {
     switch (status) {
@@ -74,8 +77,8 @@ export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
           inputProps={{ id: `row-checkbox-${row.id}`, 'aria-label': `Row checkbox` }}
         />
       </TableCell>
-      <TableCell align="center"> {row?.orderNo || "N/A"} </TableCell>
-      {userRole === "Admin" &&
+      <TableCell align="center"> {row?.orderNo || 'N/A'} </TableCell>
+      {userRole === 'Admin' && (
         <TableCell>
           <Stack spacing={2} direction="row" alignItems="center">
             <Stack sx={{ typography: 'body2', flex: '1 1 auto', alignItems: 'flex-start' }}>
@@ -92,8 +95,7 @@ export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
             </Stack>
           </Stack>
         </TableCell>
-
-      }
+      )}
       <TableCell align="center"> {row?.stdPkgs} </TableCell>
       <TableCell align="center"> {row?.noOfPkgs} </TableCell>
       <TableCell align="center"> {row?.totalQuantity} </TableCell>
@@ -126,9 +128,22 @@ export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
         </Tooltip>
       </TableCell>
 
-      <TableCell align="center" sx={{ cursor: "pointer" }}>
-        <Tooltip title={isDownloadable ? "Download File" : "File not available"}>
-          <span> {/* Wrap in span to allow tooltip on disabled button */}
+      <TableCell align="center" sx={{ cursor: 'pointer' }}>
+        <Tooltip
+          title={
+            // isDownloadable ? "Download File" : "File not available"}
+          !row.invoicePdf
+          ? 'File not available'
+          : userRole === 'Vendor' && row.status !== 'completed'
+            ? row.status === 'cancelled' 
+              ? 'Order Cancelled'
+              : 'Order Not Completed'
+            : 'Download File'
+      }
+        >
+          <span>
+            {' '}
+            {/* Wrap in span to allow tooltip on disabled button */}
             <IconButton
               onClick={() => isDownloadable && onDownload(row.id)}
               sx={{ color: 'primary.main' }}

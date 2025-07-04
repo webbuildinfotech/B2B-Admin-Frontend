@@ -12,7 +12,7 @@ export default function ConfirmDialog({ open, onClose, onConfirm, title, content
         }
       }}
     >
-      <DialogTitle sx={{ backgroundColor: '#3f51b5', color: 'white' }}>
+      <DialogTitle sx={{ backgroundColor: '#FF6600', color: 'white' }}>
         {title}
       </DialogTitle>
       <DialogContent

@@ -86,7 +86,11 @@ export function LedgerListView() {
         setTableData(_ledger);
     }, [_ledger]);
     //----------------------------------------------------------------------------------------------------
-
+    const handleSelectRow = useCallback((id) => {
+        setSelectedRows((prev) =>
+            prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [...prev, id]
+        );
+    }, []);
     //----------------------------------------------------------------------------------------------------
     const dataFiltered = applyFilter({
         inputData: tableData,
@@ -208,7 +212,7 @@ export function LedgerListView() {
                                                 key={row.id}
                                                 row={row}
                                                 selected={selectedRows.includes(row.id)}
-
+                                                onSelectRow={() => handleSelectRow(row.id)}
                                                 onViewRow={() => handleViewRow(row.id)}
                                             />
                                         ))}

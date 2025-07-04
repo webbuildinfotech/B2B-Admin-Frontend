@@ -151,14 +151,16 @@ export function PaymentView() {
                     <Button
                         variant="contained"
                         startIcon={<Iconify icon="mingcute:add-line" />}
+                        component={RouterLink}
+                        to="/payments/create"
+                        sx={{
+                            textDecoration: 'none',
+                            '&:hover': {
+                                textDecoration: 'none'
+                            }
+                        }}
                     >
-                        <Link
-                            component={RouterLink}
-                            to="/payments/create"
-                            sx={{ textDecoration: 'none', color: 'white', display: 'flex', alignItems: 'center' }}
-                        >
-                            Add Account
-                        </Link>
+                        Add Account
                     </Button>
                 }
                 sx={{ mb: { xs: 3, md: 5 } }}
@@ -180,13 +182,13 @@ export function PaymentView() {
                         numSelected={selectedRows.length}
                         rowCount={dataFiltered.length}
                         onSelectAllRows={(checked) => setSelectedRows(checked ? dataFiltered.map(row => row.id) : [])}
-                        action={
-                            <Tooltip title="Delete">
-                                <IconButton color="primary" onClick={confirm.onTrue}>
-                                    <Iconify icon="solar:trash-bin-trash-bold" />
-                                </IconButton>
-                            </Tooltip>
-                        }
+                        // action={
+                        //     <Tooltip title="Delete">
+                        //         <IconButton color="primary" onClick={confirm.onTrue}>
+                        //             <Iconify icon="solar:trash-bin-trash-bold" />
+                        //         </IconButton>
+                        //     </Tooltip>
+                        // }
                     />
                     <Scrollbar>
                         <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 960 }}>

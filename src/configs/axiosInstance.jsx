@@ -31,27 +31,30 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor (you can customize this if needed)
+let isLoggingOut = false; // Global flag to prevent multiple logout processes
+
 // Response interceptor
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      let countdown = 5; // Countdown starts from 5 seconds
+    if (error.response?.status === 401 && !isLoggingOut) {
+      isLoggingOut = true; // Set flag to prevent multiple processes
+      
+      let countdown = 5;
+      const toastId = toast.error(`Session expired. Logging out in ${countdown} seconds.`);
 
-      // Show initial toast message
-      const toastId = toast.error(`Session expired.Logging out in ${countdown} seconds.`);
-
-      // Update the toast message every second
       const interval = setInterval(() => {
         countdown -= 1;
-        toast.error(`Session expired. Logging out in ${countdown} seconds.`, { id: toastId });
+        if (countdown > 0) {
+          toast.error(`Session expired. Logging out in ${countdown} seconds.`, { id: toastId });
+        }
       }, 1000);
 
-      // Logout after 5 seconds
       setTimeout(() => {
-        clearInterval(interval); // Stop the countdown
-        logoutHandler(); // Call the logout handler
+        clearInterval(interval);
+        toast.dismiss(toastId);
+        logoutHandler();
+        isLoggingOut = false; // Reset flag after logout
       }, 5000);
     }
     return Promise.reject(error);

@@ -35,7 +35,7 @@ export function ReceivablesTableToolbar({ filters, onResetPage, data }) {
             fullWidth
             value={filters.state.name}
             onChange={handleFilterName}
-            placeholder="Search customer..."
+            placeholder="Search..."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

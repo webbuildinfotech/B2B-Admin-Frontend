@@ -108,7 +108,7 @@ export const deleteProduct = (productId, productData) => async (dispatch) => {
 
         // Check if the response is successful
         if (response && response.status >= 200 && response.status < 300) {
-            toast.success(response.data.message || 'Product deleted successfully!');
+            toast.success(response.data.message || 'Data deleted successfully!');
             return true; // Indicate successful deletion
         }
     } catch (error) {

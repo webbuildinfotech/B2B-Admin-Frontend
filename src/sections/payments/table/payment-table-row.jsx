@@ -16,7 +16,7 @@ import { usePopover, CustomPopover } from 'src/components/custom-popover';
 import { Link as RouterLink } from 'react-router-dom';
 import { Avatar } from '@mui/material';
 import { useFetchData } from '../components/fetch-payment';
-import { DUMMY_IMAGE } from 'src/components/constants';
+import { DUMMY_BANK_IMAGE } from 'src/components/constants';
 
 export function PaymentTableRow({ row, selected, onEditRow, onSelectRow, onDeleteRow }) {
     const confirm = useBoolean();
@@ -37,7 +37,7 @@ export function PaymentTableRow({ row, selected, onEditRow, onSelectRow, onDelet
                         <Avatar
                             variant="rounded"
                             alt={row?.qrCodeImageUrl || "Product Image"}
-                            src={row?.qrCodeImageUrl && row?.qrCodeImageUrl?.length ? row.qrCodeImageUrl : DUMMY_IMAGE}
+                            src={row?.qrCodeImageUrl && row?.qrCodeImageUrl?.length ? row.qrCodeImageUrl : DUMMY_BANK_IMAGE}
                             sx={{ width: 60, height: 60, mr: 2 }}
                         />
                         <Stack sx={{ typography: 'body2', flex: '1 1 auto', alignItems: 'flex-start' }}>

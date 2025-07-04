@@ -18,31 +18,70 @@ import { Field, Form, schemaHelper } from 'src/components/hook-form';
 import { createPayment } from 'src/store/action/paymentActions';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
+import { validateEmailDomain, validateUpiProvider } from 'src/utils/emailValidation';
 
 // Define schemas for different payment methods
 const BankFormSchema = zod.object({
-    accountName: zod.string().min(1, { message: 'Account Name is required!' }),
-   accountNumber: zod
-    .string()
-    .nonempty({ message: 'Account Number is required!' }) // Required field
-    .regex(/^\d+$/, { message: 'Account Number must contain only digits!' }) // Only digits
-    .min(8, { message: 'Account Number must be at least 8 digits!' }) // Minimum length
-    .max(20, { message: 'Account Number must not exceed 20 digits!' }), // Maximum length
+    accountName: zod
+        .string()
+        .min(1, { message: 'Account Name is required!' })
+        .min(3, { message: 'Account Name must be at least 3 characters!' })
+        .max(100, { message: 'Account Name must not exceed 100 characters!' })
+        .regex(/^[a-zA-Z\s]+$/, { message: 'Account Name can only contain letters and spaces!' }),
+    
+    accountNumber: zod
+        .string()
+        .nonempty({ message: 'Account Number is required!' })
+        .regex(/^\d+$/, { message: 'Account Number must contain only digits!' })
+        .min(9, { message: 'Account Number must be at least 9 digits!' })
+        .max(18, { message: 'Account Number must not exceed 18 digits!' })
+        .transform((val) => val.replace(/\s/g, '')), // Remove spaces
 
-    ifscCode: zod.string().min(1, { message: 'IFSC Code is required!' }),
+    ifscCode: zod
+        .string()
+        .min(1, { message: 'IFSC Code is required!' })
+        .length(11, { message: 'IFSC Code must be exactly 11 characters!' })
+        .regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, { 
+            message: 'IFSC Code must be in format: 4 letters + 0 + 6 alphanumeric characters!' 
+        })
+        .transform((val) => val.toUpperCase()), // Convert to uppercase
 });
 
 const PayPalFormSchema = zod.object({
-    paypalEmail: zod.string().email({ message: 'Valid PayPal email is required!' }),
+    paypalEmail: zod
+    .string()
+    .min(1, { message: 'PayPal Email is required!' })
+    .email({ message: 'Please provide a valid email address!' })
+    .refine((email) => validateEmailDomain(email), {
+        message: 'Please use a valid email domain (gmail.com, yahoo.com, outlook.com, etc.). Temporary email domains are not allowed.'
+    })
+    .transform((val) => val.toLowerCase()), // Convert to lowercase
 });
 
 const UPIFormSchema = zod.object({
-    upiId: zod.string().min(1, { message: 'UPI ID is required!' }),
-    upiProvider: zod.string().min(1, { message: 'UPI Provider is required!' }),
+    upiId: zod
+        .string()
+        .min(1, { message: 'UPI ID is required!' })
+        .min(5, { message: 'UPI ID must be at least 5 characters!' })
+        .max(50, { message: 'UPI ID must not exceed 50 characters!' })
+        .regex(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+$/, { 
+            message: 'UPI ID must be in valid format (e.g., username@upi)!' 
+        })
+        .refine((upiId) => validateUpiProvider(upiId), {
+            message: 'Invalid UPI provider. Please use a valid UPI provider (e.g., googlepay, paytm, phonepe, etc.)!'
+        })
+        .transform((val) => val.toLowerCase()), // Convert to lowercase
+    
+    upiProvider: zod
+        .string()
+        .min(1, { message: 'UPI Provider is required!' })
+        .refine((val) => ['Google Pay', 'PhonePe', 'Paytm', 'BHIM', 'Other'].includes(val), {
+            message: 'Please select a valid UPI provider!'
+        }),
+    
     qrCodeImageUrl: zod.any().optional(),
-
-
 });
+
 
 export function PaymentCreateForm() {
     const [loading, setLoading] = useState(false);

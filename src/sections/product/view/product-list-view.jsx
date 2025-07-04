@@ -84,7 +84,7 @@ export function ProductListView() {
         try {
             await deleteAllItems(selectedRows);
             setSelectedRows([]);
-            fetchData(); // Refresh data after deletion
+            // fetchData(); // Refresh data after deletion
             confirm.onFalse();
         } catch (error) {
             console.error("Error deleting selected rows:", error);

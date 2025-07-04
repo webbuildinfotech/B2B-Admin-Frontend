@@ -84,6 +84,23 @@ export const deleteFAQ = (faqId) => async (dispatch) => {
     return false; // Return false for any errors or unsuccessful attempts
 };
 
+export const deleteMultipleFaq = (ids) => async (dispatch) => {
+    try {
+        const response = await axiosInstance.delete(`/faq/delete/multiple`, {
+            data: { ids }
+        });
+        if (response && response.status >= 200 && response.status < 300) {
+            toast.success(response.data.message || 'faq deleted successfully!');
+            return true; // Indicate successful deletion
+        }
+    } catch (error) {
+        // Handle errors appropriately
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors or unsuccessful attempts
+}   
+
 // Contact Settings
 
 export const contactList = () => async (dispatch) => {
@@ -235,6 +252,25 @@ export const deleteBanner = (bannerId) => async (dispatch) => {
     }
     return false; // Return false for any errors or unsuccessful attempts
 };
+
+export const deleteMultipleBanner = (ids) => async (dispatch) => {
+
+    try {
+        const response = await axiosInstance.delete(`/banner/delete/multiple`, {
+            data: { ids }
+        });
+        if (response && response.status >= 200 && response.status < 300) {
+            toast.success(response.data.message || 'banner deleted successfully!');
+            return true; // Indicate successful deletion
+        }
+    } catch (error) {
+        // Handle errors appropriately
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors or unsuccessful attempts
+};
+
 
 export const deleteBannerImage = (bannerId, imageUrls) => async (dispatch) => {
     try {
@@ -572,6 +608,26 @@ export const deleteAllGallery = (id) => async (dispatch) => {
 
         // Check if the response is successful
         if (response && response.status >= 200 && response.status < 300) {
+            return true; // Indicate successful deletion
+        }
+    } catch (error) {
+        // Handle errors appropriately
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors or unsuccessful attempts
+};
+
+export const deleteAllGalleryItem = (ids) => async (dispatch) => {
+    try {
+        // Pass ids as the data property in the axios delete request
+        const response = await axiosInstance.delete(`/gallery/delete/multiple`, {
+            data: { ids }
+        });
+
+        // Check if the response is successful
+        if (response && response.status >= 200 && response.status < 300) {
+            toast.success(response.data.message || 'Gallery deleted successfully!');
             return true; // Indicate successful deletion
         }
     } catch (error) {
