@@ -10,6 +10,9 @@ import Divider from '@mui/material/Divider';
 import InputBase from '@mui/material/InputBase';
 import Grid from '@mui/material/Unstable_Grid2';
 import CardHeader from '@mui/material/CardHeader';
+import Typography from '@mui/material/Typography';
+import Avatar from '@mui/material/Avatar';
+import Chip from '@mui/material/Chip';
 
 import { fNumber } from 'src/utils/format-number';
 
@@ -25,74 +28,179 @@ import { ProfilePostItem } from './profile-post-item';
 export function ProfileHome({ info }) {
 
   const renderAbout = (
-    <Card>
-      <CardHeader title="About" />
+    <Card sx={{ 
+      borderRadius: 2,
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      border: '1px solid #e0e0e0',
+      overflow: 'hidden'
+    }}>
+      <Box sx={{ 
+        p: { xs: 2, sm: 3 }, 
+        backgroundColor: '#f8f9fa',
+        borderBottom: '1px solid #e0e0e0'
+      }}>
+        <Typography variant="h6" sx={{ 
+          fontWeight: 600,
+          color: '#1a1a1a',
+          display: 'flex',
+          alignItems: 'center',
+          fontSize: { xs: '1rem', sm: '1.25rem' }
+        }}>
+          <Iconify icon="mdi:account-details" sx={{ mr: 1, color: '#667eea' }} />
+          Personal Information
+        </Typography>
+      </Box>
 
-      <Stack spacing={2} sx={{ p: 3 }}>
-        <Stack direction="row" spacing={2}>
-          <Iconify icon="ic:baseline-phone" width={24} />
-          <Box sx={{ typography: 'body2' }}>
-            {`Mobile No: `}
-            <Link variant="subtitle2" color="inherit">
+      <Stack spacing={0} sx={{ p: { xs: 2, sm: 3 } }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          p: { xs: 1.5, sm: 2 },
+          borderRadius: 1,
+          '&:hover': {
+            backgroundColor: '#f8f9fa'
+          }
+        }}>
+          <Avatar sx={{ 
+            bgcolor: '#e3f2fd', 
+            color: '#1976d2',
+            width: { xs: 32, sm: 40 },
+            height: { xs: 32, sm: 40 },
+            mr: 2
+          }}>
+            <Iconify icon="mdi:phone" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }} />
+          </Avatar>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="caption" sx={{ 
+              color: '#666', 
+              display: 'block',
+              fontSize: { xs: '0.7rem', sm: '0.75rem' }
+            }}>
+              Mobile Number
+            </Typography>
+            <Typography variant="body1" sx={{ 
+              fontWeight: 500,
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              wordBreak: 'break-word'
+            }}>
               {info.mobile || 'N/A'}
-            </Link>
+            </Typography>
           </Box>
-        </Stack>
+        </Box>
 
-        {/* Email */}
-        <Stack direction="row" spacing={2}>
-          <Iconify icon="ic:round-email" width={24} />
-          <Box sx={{ typography: 'body2' }}>
-            {`Email: `}
-            <Link variant="subtitle2" color="inherit" href={`mailto:${info.email}`}>
+        <Divider sx={{ my: 1 }} />
+
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          p: { xs: 1.5, sm: 2 },
+          borderRadius: 1,
+          '&:hover': {
+            backgroundColor: '#f8f9fa'
+          }
+        }}>
+          <Avatar sx={{ 
+            bgcolor: '#fff3e0', 
+            color: '#f57c00',
+            width: { xs: 32, sm: 40 },
+            height: { xs: 32, sm: 40 },
+            mr: 2
+          }}>
+            <Iconify icon="mdi:email" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }} />
+          </Avatar>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="caption" sx={{ 
+              color: '#666', 
+              display: 'block',
+              fontSize: { xs: '0.7rem', sm: '0.75rem' }
+            }}>
+              Email Address
+            </Typography>
+            <Typography variant="body1" sx={{ 
+              fontWeight: 500,
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              wordBreak: 'break-word'
+            }}>
               {info.email || 'N/A'}
-            </Link>
+            </Typography>
           </Box>
-        </Stack>
+        </Box>
 
+        <Divider sx={{ my: 1 }} />
 
-        {/* Address */}
-        <Stack direction="row" spacing={2}>
-          <Iconify icon="mdi:home-map-marker" width={24} />
-          <Box sx={{ typography: 'body2' }}>
-            {`Address: `}
-            <Link variant="subtitle2" color="inherit">
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          p: { xs: 1.5, sm: 2 },
+          borderRadius: 1,
+          '&:hover': {
+            backgroundColor: '#f8f9fa'
+          }
+        }}>
+          <Avatar sx={{ 
+            bgcolor: '#e8f5e8', 
+            color: '#2e7d32',
+            width: { xs: 32, sm: 40 },
+            height: { xs: 32, sm: 40 },
+            mr: 2
+          }}>
+            <Iconify icon="mdi:home-map-marker" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }} />
+          </Avatar>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="caption" sx={{ 
+              color: '#666', 
+              display: 'block',
+              fontSize: { xs: '0.7rem', sm: '0.75rem' }
+            }}>
+              Address
+            </Typography>
+            <Typography variant="body1" sx={{ 
+              fontWeight: 500,
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              wordBreak: 'break-word'
+            }}>
               {info.address || 'N/A'}
-            </Link>
+            </Typography>
           </Box>
-        </Stack>
+        </Box>
 
-        {/* PinCode */}
-        <Stack direction="row" spacing={2}>
-          <Iconify icon="ic:round-pin" width={24} />
-          <Box sx={{ typography: 'body2' }}>
-            {`Pin Code: `}
-            <Link variant="subtitle2" color="inherit">
-              {info.pincode || 'N/A'}
-            </Link>
-          </Box>
-        </Stack>
+        <Divider sx={{ my: 1 }} />
 
-        {/* State */}
-        <Stack direction="row" spacing={2}>
-          <Iconify icon="ic:round-map" width={24} />
-          <Box sx={{ typography: 'body2' }}>
-            {`State: `}
-            <Link variant="subtitle2" color="inherit">
-              {info.state || 'N/A'}
-            </Link>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          p: { xs: 1.5, sm: 2 },
+          borderRadius: 1,
+          '&:hover': {
+            backgroundColor: '#f8f9fa'
+          }
+        }}>
+          <Avatar sx={{ 
+            bgcolor: '#fce4ec', 
+            color: '#c2185b',
+            width: { xs: 32, sm: 40 },
+            height: { xs: 32, sm: 40 },
+            mr: 2
+          }}>
+            <Iconify icon="mdi:map-marker" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }} />
+          </Avatar>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="caption" sx={{ 
+              color: '#666', 
+              display: 'block',
+              fontSize: { xs: '0.7rem', sm: '0.75rem' }
+            }}>
+              Location
+            </Typography>
+            <Typography variant="body1" sx={{ 
+              fontWeight: 500,
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              wordBreak: 'break-word'
+            }}>
+              {info.state}, {info.country} - {info.pincode}
+            </Typography>
           </Box>
-        </Stack>
-
-        <Stack direction="row" spacing={2}>
-          <Iconify icon="mingcute:location-fill" width={24} />
-          <Box sx={{ typography: 'body2' }}>
-            {`Country: `}
-            <Link variant="subtitle2" color="inherit">
-              {info.country || 'N/A'}
-            </Link>
-          </Box>
-        </Stack>
+        </Box>
       </Stack>
     </Card>
   );
@@ -102,9 +210,9 @@ export function ProfileHome({ info }) {
 
 
   return (
-    <Grid container spacing={3}>
+    <Grid container spacing={{ xs: 2, md: 3 }}>
       <Grid xs={12}>
-        <Stack spacing={3}>
+        <Stack spacing={{ xs: 2, md: 3 }}>
           {renderAbout}
         </Stack>
       </Grid>

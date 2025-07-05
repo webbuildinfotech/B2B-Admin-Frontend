@@ -232,6 +232,13 @@ export function CheckoutCart() {
           variant="contained"
           disabled={empty}
           onClick={handleCheckCart}
+          sx={{
+            backgroundColor: 'var(--primary-color-3)',
+            color: '#fff',
+            py: 1.5,
+            borderRadius: 2,
+            fontWeight: 600,
+          }}
         >
           Check out
         </Button>

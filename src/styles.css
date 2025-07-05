@@ -1,0 +1,14 @@
+:root {
+    --primary-color: #FF6600;
+    --primary-color-1: #ff6c73;
+    --primary-color-2: #FF6600;
+    --primary-color-3: #FF6600;
+    /* --primary-color-2: #EA2030;
+      --primary-color-3: #EB282D; */
+    --primary-light-color: #ec293372;
+    --badge-color: #ff5630;
+    --black-color: #1C252E;
+    --dot-color: #bbb;
+    --white-color: #fff;
+    --active-dot-color: #ec293362;
+  }

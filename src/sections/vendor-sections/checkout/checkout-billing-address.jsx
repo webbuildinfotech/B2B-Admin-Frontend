@@ -270,6 +270,13 @@ export function CheckoutBillingAddress() {
                 disabled={!selectedAddressId || isSubmitting}
                 loading={isSubmitting}
                 onClick={handleSubmit}
+                sx={{
+                  backgroundColor: 'var(--primary-color-2)',
+                  color: '#fff',
+                  py: 1.5,
+                  borderRadius: 2,
+                  fontWeight: 600,
+                }}
               >
                 Complete order
               </LoadingButton>
