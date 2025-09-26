@@ -163,7 +163,7 @@ export function ReceivablesListDetails() {
                         <TableCell>Tally Order ID</TableCell>
                         <TableCell>NX Order ID</TableCell>
                         <TableCell align="center">Opening Balance</TableCell>
-                        <TableCell align="center">Closing Balance</TableCell>
+                        <TableCell align="center">Pending Balance</TableCell>
                         <TableCell align="center">Credit Period</TableCell>
                         <TableCell align="center">Bill Date</TableCell>
                     </TableRow>
@@ -238,7 +238,7 @@ export function ReceivablesListDetails() {
 
                     <Stack sx={{ typography: 'body2' }}>
                         <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                            Closing Balance
+                            Pending Balance
                         </Typography>
                         {fCurrency(receivable.closingBalance)}
                     </Stack>

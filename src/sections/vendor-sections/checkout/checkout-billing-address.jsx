@@ -186,10 +186,11 @@ export function CheckoutBillingAddress() {
               <Box sx={{ mt: 1 }}>
                 {userAddress.length > 0 ? (
                   <div>
-                    {(showAllAddresses ? userAddress : userAddress.slice(0, 2)).map((address) => (
+                    {(showAllAddresses ? userAddress : userAddress.slice(0, 2)).map((address,index) => (
                       <Box key={address.id} sx={{ position: 'relative', mb: 3 }}>
                         <AddressItem
                           address={address}
+                          index={index}
                           onClick={() => handleSelectAddress(address.id)}
                           sx={{
                             p: 3,

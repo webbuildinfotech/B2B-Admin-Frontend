@@ -101,7 +101,7 @@ export const useNavData = () => {
           icon: ICONS.account,
           children: [
             { title: 'Ledger Statement', path: paths.accounts.ledger },
-            { title: 'Outstanding Receivables', path: paths.accounts.receivable },
+            { title: 'Outstanding Payable', path: paths.accounts.receivable },
           ],
         },
       ],
