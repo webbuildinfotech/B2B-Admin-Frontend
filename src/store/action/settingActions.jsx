@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 import axiosInstance from "src/configs/axiosInstance";
-import { BANNER_GET_BY_LIST, BANNER_LIST, CONTACT_GET_BY_LIST, CONTACT_LIST, FAQ_GET_BY_LIST, FAQ_LIST, FETCH_TALLY_DATA, GALLERY_GET_BY_LIST, GALLERY_LIST, LOGO, PATH_TALLY, SYNC_GET_BY_LIST, SYNC_LIST, TERM_GET_BY_LIST, TERM_LIST, UPDATE_TALLY } from "../constants/actionTypes";
+import { ABOUT_US_GET_BY_LIST, ABOUT_US_LIST, BANNER_GET_BY_LIST, BANNER_LIST, CONTACT_GET_BY_LIST, CONTACT_INFO_LIST, CONTACT_LIST, FAQ_GET_BY_LIST, FAQ_LIST, FETCH_TALLY_DATA, GALLERY_GET_BY_LIST, GALLERY_LIST, LOGO, PATH_TALLY, SYNC_GET_BY_LIST, SYNC_LIST, TERM_GET_BY_LIST, TERM_LIST, UPDATE_TALLY } from "../constants/actionTypes";
 
 // FAQ Settings
 export const FAQList = () => async (dispatch) => {
@@ -135,6 +135,68 @@ export const createContact = (contactData) => async (dispatch) => {
         toast.error(errorMessage);
     }
     return false; // Return false for any errors
+};
+
+// About Us Settings
+export const aboutUsList = () => async (dispatch) => {
+    try {
+        const response = await axiosInstance.get('/about-us');
+        dispatch({
+            type: ABOUT_US_LIST,
+            payload: response.data,
+        });
+        return response.data;
+    } catch (error) {
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false;
+};
+
+export const createAboutUs = (aboutUsData) => async (dispatch) => {
+    try {
+        const response = await axiosInstance.post('/about-us', aboutUsData);
+        if (response && response.status >= 200 && response.status < 300) {
+            toast.success(response.data.message || 'About Us updated successfully!');
+            return true;
+        }
+        return true;
+    } catch (error) {
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false;
+};
+
+// Contact Info Settings
+export const contactInfoList = () => async (dispatch) => {
+    try {
+        const response = await axiosInstance.get('/contact-info');
+        dispatch({
+            type: CONTACT_INFO_LIST,
+            payload: response.data,
+        });
+        return response.data;
+    } catch (error) {
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false;
+};
+
+export const createContactInfo = (contactInfoData) => async (dispatch) => {
+    try {
+        const response = await axiosInstance.post('/contact-info', contactInfoData);
+        if (response && response.status >= 200 && response.status < 300) {
+            toast.success(response.data.message || 'Contact Info updated successfully!');
+            return true;
+        }
+        return true;
+    } catch (error) {
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false;
 };
 
 //  Term & Conditions

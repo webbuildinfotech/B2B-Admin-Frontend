@@ -1,8 +1,11 @@
-import { SYNC_GET_BY_LIST, SYNC_LIST, FAQ_LIST, FAQ_GET_BY_LIST, CONTACT_GET_BY_LIST, CONTACT_LIST, TERM_LIST, TERM_GET_BY_LIST, BANNER_LIST, BANNER_GET_BY_LIST, FETCH_TALLY_DATA, UPDATE_TALLY, LOGO, PATH_TALLY, GALLERY_LIST, GALLERY_GET_BY_LIST } from "../constants/actionTypes";
+import { ABOUT_US_GET_BY_LIST, ABOUT_US_LIST, CONTACT_INFO_LIST, SYNC_GET_BY_LIST, SYNC_LIST, FAQ_LIST, FAQ_GET_BY_LIST, CONTACT_GET_BY_LIST, CONTACT_LIST, TERM_LIST, TERM_GET_BY_LIST, BANNER_LIST, BANNER_GET_BY_LIST, FETCH_TALLY_DATA, UPDATE_TALLY, LOGO, PATH_TALLY, GALLERY_LIST, GALLERY_GET_BY_LIST } from "../constants/actionTypes";
 
 const initialState = {
     faq: [],
     contact: [],
+    aboutUs: null,
+    contactInfo: null,
+    getByAboutUs: '',
     termCondition: [],
     getByFAQ: '',
     getByContact: '',
@@ -56,6 +59,23 @@ const settingReducer = (state = initialState, { type, payload } = {}) => {
             return {
                 ...state,
                 getByContact: payload,
+            };
+
+        case ABOUT_US_LIST:
+            return {
+                ...state,
+                aboutUs: payload,
+            };
+        case ABOUT_US_GET_BY_LIST:
+            return {
+                ...state,
+                getByAboutUs: payload,
+            };
+
+        case CONTACT_INFO_LIST:
+            return {
+                ...state,
+                contactInfo: payload,
             };
 
         case TERM_LIST:
