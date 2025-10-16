@@ -25,6 +25,7 @@ const BannerType = {
     Dealer: 'Dealer',
     Resource: 'Resource',
     FAQs: 'FAQs',
+    Terms: 'Terms',
 };
 
 // Define schema for multiple file uploads

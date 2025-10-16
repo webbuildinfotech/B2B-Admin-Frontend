@@ -8,7 +8,7 @@ import { Grid } from '@mui/material';
 import TermEditForm from '../../terms-conditions/view/term-edit-form';
 import ContactEditForm from '../../Contact-us/view/contact-edit-form';
 import AboutUsEditForm from '../../about-us/view/about-us-edit-form';
-import ContactInfoEditForm from '../../contact-info/view/contact-info-edit-form';
+import FooterInfoEditForm from '../../footer-info/view/footer-info-edit-form';
 import { Logo } from '../../logo/view/logo';
 import { TallyPathSetting } from '../../logo/view/path';
 
@@ -26,7 +26,7 @@ export function MainSetting() {
             <TermEditForm />
             <ContactEditForm />
             <AboutUsEditForm />
-            <ContactInfoEditForm />
+            <FooterInfoEditForm />
             <Grid container spacing={4} mt={1}>
                 <Grid item xs={12} md={6}>
                     <SyncView />

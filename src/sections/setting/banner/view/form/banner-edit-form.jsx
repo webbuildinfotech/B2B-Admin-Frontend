@@ -35,6 +35,7 @@ const BannerType = {
   Dealer: 'Dealer',
   Resource: 'Resource',
   FAQs: 'FAQs',
+  Terms: 'Terms',
 };
 
 export function BannerEditForm({ currentBanner }) {

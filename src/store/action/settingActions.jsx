@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 import axiosInstance from "src/configs/axiosInstance";
-import { ABOUT_US_GET_BY_LIST, ABOUT_US_LIST, BANNER_GET_BY_LIST, BANNER_LIST, CONTACT_GET_BY_LIST, CONTACT_INFO_LIST, CONTACT_LIST, FAQ_GET_BY_LIST, FAQ_LIST, FETCH_TALLY_DATA, GALLERY_GET_BY_LIST, GALLERY_LIST, LOGO, PATH_TALLY, SYNC_GET_BY_LIST, SYNC_LIST, TERM_GET_BY_LIST, TERM_LIST, UPDATE_TALLY } from "../constants/actionTypes";
+import { ABOUT_US_GET_BY_LIST, ABOUT_US_LIST, BANNER_GET_BY_LIST, BANNER_LIST, CONTACT_GET_BY_LIST, CONTACT_LIST, FAQ_GET_BY_LIST, FAQ_LIST, FETCH_TALLY_DATA, FOOTER_INFO_LIST, GALLERY_GET_BY_LIST, GALLERY_LIST, LOGO, PATH_TALLY, SYNC_GET_BY_LIST, SYNC_LIST, TERM_GET_BY_LIST, TERM_LIST, UPDATE_TALLY } from "../constants/actionTypes";
 
 // FAQ Settings
 export const FAQList = () => async (dispatch) => {
@@ -168,12 +168,12 @@ export const createAboutUs = (aboutUsData) => async (dispatch) => {
     return false;
 };
 
-// Contact Info Settings
-export const contactInfoList = () => async (dispatch) => {
+// Footer Info Settings
+export const footerInfoList = () => async (dispatch) => {
     try {
-        const response = await axiosInstance.get('/contact-info');
+        const response = await axiosInstance.get('/footer-info');
         dispatch({
-            type: CONTACT_INFO_LIST,
+            type: FOOTER_INFO_LIST,
             payload: response.data,
         });
         return response.data;
@@ -184,11 +184,11 @@ export const contactInfoList = () => async (dispatch) => {
     return false;
 };
 
-export const createContactInfo = (contactInfoData) => async (dispatch) => {
+export const createFooterInfo = (footerInfoData) => async (dispatch) => {
     try {
-        const response = await axiosInstance.post('/contact-info', contactInfoData);
+        const response = await axiosInstance.post('/footer-info', footerInfoData);
         if (response && response.status >= 200 && response.status < 300) {
-            toast.success(response.data.message || 'Contact Info updated successfully!');
+            toast.success(response.data.message || 'Footer Info updated successfully!');
             return true;
         }
         return true;
