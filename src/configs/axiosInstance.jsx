@@ -5,7 +5,13 @@ import logoutHandler from '../utils/logoutHandler';
 import { toast } from 'sonner';
 
 const axiosInstance = axios.create({
-  baseURL: API_URL
+  baseURL: API_URL,
+  timeout: 30000,
+  withCredentials: false, // Disable credentials to avoid CORS issues
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  }
 });
 
 // Request interceptor
@@ -13,22 +19,21 @@ axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      // Use dot notation to set Authorization header
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Set Content-Type dynamically based on the request data
+    // Handle FormData
     if (config.data instanceof FormData) {
-      // If the request data is FormData, set Content-Type to multipart/form-data
-      config.headers['Content-Type'] = 'multipart/form-data';
-    } else {
-      // Otherwise, set Content-Type to application/json
-      config.headers['Content-Type'] = 'application/json';
+      delete config.headers['Content-Type'];
     }
 
-    return config; // Return the config directly
+    console.log(`📤 Admin API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error('❌ Admin API Request Error:', error);
+    return Promise.reject(error);
+  }
 );
 
 let isLoggingOut = false; // Global flag to prevent multiple logout processes
