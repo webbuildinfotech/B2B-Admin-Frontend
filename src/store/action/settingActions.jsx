@@ -472,6 +472,21 @@ export const fetchTallyAPIData = () => async (dispatch) => {
     return false; // Return false for any errors or unsuccessful attempt
 };
 
+export const createTallyAPI = (data) => async (dispatch) => {
+    try {
+        await axiosInstance.post('/tally-settings', data); // Backend API endpoint
+        // Fetch all tally settings to refresh the list
+        const response = await axiosInstance.get('/tally-settings');
+        dispatch({ type: FETCH_TALLY_DATA, payload: response.data });
+        return true;
+    } catch (error) {
+        // Handle errors appropriately
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors or unsuccessful attempts
+};
+
 export const updateTallyAPI = (id, data) => async (dispatch) => {
     try {
         await axiosInstance.put(`/tally-settings/${id}`, data); // Backend API endpoint

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
     Box, Card, CardContent, Typography, Button, Dialog, DialogTitle,
     DialogContent, TextField, DialogActions, Grid, Snackbar,
@@ -7,7 +7,7 @@ import {
 import { DashboardContent } from "src/layouts/dashboard";
 import { CustomBreadcrumbs } from "src/components/custom-breadcrumbs";
 import { paths } from "src/routes/paths";
-import { fetchTallyAPIData, updateTallyAPI } from "src/store/action/settingActions";
+import { fetchTallyAPIData, updateTallyAPI, createTallyAPI } from "src/store/action/settingActions";
 import { useDispatch, useSelector } from "react-redux";
 
 export function TallyView() {
@@ -17,6 +17,12 @@ export function TallyView() {
     const [selectedLedger, setSelectedLedger] = useState(null); // Tracks the ledger being edited
     const [dialogOpen, setDialogOpen] = useState(false); // Dialog visibility state
     const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+    
+    // Check if "Current Company Name" setting exists - recompute when ledgerData changes
+    const currentCompanyNameSetting = useMemo(
+        () => ledgerData?.find((ledger) => ledger.name === "Current Company Name"),
+        [ledgerData]
+    );
 
 
     const fetchData = async () => {
@@ -51,35 +57,65 @@ export function TallyView() {
     // Save the updated ledger
     const handleSave = async () => {
         if (selectedLedger) {
-            const success = await dispatch(updateTallyAPI(selectedLedger.id, selectedLedger));
-            if (success) {
-                setLedgerData((prevData) =>
-                    prevData.map((ledger) =>
-                        ledger.id === selectedLedger.id ? selectedLedger : ledger
-                    )
-                );
-                fetchData()
-                setSnackbar({ open: true, message: "Data updated successfully.", severity: "success" });
+            // If it has an id, update existing setting; otherwise, create new one
+            if (selectedLedger.id) {
+                const success = await dispatch(updateTallyAPI(selectedLedger.id, selectedLedger));
+                if (success) {
+                    setLedgerData((prevData) =>
+                        prevData.map((ledger) =>
+                            ledger.id === selectedLedger.id ? selectedLedger : ledger
+                        )
+                    );
+                    fetchData();
+                    setSnackbar({ open: true, message: "Data updated successfully.", severity: "success" });
+                } else {
+                    setSnackbar({ open: true, message: "Failed to update ledger.", severity: "error" });
+                }
             } else {
-                setSnackbar({ open: true, message: "Failed to update ledger.", severity: "error" });
+                // Create new setting
+                const success = await dispatch(createTallyAPI({ name: selectedLedger.name, value: selectedLedger.value }));
+                if (success) {
+                    fetchData();
+                    setSnackbar({ open: true, message: "Setting created successfully.", severity: "success" });
+                } else {
+                    setSnackbar({ open: true, message: "Failed to create setting.", severity: "error" });
+                }
             }
             closeDialog();
+        }
+    };
+
+    // Handle create/edit for Current Company Name
+    const handleCompanyNameEdit = () => {
+        if (currentCompanyNameSetting) {
+            // Edit existing
+            setSelectedLedger(currentCompanyNameSetting);
+            setDialogOpen(true);
+        } else {
+            // Create new
+            setSelectedLedger({ name: "Current Company Name", value: "" });
+            setDialogOpen(true);
         }
     };
 
     return (
 
         <div>
-            <Card mt={4}>
-            <Typography variant="h5" p={2}>Tally Settings</Typography>
-            <Divider/>
-                <Grid container spacing={1}>
+            {/* Ledger Settings Section */}
+            <Card mt={4} sx={{ mb: 3 }}>
+                <Typography variant="h5" p={2}>Tally Settings</Typography>
+                <Divider/>
+                <Typography variant="h6" sx={{ p: 2, color: "#007b5e", fontWeight: "bold" }}>
+                    Ledger Settings
+                </Typography>
+                <Grid container spacing={1} sx={{ p: 2 }}>
                     {ledgerData
+                        .filter((ledger) => ledger.name !== "Current Company Name") // Exclude Current Company Name from ledger list
                         .slice() // Create a copy of the array to avoid mutating the original state
                         .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)) // Sort by createdAt in ascending order 
                         .map((ledger) => (
 
-                            <Grid item xs={12} sm={12} key={ledger.id} m={1}>
+                            <Grid item xs={12} sm={12} md={12} lg={12} key={ledger.id} sx={{ px: 1 }}>
                                 <Card
                                     sx={{
                                         backgroundColor: "#fff",
@@ -114,6 +150,96 @@ export function TallyView() {
                 </Grid>
             </Card>
 
+            {/* Current Company Name Section - Separate Card Below with Grid */}
+            <Card mt={2} sx={{ 
+                backgroundColor: "#f0f9f7",
+                border: "2px solid #007b5e",
+                width: "100%",
+            }}>
+                <Typography variant="h5" p={2} sx={{ color: "#007b5e", fontWeight: "bold" }}>
+                    Current Company Name
+                </Typography>
+                <Divider/>
+                <Grid container spacing={2} sx={{ p: 2, width: "100%", margin: 0 }}>
+                    <Grid item xs={12} sm={12} md={12} lg={12} xl={12} sx={{ width: "100%", maxWidth: "100%", padding: "8px !important" }}>
+                        <Card
+                            sx={{
+                                backgroundColor: currentCompanyNameSetting ? "#fff" : "#fff9e6",
+                                border: currentCompanyNameSetting ? "1px solid #007b5e" : "2px dashed #ff9800",
+                                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                                cursor: "pointer",
+                                width: "100%",
+                                maxWidth: "100%",
+                                "&:hover": {
+                                    boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)",
+                                    transform: "translateY(-2px)",
+                                    transition: "all 0.3s ease",
+                                },
+                            }}
+                            onClick={handleCompanyNameEdit}
+                        >
+                            <CardContent sx={{ width: "100%", p: 3 }}>
+                                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2, width: "100%" }}>
+                                    <Box sx={{ flex: 1, minWidth: { xs: "100%", sm: "200px" }, width: { xs: "100%", sm: "auto" } }}>
+                                        <Typography
+                                            sx={{
+                                                fontWeight: "bold",
+                                                color: "#007b5e",
+                                                mb: 1,
+                                            }}
+                                        >
+                                            Current Company Name
+                                        </Typography>
+                                        <Typography
+                                            variant="body1"
+                                            sx={{
+                                                color: currentCompanyNameSetting?.value ? "#333" : "#ff9800",
+                                                fontStyle: currentCompanyNameSetting?.value ? "normal" : "italic",
+                                                fontWeight: currentCompanyNameSetting?.value ? "normal" : "600",
+                                                wordBreak: "break-word",
+                                            }}
+                                        >
+                                            {currentCompanyNameSetting?.value || "⚠️ Not Set - Click here to configure"}
+                                        </Typography>
+                                        {!currentCompanyNameSetting && (
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    color: "#666",
+                                                    display: "block",
+                                                    mt: 1,
+                                                }}
+                                            >
+                                                This setting is used in Tally invoice XML generation
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                    <Button
+                                        variant={currentCompanyNameSetting ? "outlined" : "contained"}
+                                        sx={{
+                                            backgroundColor: currentCompanyNameSetting ? "transparent" : "#007b5e",
+                                            color: currentCompanyNameSetting ? "#007b5e" : "#fff",
+                                            borderColor: "#007b5e",
+                                            minWidth: "100px",
+                                            "&:hover": {
+                                                backgroundColor: currentCompanyNameSetting ? "#f0f9f7" : "#005945",
+                                                borderColor: "#005945",
+                                            },
+                                        }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleCompanyNameEdit();
+                                        }}
+                                    >
+                                        {currentCompanyNameSetting ? "Edit" : "Create"}
+                                    </Button>
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                </Grid>
+            </Card>
+
             {/* Dialog for Editing */}
             {selectedLedger && (
                 <Dialog
@@ -136,16 +262,17 @@ export function TallyView() {
                             textAlign: "center",
                         }}
                     >
-                        Edit {selectedLedger.name}
+                        {selectedLedger.id ? `Edit ${selectedLedger.name}` : `Create ${selectedLedger.name}`}
                     </DialogTitle>
                     <DialogContent>
                         <TextField
                             fullWidth
-                            label="Ledger Value"
+                            label={selectedLedger.name === "Current Company Name" ? "Company Name" : "Ledger Value"}
                             value={selectedLedger.value || ""}
                             onChange={(e) =>
                                 setSelectedLedger({ ...selectedLedger, value: e.target.value })
                             }
+                            placeholder={selectedLedger.name === "Current Company Name" ? "e.g., RG TECHNO INDUSTRIAL PRODUCTS PVT LTD(2025-26)" : ""}
                             sx={{
                                 marginTop: 2,
                                 "& .MuiInputBase-root": {
