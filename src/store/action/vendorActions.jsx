@@ -36,47 +36,14 @@ export const vendorGetByList = (id) => async (dispatch) => {
 
 export const syncVendor = () => async (dispatch) => {
     try {
-        // The endpoint now returns immediately (202 Accepted) and processes in background
-        // Reduced timeout since the response is immediate
-        const response = await axiosInstance.post('/vendors/fetch', {}, {
-            timeout: 30000, // 30 seconds should be enough for immediate response
-        });
-        
-        // Handle 202 Accepted (processing started) and other success statuses
-        if (response && (response.status === 202 || (response.status >= 200 && response.status < 300))) {
-            const message = response.data?.message || 'Vendor sync started successfully!';
-            const status = response.data?.status || 'processing';
-            
-            // Show info toast for background processing
-            if (response.status === 202 || status === 'processing') {
-                toast.info(message + ' Please check the vendor list after a few minutes.');
-            } else {
-                toast.success(message);
-            }
+        const response = await axiosInstance.post('/vendors/fetch');
+        if (response && response.status >= 200 && response.status < 300) {
+            toast.success(response.data.message || 'Vendors fetched and stored successfully!');
             return true;
         }
         return true;
     } catch (error) {
         console.log(error,"%%%%%%%%");
-        
-        // Handle timeout errors specifically
-        if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-            toast.error('Request timeout: Please try again or contact support if the issue persists.');
-            return false;
-        }
-        
-        // Handle network errors
-        if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
-            toast.error('Network Error: Please check if the backend server is running and accessible.');
-            return false;
-        }
-        
-        // Handle gateway timeout (504)
-        if (error.response?.status === 504) {
-            toast.error('Gateway timeout: The server is taking too long to respond. Please try again later.');
-            return false;
-        }
-        
         // Check if error response exists and handle error message
         const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);
