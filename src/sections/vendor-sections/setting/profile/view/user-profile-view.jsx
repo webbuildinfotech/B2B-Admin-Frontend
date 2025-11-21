@@ -15,11 +15,15 @@ import { ProfileHome } from '../profile-home';
 import { useSelector } from 'react-redux';
 import { Iconify } from 'src/components/iconify';
 import { Chip } from '@mui/material';
+import { AdminProfileEditForm } from '../admin-profile-edit-form';
+import useUserRole from 'src/layouts/components/user-role';
 
 export function UserProfileView() {
   const { authUser } = useSelector((state) => state.auth);
   const tabs = useTabs('profile');
   const [isEditing, setIsEditing] = useState(false);
+  const userRole = useUserRole();
+  const isAdmin = userRole === 'Admin';
 
   return (
     <DashboardContent maxWidth="2xl">
@@ -51,36 +55,36 @@ export function UserProfileView() {
             justifyContent: 'center'
           }}
         >
-          {/* 
-          <Box sx={{ 
-            position: 'absolute', 
-            top: { xs: 10, md: 20 }, 
-            right: { xs: 10, md: 20 } 
-          }}>
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => setIsEditing(!isEditing)}
-              sx={{
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                color: 'white',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255,255,255,0.3)',
-                fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                px: { xs: 1.5, sm: 2 },
-                py: { xs: 0.5, sm: 1 },
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.3)',
-                }
-              }}
-            >
-              <Iconify icon="mdi:pencil" sx={{ mr: 0.5, fontSize: { xs: '1rem', sm: '1.2rem' } }} />
-              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                Edit Profile
-              </Box>
-            </Button>
-          </Box>
-          */}
+          {isAdmin && (
+            <Box sx={{ 
+              position: 'absolute', 
+              top: { xs: 10, md: 20 }, 
+              right: { xs: 10, md: 20 } 
+            }}>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => setIsEditing(true)}
+                sx={{
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  px: { xs: 1.5, sm: 2 },
+                  py: { xs: 0.5, sm: 1 },
+                  '&:hover': {
+                    backgroundColor: 'rgba(255,255,255,0.3)',
+                  }
+                }}
+              >
+                <Iconify icon="mdi:pencil" sx={{ mr: 0.5, fontSize: { xs: '1rem', sm: '1.2rem' } }} />
+                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                  Edit Profile
+                </Box>
+              </Button>
+            </Box>
+          )}
           <Typography variant="h3" sx={{ 
             color: 'white', 
             fontWeight: 700,
@@ -103,7 +107,7 @@ export function UserProfileView() {
           >
             <Avatar
               alt={authUser.name}
-              src="/assets/profile/pic.jpg"
+              src={authUser.profile || undefined}
               sx={{
                 width: { xs: 80, sm: 100, md: 120 },
                 height: { xs: 80, sm: 100, md: 120 },
@@ -316,6 +320,20 @@ export function UserProfileView() {
           </Card>
         </Grid>
       </Grid>
+
+      {/* Admin Profile Edit Form Dialog */}
+      {isAdmin && (
+        <AdminProfileEditForm
+          open={isEditing}
+          onClose={() => setIsEditing(false)}
+          adminData={authUser}
+          onSuccess={() => {
+            // Profile updated - Redux and localStorage already updated
+            // Component will re-render automatically with new data from Redux
+            setIsEditing(false);
+          }}
+        />
+      )}
     </DashboardContent>
   );
 }

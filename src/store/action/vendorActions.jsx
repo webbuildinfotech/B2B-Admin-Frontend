@@ -43,6 +43,7 @@ export const syncVendor = () => async (dispatch) => {
         }
         return true;
     } catch (error) {
+        console.log(error,"%%%%%%%%");
         // Check if error response exists and handle error message
         const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);
