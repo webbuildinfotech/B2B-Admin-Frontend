@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import swal from "sweetalert";
 import axiosInstance from "src/configs/axiosInstance";
 import { VENDOR_GET_BY_LIST, VENDOR_LIST } from "../constants/actionTypes";
 
@@ -45,7 +46,16 @@ export const syncVendor = () => async (dispatch) => {
     } catch (error) {
         // Check if error response exists and handle error message
         if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-            toast.info('Please wait, background process is running. The vendor sync operation is taking longer than expected. Please check the vendor list after a few minutes.');
+            // Show full-screen popup notification using SweetAlert
+            swal({
+                title: "Vendor Sync in Progress",
+                text: "Please wait, background process is running. The vendor sync operation is taking longer than expected. Please check the vendor list after a few minutes.",
+                icon: "info",
+                button: "Got it",
+                className: "swal-wide",
+                allowOutsideClick: true,
+                allowEscapeKey: true,
+            });
             return true; // Return true because sync might have started
         }
         
