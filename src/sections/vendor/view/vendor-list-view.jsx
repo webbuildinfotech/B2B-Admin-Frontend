@@ -288,7 +288,7 @@ export function VendorListView() {
                         </Typography>
                         {loading && (
                             <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1 }}>
-                                Please wait, the sync is in progress... (may take up to 20 seconds)
+                                Please wait, the sync is in progress... This may take a few minutes. Do not close this dialog.
                             </Typography>
                         )}
                     </Box>

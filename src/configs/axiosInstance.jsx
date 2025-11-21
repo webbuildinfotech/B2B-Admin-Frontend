@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
-  timeout: 120000, // 120 seconds = 2 minutes
+  timeout: 300000, // 300 seconds = 5 minutes
   withCredentials: false, // Disable credentials to avoid CORS issues
   headers: {
     'Content-Type': 'application/json',
