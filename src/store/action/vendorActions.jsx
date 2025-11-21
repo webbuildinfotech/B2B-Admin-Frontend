@@ -44,6 +44,11 @@ export const syncVendor = () => async (dispatch) => {
         return true;
     } catch (error) {
         // Check if error response exists and handle error message
+        if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+            toast.info('Please wait, background process is running. The vendor sync operation is taking longer than expected. Please check the vendor list after a few minutes.');
+            return true; // Return true because sync might have started
+        }
+        
         const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);
     }
