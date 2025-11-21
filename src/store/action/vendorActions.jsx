@@ -36,14 +36,29 @@ export const vendorGetByList = (id) => async (dispatch) => {
 
 export const syncVendor = () => async (dispatch) => {
     try {
-        const response = await axiosInstance.post('/vendors/fetch');
+        // Increase timeout to 120 seconds (2 minutes) for vendor sync operation
+        // This is needed because the operation involves fetching from Tally, parsing XML, and batch processing
+        const response = await axiosInstance.post('/vendors/fetch', {}, {
+            timeout: 120000, // 120 seconds = 2 minutes
+        });
         if (response && response.status >= 200 && response.status < 300) {
             toast.success(response.data.message || 'Vendors fetched and stored successfully!');
             return true;
         }
         return true;
-    } catch (error) {
-        console.log(error,"%%%%%%%%");
+    } catch (error) {   
+        // Handle timeout errors specifically
+        if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+            toast.error('Request timeout: Vendor sync is taking longer than expected. Please try again or contact support if the issue persists.');
+            return false;
+        }
+        
+        // Handle network errors
+        if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+            toast.error('Network Error: Please check if the backend server is running and accessible.');
+            return false;
+        }
+        
         // Check if error response exists and handle error message
         const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);
