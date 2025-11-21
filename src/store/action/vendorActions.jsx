@@ -36,13 +36,23 @@ export const vendorGetByList = (id) => async (dispatch) => {
 
 export const syncVendor = () => async (dispatch) => {
     try {
-        // Increase timeout to 120 seconds (2 minutes) for vendor sync operation
-        // This is needed because the operation involves fetching from Tally, parsing XML, and batch processing
+        // The endpoint now returns immediately (202 Accepted) and processes in background
+        // Reduced timeout since the response is immediate
         const response = await axiosInstance.post('/vendors/fetch', {}, {
-            timeout: 120000, // 120 seconds = 2 minutes
+            timeout: 30000, // 30 seconds should be enough for immediate response
         });
-        if (response && response.status >= 200 && response.status < 300) {
-            toast.success(response.data.message || 'Vendors fetched and stored successfully!');
+        
+        // Handle 202 Accepted (processing started) and other success statuses
+        if (response && (response.status === 202 || (response.status >= 200 && response.status < 300))) {
+            const message = response.data?.message || 'Vendor sync started successfully!';
+            const status = response.data?.status || 'processing';
+            
+            // Show info toast for background processing
+            if (response.status === 202 || status === 'processing') {
+                toast.info(message + ' Please check the vendor list after a few minutes.');
+            } else {
+                toast.success(message);
+            }
             return true;
         }
         return true;
@@ -51,13 +61,19 @@ export const syncVendor = () => async (dispatch) => {
         
         // Handle timeout errors specifically
         if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-            toast.error('Request timeout: Vendor sync is taking longer than expected. Please try again or contact support if the issue persists.');
+            toast.error('Request timeout: Please try again or contact support if the issue persists.');
             return false;
         }
         
         // Handle network errors
         if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
             toast.error('Network Error: Please check if the backend server is running and accessible.');
+            return false;
+        }
+        
+        // Handle gateway timeout (504)
+        if (error.response?.status === 504) {
+            toast.error('Gateway timeout: The server is taking too long to respond. Please try again later.');
             return false;
         }
         
