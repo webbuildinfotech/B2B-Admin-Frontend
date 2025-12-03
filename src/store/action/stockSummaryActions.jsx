@@ -4,7 +4,11 @@ import {  STOCK_LIST } from "../constants/actionTypes";
 
 export const syncStock = () => async (dispatch) => {
     try {
-        await axiosInstance.post('/stocks/fetch-summary');
+        const response = await axiosInstance.post('/stocks/fetch-summary');
+        if (response && response.status >= 200 && response.status < 300) {
+            toast.success(response.data.message || 'Stocks fetched and stored successfully!');
+            return true;
+        }
         return true;
     } catch (error) {
         // Check if error response exists and handle error message
