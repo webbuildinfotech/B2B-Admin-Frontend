@@ -83,7 +83,7 @@ export function AddressNewForm({ open, onClose, onCreate, onEdit, editData }) {
                 sm: 'repeat(1, 1fr)',
               }}
             >
-              <Field.Phone name="mobile" label="Mobile" />
+              <Field.Phone name="mobile" label="Mobile" country="IN" />
             </Box>
             <Field.Text name="street_address" label="Address" />
             <Box
