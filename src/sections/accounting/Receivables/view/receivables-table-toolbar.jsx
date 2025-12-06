@@ -6,16 +6,20 @@ import { Iconify } from 'src/components/iconify';
 import { usePopover } from 'src/components/custom-popover';
 // ----------------------------------------------------------------------
 
-export function ReceivablesTableToolbar({ filters, onResetPage, data }) {
+export function ReceivablesTableToolbar({ filters, onResetPage, data, onSearchChange }) {
   const popover = usePopover();
 
-  const handleFilterName = useCallback(
-    (event) => {
-      onResetPage();
-      filters.setState({ name: event.target.value });
-    },
-    [filters, onResetPage]
-  );
+    const handleFilterName = useCallback(
+        (event) => {
+            const { value } = event.target;
+            onResetPage();
+            filters.setState({ searchTerm: value });
+            if (onSearchChange) {
+                onSearchChange(value);
+            }
+        },
+        [filters, onResetPage, onSearchChange]
+    );
 
   
   
@@ -33,7 +37,7 @@ export function ReceivablesTableToolbar({ filters, onResetPage, data }) {
         <Stack direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
           <TextField
             fullWidth
-            value={filters.state.name}
+            value={filters.state.searchTerm || ''}
             onChange={handleFilterName}
             placeholder="Search..."
             InputProps={{

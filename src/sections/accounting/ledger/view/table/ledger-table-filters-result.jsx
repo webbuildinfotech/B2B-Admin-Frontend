@@ -8,38 +8,27 @@ import { chipProps, FiltersBlock, FiltersResult } from 'src/components/filters-r
 
 // ----------------------------------------------------------------------
 
-export function LedgerTableFiltersResult({ filters, totalResults, onResetPage, sx }) {
+export function LedgerTableFiltersResult({ filters, totalResults, onResetPage, onClearSearch, sx }) {
   const handleRemoveKeyword = useCallback(() => {
     onResetPage();
-    filters.setState({ name: '' });
-  }, [filters, onResetPage]);
-
-  const handleRemoveDate = useCallback(() => {
-    onResetPage();
-    filters.setState({ startDate: null, endDate: null });
-  }, [filters, onResetPage]);
+    filters.setState({ searchTerm: '' });
+    if (onClearSearch) {
+      onClearSearch();
+    }
+  }, [filters, onResetPage, onClearSearch]);
 
   const handleReset = useCallback(() => {
     onResetPage();
-    filters.onResetState();
-  }, [filters, onResetPage]);
+    filters.setState({ searchTerm: '' });
+    if (onClearSearch) {
+      onClearSearch();
+    }
+  }, [filters, onResetPage, onClearSearch]);
 
   return (
     <FiltersResult totalResults={totalResults} onReset={handleReset} sx={sx}>
-
-      <FiltersBlock
-        label="Date:"
-        isShow={Boolean(filters.state.startDate && filters.state.endDate)}
-      >
-        <Chip
-          {...chipProps}
-          label={fDateRangeShortLabel(filters.state.startDate, filters.state.endDate)}
-          onDelete={handleRemoveDate}
-        />
-      </FiltersBlock>
-
-      <FiltersBlock label="Keyword:" isShow={!!filters.state.name}>
-        <Chip {...chipProps} label={filters.state.name} onDelete={handleRemoveKeyword} />
+      <FiltersBlock label="Search:" isShow={!!filters.state.searchTerm}>
+        <Chip {...chipProps} label={filters.state.searchTerm} onDelete={handleRemoveKeyword} />
       </FiltersBlock>
     </FiltersResult>
   );

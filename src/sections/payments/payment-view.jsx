@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
@@ -35,31 +36,61 @@ import { applyFilter } from './utils';
 import { useFetchData } from './components/fetch-payment';
 import { useForm } from 'react-hook-form';
 import { DashboardContent } from 'src/layouts/dashboard';
+import { TableLoaderOverlay } from 'src/components/loader/table-loader';
+import { PAYMENT_LIST } from 'src/store/constants/actionTypes';
 
 
 export function PaymentView() {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const urlPage = parseInt(searchParams.get('page') || '1', 10) - 1;
+    const urlLimit = parseInt(searchParams.get('limit') || '5', 10);
+    const urlSearch = searchParams.get('search') || '';
 
-    const table = useTable();
+    const table = useTable({ defaultRowsPerPage: urlLimit, defaultCurrentPage: urlPage });
     const router = useRouter();
     const confirm = useBoolean();
     const [loading, setLoading] = useState(false);
-    const [selectedRows, setSelectedRows] = useState([]); // Store selected row IDs
+    const [selectedRows, setSelectedRows] = useState([]);
     const { fetchData, fetchDeleteData } = useFetchData();
     const dispatch = useDispatch();
     const paymentList = useSelector((state) => state.payment?.payment || []);
-
+    const pagination = useSelector((state) => state.payment?.paymentPagination || { total: 0, page: 1, limit: 5, totalPages: 0 });
     const [tableData, setTableData] = useState(paymentList);
+    const [searchTerm, setSearchTerm] = useState(urlSearch);
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(urlSearch);
+    const isFetchingData = useRef(false);
 
     // Initialize filters state
-    const filters = useSetState({ searchTerm: '' });
+    const filters = useSetState({ searchTerm: urlSearch });
 
+    // Debounce search term
     useEffect(() => {
-        fetchData(); // Fetch banners when the component mounts
-    }, []);
+        const timer = setTimeout(() => {
+            if (searchTerm !== debouncedSearchTerm) {
+                setDebouncedSearchTerm(searchTerm);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm, debouncedSearchTerm]);
 
     useEffect(() => {
         setTableData(paymentList);
     }, [paymentList]);
+
+    // Unified effect for fetching data
+    useEffect(() => {
+        if (isFetchingData.current) return;
+
+        const params = new URLSearchParams();
+        params.set('page', (table.page + 1).toString());
+        params.set('limit', table.rowsPerPage.toString());
+        if (debouncedSearchTerm) params.set('search', debouncedSearchTerm);
+        setSearchParams(params, { replace: true });
+
+        isFetchingData.current = true;
+        fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm)
+            .finally(() => { isFetchingData.current = false; });
+    }, [table.page, table.rowsPerPage, debouncedSearchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
 
     //----------------------------------------------------------------------------------------------------
 
@@ -69,25 +100,62 @@ export function PaymentView() {
         );
     }, []);
 
-    const handleDeleteSelectedRows = useCallback(() => {
-        selectedRows.forEach((id) => fetchDeleteData(id));
+    const handleSearchChange = useCallback((value) => {
+        setSearchTerm(value);
+        filters.setState({ searchTerm: value });
+        table.onResetPage();
+    }, [filters, table]);
+
+    const handleClearSearch = useCallback(() => {
+        setSearchTerm('');
+        setDebouncedSearchTerm('');
+        filters.setState({ searchTerm: '' });
+        table.onResetPage();
+    }, [filters, table]);
+
+    const handleDeleteSelectedRows = useCallback(async () => {
+        await Promise.all(selectedRows.map((id) => fetchDeleteData(id)));
         setSelectedRows([]);
-        fetchData(); // Refresh data after deletion
+        
+        // Check if current page will be empty after deletion
+        const currentPage = table.page + 1;
+        const itemsOnCurrentPage = tableData.length;
+        const deletedCount = selectedRows.length;
+        
+        // If all items on current page are deleted and not page 1, go to previous page
+        let targetPage = currentPage;
+        if (deletedCount >= itemsOnCurrentPage && currentPage > 1) {
+            targetPage = currentPage - 1;
+            table.onChangePage(null, targetPage - 1); // Update table page (0-indexed)
+        }
+        
+        await fetchData(targetPage, table.rowsPerPage, debouncedSearchTerm);
         confirm.onFalse();
-    }, [selectedRows, fetchDeleteData, fetchData]);
+    }, [selectedRows, fetchDeleteData, fetchData, table.page, table.rowsPerPage, table.onChangePage, debouncedSearchTerm, tableData.length]);
 
     //----------------------------------------------------------------------------------------------------
 
-    const dataFiltered = applyFilter({
-        inputData: tableData,
-        comparator: getComparator(table.order, table.orderBy),
-        filters: filters.state,
-    });
-    const canReset = !!filters.state.searchTerm;
-    const notFound = (!dataFiltered.length && canReset) || !dataFiltered.length;
+    const canReset = !!debouncedSearchTerm;
+    const notFound = !tableData.length;
 
-
-    const handleDeleteRow = useCallback((id) => { fetchDeleteData(id) }, []);
+    const handleDeleteRow = useCallback(async (id) => {
+        const success = await fetchDeleteData(id);
+        if (success) {
+            // Check if current page will be empty after deletion
+            const currentPage = table.page + 1;
+            const currentTotal = pagination.total;
+            const itemsOnCurrentPage = tableData.length;
+            
+            // If this is the last item on the page and not page 1, go to previous page
+            let targetPage = currentPage;
+            if (itemsOnCurrentPage === 1 && currentPage > 1) {
+                targetPage = currentPage - 1;
+                table.onChangePage(null, targetPage - 1); // Update table page (0-indexed)
+            }
+            
+            await fetchData(targetPage, table.rowsPerPage, debouncedSearchTerm);
+        }
+    }, [fetchDeleteData, fetchData, table.page, table.rowsPerPage, table.onChangePage, debouncedSearchTerm, pagination.total, tableData.length]);
 
     const handleEditRow = useCallback((id) => id, []);
 
@@ -166,22 +234,29 @@ export function PaymentView() {
                 sx={{ mb: { xs: 3, md: 5 } }}
             />
             <Card>
-                <PaymentTableToolbar filters={filters} onResetPage={table.onResetPage} />
+                <PaymentTableToolbar 
+                    filters={filters} 
+                    onResetPage={table.onResetPage}
+                    onSearchChange={handleSearchChange}
+                    searchTerm={searchTerm}
+                />
                 {canReset && (
                     <PaymentTableFiltersResult
                         filters={filters}
-                        totalResults={dataFiltered.length}
+                        totalResults={pagination.total}
                         onResetPage={table.onResetPage}
+                        onClearSearch={handleClearSearch}
                         sx={{ p: 2.5, pt: 0 }}
                     />
                 )}
 
                 <Box sx={{ position: 'relative' }}>
+                    <TableLoaderOverlay actionType={PAYMENT_LIST} />
                     <TableSelectedAction
                         dense={table.dense}
                         numSelected={selectedRows.length}
-                        rowCount={dataFiltered.length}
-                        onSelectAllRows={(checked) => setSelectedRows(checked ? dataFiltered.map(row => row.id) : [])}
+                        rowCount={tableData.length}
+                        onSelectAllRows={(checked) => setSelectedRows(checked ? tableData.map(row => row.id) : [])}
                         // action={
                         //     <Tooltip title="Delete">
                         //         <IconButton color="primary" onClick={confirm.onTrue}>
@@ -196,19 +271,16 @@ export function PaymentView() {
                                 order={table.order}
                                 orderBy={table.orderBy}
                                 headLabel={TABLE_ACCOUNT_HEAD}
-                                rowCount={dataFiltered.length}
+                                rowCount={tableData.length}
                                 numSelected={selectedRows.length}
                                 onSort={table.onSort}
                                 onSelectAllRows={(checked) =>
-                                    setSelectedRows(checked ? dataFiltered.map((row) => row.id) : [])
+                                    setSelectedRows(checked ? tableData.map((row) => row.id) : [])
                                 }
                             />
 
                             <TableBody>
-                                {dataFiltered.slice(
-                                    table.page * table.rowsPerPage,
-                                    table.page * table.rowsPerPage + table.rowsPerPage
-                                ).map((row) => (
+                                {tableData.map((row) => (
                                     <PaymentTableRow
                                         key={row.id}
                                         row={row}
@@ -222,7 +294,7 @@ export function PaymentView() {
 
                                 <TableEmptyRows
                                     height={table.dense ? 56 : 56 + 20}
-                                    emptyRows={emptyRows(table.page, table.rowsPerPage, dataFiltered.length)}
+                                    emptyRows={emptyRows(table.page, table.rowsPerPage, pagination.total)}
                                 />
 
                                 <TableNoData notFound={notFound} />
@@ -234,7 +306,7 @@ export function PaymentView() {
                 <TablePaginationCustom
                     page={table.page}
                     dense={table.dense}
-                    count={dataFiltered.length}
+                    count={pagination.total}
                     rowsPerPage={table.rowsPerPage}
                     onPageChange={table.onChangePage}
                     onChangeDense={table.onChangeDense}

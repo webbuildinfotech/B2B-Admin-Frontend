@@ -2,21 +2,49 @@ import { toast } from "sonner";
 import swal from "sweetalert";
 import axiosInstance from "src/configs/axiosInstance";
 import { VENDOR_GET_BY_LIST, VENDOR_LIST } from "../constants/actionTypes";
+import { setLoading, clearLoading } from "./loaderActions";
 
-export const vendorList = () => async (dispatch) => {
+export const vendorList = (page, limit, search, status) => async (dispatch) => {
     try {
-        const response = await axiosInstance.get('/vendors');
+        // Set loading state using constant
+        dispatch(setLoading(VENDOR_LIST));
+
+        // Always send page and limit to ensure paginated response
+        const params = {
+            page: page || 1,
+            limit: limit || 10
+        };
+        if (search) params.search = search;
+        if (status && status !== 'all') params.status = status;
+
+        const response = await axiosInstance.get('/vendors', {
+            params
+        });
+
+        // Check if response is paginated or plain array
+        if (response.data?.data && response.data?.total !== undefined) {
+            // Paginated response
+            dispatch({
+                type: VENDOR_LIST,
+                payload: response.data,
+            });
+            dispatch(clearLoading(VENDOR_LIST));
+            return response.data;
+        }
+        // Plain array response (backward compatible)
         dispatch({
             type: VENDOR_LIST,
-            payload: response.data?.data, // Assuming response contains the customers data
+            payload: response.data?.data,
         });
+        dispatch(clearLoading(VENDOR_LIST));
         return true;
     } catch (error) {
-        // Check if error response exists and handle error message
+        // Clear loading on error
+        dispatch(clearLoading(VENDOR_LIST));
         const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);
+        return false;
     }
-    return false; // Return false for any errors
 };
 
 export const vendorGetByList = (id) => async (dispatch) => {
@@ -115,4 +143,16 @@ export const deleteAllItem = (ids) => async (dispatch) => {
         toast.error(errorMessage);
     }
     return false; // Return false for any errors or unsuccessful attempts
+};
+
+// Get vendor status counts for tabs
+export const getVendorStatusCounts = () => async (dispatch) => {
+    try {
+        const response = await axiosInstance.get('/vendors/status-counts');
+        return response.data?.data || { all: 0, active: 0, inactive: 0 };
+    } catch (error) {
+        const errorMessage = error?.response?.data?.message || 'Failed to fetch status counts.';
+        toast.error(errorMessage);
+        return { all: 0, active: 0, inactive: 0 };
+    }
 };

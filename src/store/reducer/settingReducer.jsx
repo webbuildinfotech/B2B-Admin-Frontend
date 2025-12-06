@@ -12,6 +12,12 @@ const initialState = {
     getByTermCondition: '',
     banner: [],
     getByBanner: '',
+    bannerPagination: {
+        total: 0,
+        page: 1,
+        limit: 5,
+        totalPages: 0
+    },
     syncData: [],
     getBySyncData: '',
     tallyFetchData: [],
@@ -90,9 +96,29 @@ const settingReducer = (state = initialState, { type, payload } = {}) => {
             };
 
         case BANNER_LIST:
+            // Check if payload is paginated response
+            if (payload?.data && payload?.total !== undefined) {
+                return {
+                    ...state,
+                    banner: payload.data,
+                    bannerPagination: {
+                        total: payload.total,
+                        page: payload.page,
+                        limit: payload.limit,
+                        totalPages: payload.totalPages
+                    }
+                };
+            }
+            // Fallback for array response
             return {
                 ...state,
-                banner: payload,
+                banner: Array.isArray(payload) ? payload : [],
+                bannerPagination: {
+                    total: Array.isArray(payload) ? payload.length : 0,
+                    page: 1,
+                    limit: 5,
+                    totalPages: 1
+                }
             };
 
 

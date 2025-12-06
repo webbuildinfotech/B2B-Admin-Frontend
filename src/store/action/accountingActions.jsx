@@ -1,21 +1,37 @@
 import { toast } from "sonner";
 import axiosInstance from "src/configs/axiosInstance";
 import { LEDGER_GET_BY_LIST, LEDGER_LIST, RECEIVABLE_GET_BY_LIST, RECEIVABLE_LIST } from "../constants/actionTypes";
+import { setLoading, clearLoading } from "./loaderActions";
 
-export const receivableList = () => async (dispatch) => {
+export const receivableList = (page, limit, search) => async (dispatch) => {
     try {
-        const response = await axiosInstance.get('/ledgers/receivable');
-        dispatch({
-            type: RECEIVABLE_LIST,
-            payload: response.data?.data, // Assuming response contains the customers data
+        // Set loading state using constant
+        dispatch(setLoading(RECEIVABLE_LIST));
+
+        const params = {};
+        if (page) params.page = page;
+        if (limit) params.limit = limit;
+        if (search) params.search = search;
+
+        const response = await axiosInstance.get('/ledgers/receivable', {
+            params: Object.keys(params).length > 0 ? params : undefined
         });
+
+        if (response.data?.data && response.data?.total !== undefined) {
+            dispatch({ type: RECEIVABLE_LIST, payload: response.data });
+            dispatch(clearLoading(RECEIVABLE_LIST));
+            return response.data;
+        }
+        dispatch({ type: RECEIVABLE_LIST, payload: response.data?.data });
+        dispatch(clearLoading(RECEIVABLE_LIST));
         return true;
     } catch (error) {
-        // Check if error response exists and handle error message
+        // Clear loading on error
+        dispatch(clearLoading(RECEIVABLE_LIST));
         const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);
+        return false;
     }
-    return false; // Return false for any errors
 };
 
 export const receivableGetByList = (id) => async (dispatch) => {
@@ -90,20 +106,35 @@ export const deleteAllItem = (ids) => async (dispatch) => {
 
 // Ledger statement
 
-export const ledgerList = () => async (dispatch) => {
+export const ledgerList = (page, limit, search) => async (dispatch) => {
     try {
-        const response = await axiosInstance.get('/ledgers/get-all');
-        dispatch({
-            type: LEDGER_LIST,
-            payload: response.data?.data, // Assuming response contains the customers data
+        // Set loading state using constant
+        dispatch(setLoading(LEDGER_LIST));
+
+        const params = {};
+        if (page) params.page = page;
+        if (limit) params.limit = limit;
+        if (search) params.search = search;
+
+        const response = await axiosInstance.get('/ledgers/get-all', {
+            params: Object.keys(params).length > 0 ? params : undefined
         });
+
+        if (response.data?.data && response.data?.total !== undefined) {
+            dispatch({ type: LEDGER_LIST, payload: response.data });
+            dispatch(clearLoading(LEDGER_LIST));
+            return response.data;
+        }
+        dispatch({ type: LEDGER_LIST, payload: response.data?.data });
+        dispatch(clearLoading(LEDGER_LIST));
         return true;
     } catch (error) {
-        // Check if error response exists and handle error message
+        // Clear loading on error
+        dispatch(clearLoading(LEDGER_LIST));
         const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);
+        return false;
     }
-    return false; // Return false for any errors
 };
 
 export const ledgerGetByList = (id) => async (dispatch) => {

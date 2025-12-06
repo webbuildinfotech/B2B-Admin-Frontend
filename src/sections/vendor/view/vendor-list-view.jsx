@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
@@ -38,42 +39,108 @@ import { getVendorStatusOptions, TABLE_VENDOR_HEAD } from '../../../components/c
 
 import { applyFilter } from '../utils';
 import { useFetchVendorData } from '../components';
-import { syncVendor } from 'src/store/action/vendorActions';
+import { syncVendor, deleteVendor } from 'src/store/action/vendorActions';
 import { VendorTableToolbar } from './table/vendor-table-toolbar';
 import { VendorTableFiltersResult } from './table/vendor-table-filters-result';
 import { VendorTableRow } from './table/vendor-table-row';
+import { TableLoaderOverlay } from 'src/components/loader/table-loader';
+import { VENDOR_LIST } from 'src/store/constants/actionTypes';
 
 // ----------------------------------------------------------------------
 export function VendorListView() {
-    const table = useTable();
+    // Read from URL params
+    const [searchParams, setSearchParams] = useSearchParams();
+    const urlPage = parseInt(searchParams.get('page') || '1', 10) - 1;
+    const urlLimit = parseInt(searchParams.get('limit') || '5', 10);
+    const urlSearch = searchParams.get('search') || '';
+    const urlStatus = searchParams.get('status') || 'all';
+
+    const table = useTable({ 
+        defaultRowsPerPage: urlLimit, 
+        defaultCurrentPage: urlPage 
+    });
+    
+    const [searchTerm, setSearchTerm] = useState(urlSearch);
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(urlSearch);
+    const isFetchingData = useRef(false);
+
+    const filters = useSetState({ 
+        searchTerm: urlSearch,
+        name: '', 
+        email: '', 
+        status: urlStatus
+    });
+
     const confirm = useBoolean();
-    const confirmSync = useBoolean(); // Separate confirmation state for syncing
-
+    const confirmSync = useBoolean();
     const [loading, setLoading] = useState(false);
-    const [selectedRows, setSelectedRows] = useState([]); // Store selected row IDs
-    const [deleting, setDeleting] = useState(false); // Track delete operation
+    const [selectedRows, setSelectedRows] = useState([]);
+    const [deleting, setDeleting] = useState(false);
+    const [statusCounts, setStatusCounts] = useState({ all: 0, active: 0, inactive: 0 });
 
-
-    const { fetchData, fetchDeleteData, deleteAllItems } = useFetchVendorData(); // Destructure fetchData from the custom hook
-
+    const { fetchData, fetchDeleteData, deleteAllItems, fetchStatusCounts } = useFetchVendorData();
     const dispatch = useDispatch();
-
     const _vendorList = useSelector((state) => state.vendor?.vendor || []);
-
+    const pagination = useSelector((state) => state.vendor?.pagination || { total: 0, page: 1, limit: 10, totalPages: 0 });
+    const prevPaginationTotal = useRef(pagination.total);
     const [tableData, setTableData] = useState(_vendorList);
 
-    const STATUS_OPTIONS = getVendorStatusOptions(tableData);
+    // Use status counts from backend instead of tableData
+    const STATUS_OPTIONS = [
+        { value: 'all', label: 'All', count: statusCounts.all },
+        { value: 'Active', label: 'Active', count: statusCounts.active },
+        { value: 'Inactive', label: 'Inactive', count: statusCounts.inactive },
+    ];
 
-    // Update the initial state to include lastName, email, and mobile
-    const filters = useSetState({ searchTerm: '', name: '', email: '', status: 'all' });
     //----------------------------------------------------------------------------------------------------
+    // Fetch status counts on mount only
     useEffect(() => {
-        fetchData(); // Call fetchData when the component mounts
-    }, []);
+        fetchStatusCounts().then(setStatusCounts);
+        prevPaginationTotal.current = pagination.total; // Initialize ref
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchTerm !== debouncedSearchTerm) {
+                setDebouncedSearchTerm(searchTerm);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm, debouncedSearchTerm]);
+
+    // Update table data
     useEffect(() => {
         setTableData(_vendorList);
     }, [_vendorList]);
+
+    // Refresh status counts only when pagination total changes (after delete/update)
+    useEffect(() => {
+        // Only refresh if total actually changed (not on initial mount or same value)
+        if (prevPaginationTotal.current !== pagination.total && pagination.total > 0) {
+            fetchStatusCounts().then(setStatusCounts);
+            prevPaginationTotal.current = pagination.total;
+        }
+    }, [pagination.total]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Fetch data and update URL
+    useEffect(() => {
+        if (isFetchingData.current) return;
+
+        // Update URL
+        const params = new URLSearchParams();
+        params.set('page', (table.page + 1).toString());
+        params.set('limit', table.rowsPerPage.toString());
+        if (debouncedSearchTerm) params.set('search', debouncedSearchTerm);
+        if (filters.state.status !== 'all') params.set('status', filters.state.status);
+        setSearchParams(params, { replace: true });
+
+        // Fetch data
+        isFetchingData.current = true;
+        fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm, filters.state.status)
+            .finally(() => { isFetchingData.current = false; });
+            
+    }, [table.page, table.rowsPerPage, debouncedSearchTerm, filters.state.status]); // eslint-disable-line react-hooks/exhaustive-deps
     //----------------------------------------------------------------------------------------------------
 
 
@@ -84,34 +151,100 @@ export function VendorListView() {
     }, []);
 
     const handleDeleteSelectedRows = useCallback(async () => {
-        setDeleting(true); // Start loading for delete operation
+        setDeleting(true);
         try {
-            await deleteAllItems(selectedRows);
+            const deletedCount = selectedRows.length;
+            await Promise.all(selectedRows.map((id) => dispatch(deleteVendor(id))));
+            
             setSelectedRows([]);
-            fetchData(); // Refresh data after deletion
+            
+            // Check if current page will be empty after deletion
+            const currentPage = table.page + 1;
+            const itemsOnCurrentPage = tableData.length;
+            
+            // If all items on current page are deleted and not page 1, go to previous page
+            let targetPage = currentPage;
+            if (deletedCount >= itemsOnCurrentPage && currentPage > 1) {
+                targetPage = currentPage - 1;
+            }
+            
+            // Prevent main useEffect from interfering
+            isFetchingData.current = true;
+            
+            // Fetch data with correct pagination
+            await fetchData(targetPage, table.rowsPerPage, debouncedSearchTerm, filters.state.status);
+            
+            // Update table page after fetch (if page changed)
+            if (targetPage !== currentPage) {
+                table.onChangePage(null, targetPage - 1); // Update table page (0-indexed)
+            }
+            
+            isFetchingData.current = false;
             confirm.onFalse();
+            // Status counts will be refreshed automatically via useEffect when pagination.total changes
         } catch (error) {
             console.error("Error deleting selected rows:", error);
-            // Optionally, show an error message to the user here
+            isFetchingData.current = false;
         } finally {
-            setDeleting(false); // Stop loading after delete operation
+            setDeleting(false);
         }
-    }, [selectedRows, fetchData, deleteAllItems, confirm]);
+    }, [selectedRows, confirm, table.page, table.rowsPerPage, table.onChangePage, debouncedSearchTerm, filters.state.status, tableData.length, fetchData, dispatch]);
 
     //----------------------------------------------------------------------------------------------------
-    const dataFiltered = applyFilter({
-        inputData: tableData,
-        comparator: getComparator(table.order, table.orderBy),
-        filters: filters.state,
-    });
+    const canReset = !!searchTerm || filters.state.status !== 'all';
+    const notFound = !tableData.length;
 
-    const canReset = !!filters.state.searchTerm || filters.state.status !== 'all';
-    const notFound = (!dataFiltered.length && canReset) || !dataFiltered.length;
+    const handleSearchChange = useCallback((value) => {
+        setSearchTerm(value);
+        filters.setState({ searchTerm: value });
+    }, [filters]);
+
+    const handleClearSearch = useCallback(() => {
+        setSearchTerm('');
+        setDebouncedSearchTerm('');
+        filters.setState({ searchTerm: '' });
+        table.onResetPage();
+    }, [filters, table]);
+
+    const handleClearAll = useCallback(() => {
+        setSearchTerm('');
+        setDebouncedSearchTerm('');
+        filters.setState({
+            searchTerm: '',
+            status: 'all'
+        });
+        table.onResetPage();
+    }, [filters, table]);
 
     //----------------------------------------------------------------------------------------------------
-
-
-    const handleDeleteRow = useCallback((id) => { fetchDeleteData(id) }, []);
+    const handleDeleteRow = useCallback(async (id) => {
+        const success = await dispatch(deleteVendor(id));
+        if (success) {
+            // Check if current page will be empty after deletion
+            const currentPage = table.page + 1;
+            const itemsOnCurrentPage = tableData.length;
+            
+            // If this is the last item on the page and not page 1, go to previous page
+            let targetPage = currentPage;
+            if (itemsOnCurrentPage === 1 && currentPage > 1) {
+                targetPage = currentPage - 1;
+            }
+            
+            // Prevent main useEffect from interfering
+            isFetchingData.current = true;
+            
+            // Fetch data with correct pagination
+            await fetchData(targetPage, table.rowsPerPage, debouncedSearchTerm, filters.state.status);
+            
+            // Update table page after fetch (if page changed)
+            if (targetPage !== currentPage) {
+                table.onChangePage(null, targetPage - 1); // Update table page (0-indexed)
+            }
+            
+            isFetchingData.current = false;
+            // Status counts will be refreshed automatically via useEffect when pagination.total changes
+        }
+    }, [dispatch, fetchData, table.page, table.rowsPerPage, table.onChangePage, debouncedSearchTerm, filters.state.status, tableData.length]);
 
     const handleEditRow = useCallback((id) => id, []);
 
@@ -126,15 +259,16 @@ export function VendorListView() {
     );
 
     const handleSyncAPI = async () => {
-        setLoading(true); // Set loading to true
+        setLoading(true);
         try {
             await dispatch(syncVendor());
-            fetchData(); // Fetch data after syncing
+            await fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm, filters.state.status);
+            // Status counts will be refreshed automatically via useEffect when pagination.total changes
         } catch (error) {
             console.error('Error syncing vendor:', error);
         } finally {
-            setLoading(false); // Set loading to false after the API call completes
-            confirmSync.onFalse(); // Close the confirmation dialog
+            setLoading(false);
+            confirmSync.onFalse();
         }
     };
 
@@ -193,22 +327,29 @@ export function VendorListView() {
                             />
                         ))}
                     </Tabs>
-                    <VendorTableToolbar filters={filters} onResetPage={table.onResetPage} />
+                    <VendorTableToolbar 
+                        filters={filters} 
+                        onResetPage={table.onResetPage}
+                        onSearchChange={handleSearchChange}
+                    />
                     {canReset && (
                         <VendorTableFiltersResult
                             filters={filters}
-                            totalResults={dataFiltered.length}
+                            totalResults={pagination.total}
                             onResetPage={table.onResetPage}
+                            onClearSearch={handleClearSearch}
+                            onClearAll={handleClearAll}
                             sx={{ p: 2.5, pt: 0 }}
                         />
                     )}
 
                     <Box sx={{ position: 'relative' }}>
+                        <TableLoaderOverlay actionType={VENDOR_LIST} />
                         <TableSelectedAction
                             dense={table.dense}
                             numSelected={selectedRows.length}
-                            rowCount={dataFiltered.length}
-                            onSelectAllRows={(checked) => setSelectedRows(checked ? dataFiltered.map(row => row.id) : [])}
+                            rowCount={tableData.length}
+                            onSelectAllRows={(checked) => setSelectedRows(checked ? tableData.map(row => row.id) : [])}
 
                             action={
                                 <Tooltip title="Delete">
@@ -224,22 +365,16 @@ export function VendorListView() {
                                     order={table.order}
                                     orderBy={table.orderBy}
                                     headLabel={TABLE_VENDOR_HEAD}
-                                    rowCount={dataFiltered.length}
+                                    rowCount={pagination.total}
                                     numSelected={selectedRows.length}
-
                                     onSort={table.onSort}
                                     onSelectAllRows={(checked) =>
-                                        setSelectedRows(checked ? dataFiltered.map((row) => row.id) : [])
+                                        setSelectedRows(checked ? tableData.map((row) => row.id) : [])
                                     }
                                 />
 
                                 <TableBody>
-                                    {dataFiltered
-                                        // .sort((a, b) => a.name.localeCompare(b.name))
-                                        .slice(
-                                        table.page * table.rowsPerPage,
-                                        table.page * table.rowsPerPage + table.rowsPerPage
-                                    ).map((row) => (
+                                    {tableData.map((row) => (
                                         <VendorTableRow
                                             key={row.id}
                                             row={row}
@@ -254,7 +389,7 @@ export function VendorListView() {
 
                                     <TableEmptyRows
                                         height={table.dense ? 56 : 56 + 20}
-                                        emptyRows={emptyRows(table.page, table.rowsPerPage, dataFiltered.length)}
+                                        emptyRows={emptyRows(table.page, table.rowsPerPage, pagination.total)}
                                     />
 
                                     <TableNoData notFound={notFound} />
@@ -267,7 +402,7 @@ export function VendorListView() {
                     <TablePaginationCustom
                         page={table.page}
                         dense={table.dense}
-                        count={dataFiltered.length}
+                        count={pagination.total}
                         rowsPerPage={table.rowsPerPage}
                         onPageChange={table.onChangePage}
                         onChangeDense={table.onChangeDense}

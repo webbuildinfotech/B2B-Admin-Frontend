@@ -1,42 +1,45 @@
 import { useDispatch } from 'react-redux';
-import { deleteOrder, orderGetByList, orderList,deleteAllItem } from 'src/store/action/orderActions';
+import { deleteOrder, orderGetByList, orderList, deleteAllItem, getOrderStatusCounts } from 'src/store/action/orderActions';
 
 
 export const useFetchOrderData = () => {
   const dispatch = useDispatch();
 
-  const fetchData = async () => {
-    await dispatch(orderList());
+  const fetchData = async (page, limit, search, status, startDate, endDate) => {
+    await dispatch(orderList(page, limit, search, status, startDate, endDate));
   };
 
   const fetchByIdData = async (id) => {
     await dispatch(orderGetByList(id));
   };
 
-
   const fetchDeleteData = async (id) => {
-
     try {
-      const response = await dispatch(deleteOrder(id));;
+      const response = await dispatch(deleteOrder(id));
       if (response) {
-        fetchData(); // Refetch product data only on successful deletion
+        // Return success to trigger refetch in calling component
+        return true;
       }
     } catch (error) {
-      console.error("Error deleting product:", error);
+      console.error("Error deleting order:", error);
     }
+    return false;
   };
 
   const deleteAllItems = async (id) => {
     try {
-      const response = await dispatch(deleteAllItem(id));;
+      const response = await dispatch(deleteAllItem(id));
       if (response) {
-        fetchData(); // Refetch data data only on successful deletion
+        return true;
       }
     } catch (error) {
-      console.error("Error deleting data:", error);
+      console.error("Error deleting orders:", error);
     }
+    return false;
   };
 
-  return { fetchData, fetchByIdData, fetchDeleteData,deleteAllItems };
+  const fetchStatusCounts = () => dispatch(getOrderStatusCounts());
+
+  return { fetchData, fetchByIdData, fetchDeleteData, deleteAllItems, fetchStatusCounts };
 };
 

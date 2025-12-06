@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
@@ -14,11 +15,9 @@ import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import { LoadingScreen } from 'src/components/loading-screen';
 import {
     useTable,
     emptyRows,
-    rowInPage,
     TableNoData,
     getComparator,
     TableEmptyRows,
@@ -28,49 +27,114 @@ import {
 } from 'src/components/table';
 import { ProductTableFiltersResult } from './table/product-table-filters-result';
 import { useDispatch, useSelector } from 'react-redux';
-import { syncProduct } from 'src/store/action/productActions';
+import { syncProduct, deleteItem, deleteAllItem } from 'src/store/action/productActions';
 import { Typography } from '@mui/material';
-import { getProductStatusOptions, TABLE_PRODUCT_HEAD } from '../../../components/constants';
+import { TABLE_PRODUCT_HEAD } from '../../../components/constants';
 import { applyFilter } from '../utils';
 import { ProductTableRow } from './table/product-table-row';
 import { ProductTableToolbar } from './table/product-table-toolbar';
 import { useFetchProductData } from '../components/fetch-product';
-// import SplashScreen from 'src/components/loader/loading';
-// import { AnimateLogo3 } from 'src/components/animate';
+import { TableLoaderOverlay } from 'src/components/loader/table-loader';
+import { PRODUCT_LIST } from 'src/store/constants/actionTypes';
 // ----------------------------------------------------------------------
 
 
 export function ProductListView() {
-    const table = useTable();
-    const confirm = useBoolean();
-    const confirmSync = useBoolean(); // Separate confirmation state for syncing
-    const [loading, setLoading] = useState(false);
-    const [selectedRows, setSelectedRows] = useState([]); // Store selected row IDs
-    const [deleting, setDeleting] = useState(false); // Track delete operation
+    // Read from URL params
+    const [searchParams, setSearchParams] = useSearchParams();
+    const urlPage = parseInt(searchParams.get('page') || '1', 10) - 1;
+    const urlLimit = parseInt(searchParams.get('limit') || '5', 10);
+    const urlSearch = searchParams.get('search') || '';
+    const urlSubGroup1 = searchParams.getAll('subGroup1');
+    const urlSubGroup2 = searchParams.getAll('subGroup2');
 
-    const { fetchData, fetchDeleteItem, deleteAllItems } = useFetchProductData(); // Destructure fetchData from the custom hook
+    const table = useTable({ 
+        defaultRowsPerPage: urlLimit, 
+        defaultCurrentPage: urlPage 
+    });
+    
+    const [searchTerm, setSearchTerm] = useState(urlSearch);
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(urlSearch);
+    const isFetchingData = useRef(false);
+
+    
+    const filters = useSetState({ 
+        searchTerm: urlSearch,
+        subGroup1: urlSubGroup1, 
+        subGroup2: urlSubGroup2, 
+        status: 'all' 
+    });
+
+    const confirm = useBoolean();
+    const confirmSync = useBoolean();
+    const [loading, setLoading] = useState(false);
+    const [selectedRows, setSelectedRows] = useState([]);
+    const [deleting, setDeleting] = useState(false);
+    const [subGroup1Options, setSubGroup1Options] = useState([]);
+    const [subGroup2Options, setSubGroup2Options] = useState([]);
+
+    const { fetchData, fetchAllSubGroup1Options, fetchSubGroup2Options, fetchDeleteItem, deleteAllItems } = useFetchProductData();
     const dispatch = useDispatch();
     const _productList = useSelector((state) => state.product?.product || []);
+    const pagination = useSelector((state) => state.product?.pagination || { total: 0, page: 1, limit: 10, totalPages: 0 });
     const [tableData, setTableData] = useState(_productList);
 
-    const options = _productList.map(opt => ({
-        group: opt.group,
-        subGroup1: opt.subGroup1,
-        subGroup2: opt.subGroup2,
-
-    }));
-    // Update the initial state to include lastName, email, and mobile
-    const filters = useSetState({ searchTerm: '', itemName: '', group: '', subGroup1: '', subGroup2: '', status: 'all' });
-
     //----------------------------------------------------------------------------------------------------
+    // Fetch options on mount only
     useEffect(() => {
-        fetchData(); // Call fetchData when the component mounts
+        fetchAllSubGroup1Options().then(setSubGroup1Options);
+        if (urlSubGroup1.length > 0) {
+            fetchSubGroup2Options(urlSubGroup1).then(setSubGroup2Options);
+        }
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    }, []);
+    // Update subGroup2 when subGroup1 changes
+    useEffect(() => {
+        const subGroup1 = filters.state.subGroup1 || [];
+        if (subGroup1.length > 0) {
+            fetchSubGroup2Options(subGroup1).then(setSubGroup2Options);
+        } else {
+            setSubGroup2Options([]);
+        }
+    }, [filters.state.subGroup1]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchTerm !== debouncedSearchTerm) {
+                setDebouncedSearchTerm(searchTerm);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm, debouncedSearchTerm]);
+
+    // Update table data
     useEffect(() => {
         setTableData(_productList);
     }, [_productList]);
+
+    // Single effect to fetch data and update URL
+    useEffect(() => {
+        if (isFetchingData.current) return;
+
+        const subGroup1 = filters.state.subGroup1 || [];
+        const subGroup2 = filters.state.subGroup2 || [];
+
+        // Update URL
+        const params = new URLSearchParams();
+        params.set('page', (table.page + 1).toString());
+        params.set('limit', table.rowsPerPage.toString());
+        if (debouncedSearchTerm) params.set('search', debouncedSearchTerm);
+        subGroup1.forEach(item => params.append('subGroup1', item));
+        subGroup2.forEach(item => params.append('subGroup2', item));
+        setSearchParams(params, { replace: true });
+
+        // Fetch data
+        isFetchingData.current = true;
+        fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm, subGroup1, subGroup2)
+            .finally(() => { isFetchingData.current = false; });
+            
+    }, [table.page, table.rowsPerPage, debouncedSearchTerm, filters.state.subGroup1, filters.state.subGroup2]); // eslint-disable-line react-hooks/exhaustive-deps
     //----------------------------------------------------------------------------------------------------
 
     const handleSelectRow = useCallback((id) => {
@@ -80,42 +144,56 @@ export function ProductListView() {
     }, []);
 
     const handleDeleteSelectedRows = useCallback(async () => {
-        setDeleting(true); // Start loading for delete operation
+        setDeleting(true);
         try {
-            await deleteAllItems(selectedRows);
+            const deletedCount = selectedRows.length;
+            await Promise.all(selectedRows.map((id) => dispatch(deleteItem(id))));
+            
             setSelectedRows([]);
-            // fetchData(); // Refresh data after deletion
+            
+            // Check if current page will be empty after deletion
+            const currentPage = table.page + 1;
+            const itemsOnCurrentPage = tableData.length;
+            
+            // If all items on current page are deleted and not page 1, go to previous page
+            let targetPage = currentPage;
+            if (deletedCount >= itemsOnCurrentPage && currentPage > 1) {
+                targetPage = currentPage - 1;
+            }
+            
+            const subGroup1 = Array.isArray(filters.state.subGroup1) ? filters.state.subGroup1 : [];
+            const subGroup2 = Array.isArray(filters.state.subGroup2) ? filters.state.subGroup2 : [];
+            
+            // Prevent main useEffect from interfering
+            isFetchingData.current = true;
+            
+            // Fetch data with correct pagination
+            await fetchData(targetPage, table.rowsPerPage, debouncedSearchTerm, subGroup1, subGroup2);
+            
+            // Update table page after fetch (if page changed)
+            if (targetPage !== currentPage) {
+                table.onChangePage(null, targetPage - 1); // Update table page (0-indexed)
+            }
+            
+            isFetchingData.current = false;
             confirm.onFalse();
         } catch (error) {
             console.error("Error deleting selected rows:", error);
-            // Optionally, show an error message to the user here
+            isFetchingData.current = false;
         } finally {
-            setDeleting(false); // Stop loading after delete operation
+            setDeleting(false);
         }
-    }, [selectedRows, fetchData, deleteAllItems, confirm]);
+    }, [selectedRows, confirm, table.page, table.rowsPerPage, table.onChangePage, debouncedSearchTerm, filters.state.subGroup1, filters.state.subGroup2, tableData.length, fetchData, dispatch]);
     //----------------------------------------------------------------------------------------------------
-    // Clear specific group
-    const onClearGroup = useCallback((group) => {
-        filters.setState((prevState) => ({
-            ...prevState,
-            group: prevState.group.filter((g) => g !== group)
-        }));
+    // Clear specific filter handlers
+    const onClearSubGroup1 = useCallback((subGroup1Value) => {
+        const updated = filters.state.subGroup1.filter((sub1) => sub1 !== subGroup1Value);
+        filters.setState({ subGroup1: updated });
     }, [filters]);
 
-    // Clear specific subGroup1
-    const onClearSubGroup1 = useCallback((subGroup1) => {
-        filters.setState((prevState) => ({
-            ...prevState,
-            subGroup1: prevState.subGroup1.filter((sub1) => sub1 !== subGroup1)
-        }));
-    }, [filters]);
-
-    // Clear specific subGroup2
-    const onClearSubGroup2 = useCallback((subGroup2) => {
-        filters.setState((prevState) => ({
-            ...prevState,
-            subGroup2: prevState.subGroup2.filter((sub2) => sub2 !== subGroup2)
-        }));
+    const onClearSubGroup2 = useCallback((subGroup2Value) => {
+        const updated = filters.state.subGroup2.filter((sub2) => sub2 !== subGroup2Value);
+        filters.setState({ subGroup2: updated });
     }, [filters]);
 
 
@@ -123,21 +201,73 @@ export function ProductListView() {
 
 
     //-----------------------------------------------------------------
+    // Check if any filters/search active (with safe checks)
+    const canReset = !!searchTerm || 
+                     !!(filters.state.subGroup1 && filters.state.subGroup1.length > 0) || 
+                     !!(filters.state.subGroup2 && filters.state.subGroup2.length > 0) || 
+                     filters.state.status !== 'all';
+    
+    const notFound = !tableData.length;
 
-    const dataFiltered = applyFilter({
-        inputData: tableData,
-        comparator: getComparator(table.order, table.orderBy),
-        filters: filters.state,
-    });
+    // Clear handlers - use hook's functions + product-specific cleanup
+    const handleSearchChange = useCallback((value) => {
+        setSearchTerm(value);
+        filters.setState({ searchTerm: value });
+    }, [filters]);
 
-    const dataInPage = rowInPage(dataFiltered, table.page, table.rowsPerPage);
-    const canReset = !!filters.state.searchTerm || filters.state.group || filters.state.subGroup1 || filters.state.subGroup2 || filters.state.status !== 'all';
-    const notFound = (!dataFiltered.length && canReset) || !dataFiltered.length;
+    const handleClearSearch = useCallback(() => {
+        setSearchTerm('');
+        setDebouncedSearchTerm('');
+        filters.setState({ searchTerm: '' });
+        table.onResetPage();
+    }, [filters, table]);
+    
+    const handleClearAll = useCallback(() => {
+        setSearchTerm('');
+        setDebouncedSearchTerm('');
+        filters.setState({
+            searchTerm: '',
+            subGroup1: [],
+            subGroup2: [],
+            status: 'all'
+        });
+        setSubGroup2Options([]);
+        table.onResetPage();
+    }, [filters, table]);
 
     //----------------------------------------------------------------------------------------------------
 
 
-    const handleDeleteRow = useCallback((id) => { fetchDeleteItem(id) }, []);
+    const handleDeleteRow = useCallback(async (id) => {
+        const success = await dispatch(deleteItem(id));
+        if (success) {
+            // Check if current page will be empty after deletion
+            const currentPage = table.page + 1;
+            const itemsOnCurrentPage = tableData.length;
+            
+            // If this is the last item on the page and not page 1, go to previous page
+            let targetPage = currentPage;
+            if (itemsOnCurrentPage === 1 && currentPage > 1) {
+                targetPage = currentPage - 1;
+            }
+            
+            const subGroup1 = Array.isArray(filters.state.subGroup1) ? filters.state.subGroup1 : [];
+            const subGroup2 = Array.isArray(filters.state.subGroup2) ? filters.state.subGroup2 : [];
+            
+            // Prevent main useEffect from interfering
+            isFetchingData.current = true;
+            
+            // Fetch data with correct pagination
+            await fetchData(targetPage, table.rowsPerPage, debouncedSearchTerm, subGroup1, subGroup2);
+            
+            // Update table page after fetch (if page changed)
+            if (targetPage !== currentPage) {
+                table.onChangePage(null, targetPage - 1); // Update table page (0-indexed)
+            }
+            
+            isFetchingData.current = false;
+        }
+    }, [dispatch, fetchData, table.page, table.rowsPerPage, table.onChangePage, debouncedSearchTerm, filters.state.subGroup1, filters.state.subGroup2, tableData.length]);
 
     const handleEditRow = useCallback((id) => id, []);
 
@@ -157,17 +287,18 @@ export function ProductListView() {
         try {
             const res = await dispatch(syncProduct()); // Call the sync API
             if (res) {
-                fetchData(); // Fetch data after syncing
+                const subGroup1 = Array.isArray(filters.state.subGroup1) ? filters.state.subGroup1 : [];
+                const subGroup2 = Array.isArray(filters.state.subGroup2) ? filters.state.subGroup2 : [];
+                fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm, subGroup1, subGroup2); // Fetch paginated data after syncing
             }
         } catch (error) {
             setLoading(false); // Reset loading state
-
             console.error("Failed to sync products", error);
         } finally {
             setLoading(false); // Reset loading state
             confirmSync.onFalse(); // Close the confirmation dialog
         }
-    }, [dispatch, fetchData, confirmSync]);
+    }, [dispatch, fetchData, confirmSync, table.page, table.rowsPerPage, debouncedSearchTerm, filters.state.subGroup1, filters.state.subGroup2]);
 
     //----------------------------------------------------------------------------------------------------
 
@@ -198,30 +329,32 @@ export function ProductListView() {
 
                 <Card>
                     <ProductTableToolbar
-                        options={options}
                         filters={filters}
                         onResetPage={table.onResetPage}
-
+                        onSearchChange={handleSearchChange}
+                        subGroup1Options={subGroup1Options}
+                        subGroup2Options={subGroup2Options}
                     />
                     {canReset && (
                         <ProductTableFiltersResult
                             filters={filters}
-                            totalResults={dataFiltered.length}
+                            totalResults={pagination.total}
                             onResetPage={table.onResetPage}
-                            onClearGroup={onClearGroup} // Pass clear group callback
+                            onClearAll={handleClearAll}
+                            onClearSearch={handleClearSearch}
                             onClearSubGroup1={onClearSubGroup1} // Pass clear subGroup1 callback
                             onClearSubGroup2={onClearSubGroup2} // Pass clear subGroup2 callback
-
                             sx={{ p: 2.5, pt: 0 }}
                         />
                     )}
                
                         <Box sx={{ position: 'relative' }}>
+                            <TableLoaderOverlay actionType={PRODUCT_LIST} />
                             <TableSelectedAction
                                 dense={table.dense}
                                 numSelected={selectedRows.length}
-                                rowCount={dataFiltered.length}
-                                onSelectAllRows={(checked) => setSelectedRows(checked ? dataFiltered.map(row => row.id) : [])}
+                                rowCount={tableData.length}
+                                onSelectAllRows={(checked) => setSelectedRows(checked ? tableData.map(row => row.id) : [])}
                                 action={
                                     <Tooltip title="Delete Selected">
                                         <IconButton color="primary" onClick={confirm.onTrue}>
@@ -237,38 +370,30 @@ export function ProductListView() {
                                         order={table.order}
                                         orderBy={table.orderBy}
                                         headLabel={TABLE_PRODUCT_HEAD}
-                                        rowCount={dataFiltered.length}
+                                        rowCount={pagination.total}
                                         numSelected={selectedRows.length}
                                         onSort={table.onSort}
                                         onSelectAllRows={(checked) =>
-                                            setSelectedRows(checked ? dataFiltered.map((row) => row.id) : [])
+                                            setSelectedRows(checked ? tableData.map((row) => row.id) : [])
                                         }
-
                                     />
 
                                     <TableBody>
-                                        {dataFiltered
-                                            // .sort((a, b) => a.itemName.localeCompare(b.itemName)) // Sort by 'created' descending
-                                            .slice(
-                                                table.page * table.rowsPerPage,
-                                                table.page * table.rowsPerPage + table.rowsPerPage
-                                            ).map((row) => (
-
-                                                <ProductTableRow
-                                                    key={row.id}
-                                                    row={row}
-                                                    selected={selectedRows.includes(row.id)}
-                                                    onSelectRow={() => handleSelectRow(row.id)}
-                                                    onDeleteRow={() => handleDeleteRow(row.id)}
-                                                    onEditRow={() => handleEditRow(row.id)}
-                                                    onViewRow={() => handleViewRow(row.id)}
-
-                                                />
-                                            ))}
+                                        {tableData.map((row) => (
+                                            <ProductTableRow
+                                                key={row.id}
+                                                row={row}
+                                                selected={selectedRows.includes(row.id)}
+                                                onSelectRow={() => handleSelectRow(row.id)}
+                                                onDeleteRow={() => handleDeleteRow(row.id)}
+                                                onEditRow={() => handleEditRow(row.id)}
+                                                onViewRow={() => handleViewRow(row.id)}
+                                            />
+                                        ))}
 
                                         <TableEmptyRows
                                             height={table.dense ? 56 : 56 + 20}
-                                            emptyRows={emptyRows(table.page, table.rowsPerPage, dataFiltered.length)}
+                                            emptyRows={emptyRows(table.page, table.rowsPerPage, pagination.total)}
                                         />
 
                                         <TableNoData notFound={notFound} />
@@ -281,7 +406,7 @@ export function ProductListView() {
                     <TablePaginationCustom
                         page={table.page}
                         dense={table.dense}
-                        count={dataFiltered.length}
+                        count={pagination.total}
                         rowsPerPage={table.rowsPerPage}
                         onPageChange={table.onChangePage}
                         onChangeDense={table.onChangeDense}

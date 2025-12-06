@@ -8,16 +8,21 @@ import InputAdornment from '@mui/material/InputAdornment';
 import { Iconify } from 'src/components/iconify';
 import { usePopover, CustomPopover } from 'src/components/custom-popover';
 
-export function PaymentTableToolbar({ filters, onResetPage }) {
+export function PaymentTableToolbar({ filters, onResetPage, onSearchChange, searchTerm }) {
     const popover = usePopover();
 
     // Handle filter by search term
     const handleFilterName = useCallback(
         (event) => {
-            onResetPage();
-            filters.setState({ searchTerm: event.target.value });
+            const { value } = event.target;
+            if (onSearchChange) {
+                onSearchChange(value);
+            } else {
+                onResetPage();
+                filters.setState({ searchTerm: value });
+            }
         },
-        [filters, onResetPage]
+        [filters, onResetPage, onSearchChange]
     );
 
     return (
@@ -32,9 +37,9 @@ export function PaymentTableToolbar({ filters, onResetPage }) {
                 <Stack direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
                     <TextField
                         fullWidth
-                        value={filters.state.searchTerm}
+                        value={searchTerm !== undefined ? searchTerm : filters.state.searchTerm}
                         onChange={handleFilterName}
-                        placeholder="Search Account..."
+                        placeholder="Search by Account Name, Account Number, IFSC, UPI ID, PayPal Email..."
                         InputProps={{
                             startAdornment: (
                                 <InputAdornment position="start">

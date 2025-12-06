@@ -4,12 +4,16 @@ import { chipProps, FiltersBlock, FiltersResult } from 'src/components/filters-r
 
 // ----------------------------------------------------------------------
 
-export function ProductTableFiltersResult({ filters, onResetPage, totalResults, sx, onClearGroup, onClearSubGroup1, onClearSubGroup2 }) {
+export function ProductTableFiltersResult({ filters, onResetPage, totalResults, sx, onClearAll, onClearSearch, onClearGroup, onClearSubGroup1, onClearSubGroup2 }) {
 
   const handleRemoveSearchTerm = useCallback(() => {
-    onResetPage();
-    filters.setState({ searchTerm: '' });
-  }, [filters, onResetPage]);
+    if (onClearSearch) {
+      onClearSearch(); // Use parent's search clear handler
+    } else {
+      onResetPage();
+      filters.setState({ searchTerm: '' });
+    }
+  }, [filters, onResetPage, onClearSearch]);
   
 
   const handleRemoveStatus = useCallback(() => {
@@ -18,9 +22,13 @@ export function ProductTableFiltersResult({ filters, onResetPage, totalResults, 
   }, [filters, onResetPage]);
 
   const handleReset = useCallback(() => {
-    onResetPage();
-    filters.onResetState();
-  }, [filters, onResetPage]);
+    if (onClearAll) {
+      onClearAll(); // Use parent's clear all handler
+    } else {
+      onResetPage();
+      filters.onResetState();
+    }
+  }, [filters, onResetPage, onClearAll]);
 
   const handleResetFilter = useCallback((key, value, onClear, clearRelated = false) => {
     onResetPage();
@@ -39,13 +47,13 @@ export function ProductTableFiltersResult({ filters, onResetPage, totalResults, 
     onClear(value); // Call the specific onClear callback for this item
   }, [filters, onResetPage, onClearSubGroup1, onClearSubGroup2]);
 
-   // Check if any filters are active
+   // Check if any filters are active (with safe checks)
    const hasFilters = 
    !!filters.state.searchTerm ||
    filters.state.status !== 'all' ||
-   filters.state.group.length > 0 ||
-   filters.state.subGroup1.length > 0 ||
-   filters.state.subGroup2.length > 0;
+   (filters.state.group && filters.state.group.length > 0) ||
+   (filters.state.subGroup1 && filters.state.subGroup1.length > 0) ||
+   (filters.state.subGroup2 && filters.state.subGroup2.length > 0);
 
  // If there are no active filters, do not render the FiltersResult component
  if (!hasFilters) return null;
@@ -69,7 +77,7 @@ export function ProductTableFiltersResult({ filters, onResetPage, totalResults, 
         />
       </FiltersBlock>
 
-      <FiltersBlock label="Group:" isShow={!!filters.state.group.length}>
+      <FiltersBlock label="Group:" isShow={!!(filters.state.group && filters.state.group.length)}>
         {(filters.state.group || []).map((gp) => (
           <Chip
             {...chipProps}
@@ -80,7 +88,7 @@ export function ProductTableFiltersResult({ filters, onResetPage, totalResults, 
         ))}
       </FiltersBlock>
 
-      <FiltersBlock label="SubGroup1:" isShow={!!filters.state.subGroup1.length}>
+      <FiltersBlock label="SubGroup1:" isShow={!!(filters.state.subGroup1 && filters.state.subGroup1.length)}>
         {(filters.state.subGroup1 || []).map((sub1) => (
           <Chip
             {...chipProps}
@@ -91,7 +99,7 @@ export function ProductTableFiltersResult({ filters, onResetPage, totalResults, 
         ))}
       </FiltersBlock>
 
-      <FiltersBlock label="SubGroup2:" isShow={!!filters.state.subGroup2.length}>
+      <FiltersBlock label="SubGroup2:" isShow={!!(filters.state.subGroup2 && filters.state.subGroup2.length)}>
         {(filters.state.subGroup2 || []).map((sub2) => (
           <Chip
             {...chipProps}

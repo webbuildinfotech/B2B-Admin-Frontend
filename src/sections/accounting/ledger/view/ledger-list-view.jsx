@@ -1,5 +1,6 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
@@ -10,7 +11,6 @@ import IconButton from '@mui/material/IconButton';
 import { paths } from 'src/routes/paths';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useSetState } from 'src/hooks/use-set-state';
-import { fIsAfter } from 'src/utils/format-time';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
@@ -36,92 +36,107 @@ import { LedgerTableToolbar } from './ledger-table-toolbar';
 import { useFetchData } from '../components/fetch-ledger';
 import { LedgerTableFiltersResult } from './table/ledger-table-filters-result';
 import { syncLedger } from 'src/store/action/accountingActions';
+import { TableLoaderOverlay } from 'src/components/loader/table-loader';
+import { LEDGER_LIST } from 'src/store/constants/actionTypes';
 // ----------------------------------------------------------------------
 
 export function LedgerListView() {
-    const table = useTable();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const urlPage = parseInt(searchParams.get('page') || '1', 10) - 1;
+    const urlLimit = parseInt(searchParams.get('limit') || '5', 10);
+    const urlSearch = searchParams.get('search') || '';
+
+    const table = useTable({ defaultRowsPerPage: urlLimit, defaultCurrentPage: urlPage });
+    const [searchTerm, setSearchTerm] = useState(urlSearch);
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(urlSearch);
+    const isFetchingData = useRef(false);
+    
+    const filters = useSetState({ searchTerm: urlSearch });
     const confirm = useBoolean();
+    const confirmSync = useBoolean();
     const userRole = useUserRole();
-    const [selectedRows, setSelectedRows] = useState([]); // Store selected row IDs
-    const { fetchData } = useFetchData(); // Destructure fetchData from the custom hook
-
-    const dispatch = useDispatch();
-    const confirmSync = useBoolean(); // Separate confirmation state for syncing
-
+    const [selectedRows, setSelectedRows] = useState([]);
     const [loading, setLoading] = useState(false);
-    const _ledger = useSelector((state) => state.accounting?.ledger);
- 
-     const [selectedParty, setSelectedParty] = useState(null); // Selected party
- 
+
+    const { fetchData, deleteAllItems } = useFetchData();
+    const dispatch = useDispatch();
+    const _ledger = useSelector((state) => state.accounting?.ledger || []);
+    const pagination = useSelector((state) => state.accounting?.ledgerPagination || { total: 0, page: 1, limit: 10, totalPages: 0 });
     const [tableData, setTableData] = useState(_ledger);
-
-    const filters = useSetState({
-        party: "",
-        name: '',
-        startDate: null,
-        endDate: null,
-    });
-
-    const dateError = fIsAfter(filters.state.startDate, filters.state.endDate);
-    //-----------------------------------------------------------------------------------------------------
 
     const TABLE_HEAD = [
         { id: 'party', label: 'Party' },
         { id: 'alias', label: 'Alias', align: 'center' },
-        { id: 'openingBalance', label: 'Opening Balance',align: 'center' },
-        { id: 'closingBalance', label: 'Closing Balance' ,align: 'center'},
-        { id: 'totalDebitAmount', label: 'Total Debit Amount',align: 'center' },
-        { id: 'totalCreditAmount', label: 'Total Credit Amount',align: 'center' },
+        { id: 'openingBalance', label: 'Opening Balance', align: 'center' },
+        { id: 'closingBalance', label: 'Closing Balance', align: 'center' },
+        { id: 'totalDebitAmount', label: 'Total Debit Amount', align: 'center' },
+        { id: 'totalCreditAmount', label: 'Total Credit Amount', align: 'center' },
         { id: 'actions', label: 'Actions' }
-
     ];
-
 
     //----------------------------------------------------------------------------------------------------
     useEffect(() => {
-        fetchData(); // Call fetchData when the component mounts
-    }, []);
+        const timer = setTimeout(() => {
+            if (searchTerm !== debouncedSearchTerm) {
+                setDebouncedSearchTerm(searchTerm);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm, debouncedSearchTerm]);
 
     useEffect(() => {
         setTableData(_ledger);
     }, [_ledger]);
-    //----------------------------------------------------------------------------------------------------
+
+    useEffect(() => {
+        if (isFetchingData.current) return;
+
+        const params = new URLSearchParams();
+        params.set('page', (table.page + 1).toString());
+        params.set('limit', table.rowsPerPage.toString());
+        if (debouncedSearchTerm) params.set('search', debouncedSearchTerm);
+        setSearchParams(params, { replace: true });
+
+        isFetchingData.current = true;
+        fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm)
+            .finally(() => { isFetchingData.current = false; });
+    }, [table.page, table.rowsPerPage, debouncedSearchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
+
     const handleSelectRow = useCallback((id) => {
         setSelectedRows((prev) =>
             prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [...prev, id]
         );
     }, []);
     //----------------------------------------------------------------------------------------------------
-    const dataFiltered = applyFilter({
-        inputData: tableData,
-        comparator: getComparator(table.order, table.orderBy),
-        filters: filters.state,
-        dateError,
-        userRole, // Add userRole here
-    });
 
-    const canReset =
-        !!filters.state.name ||
-        (!!filters.state.startDate && !!filters.state.endDate);
-
-    const notFound = (!dataFiltered.length && canReset) || !dataFiltered.length;
+    const canReset = !!searchTerm;
+    const notFound = !tableData.length;
     //----------------------------------------------------
+
+    const handleSearchChange = useCallback((value) => {
+        setSearchTerm(value);
+        filters.setState({ searchTerm: value });
+    }, [filters]);
+
+    const handleClearSearch = useCallback(() => {
+        setSearchTerm('');
+        setDebouncedSearchTerm('');
+        filters.setState({ searchTerm: '' });
+        table.onResetPage();
+    }, [filters, table]);
 
     const handleViewRow = useCallback((id) => id, []);
 
-
-
     const handleSyncAPI = async () => {
-        setLoading(true); // Set loading to true
+        setLoading(true);
         try {
             await dispatch(syncLedger());
-            fetchData(); // Fetch data after syncing
+            await fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm);
         } catch (error) {
-            console.error('Error syncing order invoice:', error);
+            console.error('Error syncing ledger:', error);
         } finally {
-            setLoading(false); // Set loading to false after the API call completes
-            confirmSync.onFalse(); // Close the confirmation dialog
-
+            setLoading(false);
+            confirmSync.onFalse();
         }
     };
 
@@ -157,7 +172,7 @@ export function LedgerListView() {
                     <LedgerTableToolbar
                         filters={filters}
                         onResetPage={table.onResetPage}
-                        dateError={dateError}
+                        onSearchChange={handleSearchChange}
                         data={tableData}
                     />
 
@@ -165,17 +180,19 @@ export function LedgerListView() {
                     {canReset && (
                         <LedgerTableFiltersResult
                             filters={filters}
-                            totalResults={dataFiltered.length}
+                            totalResults={pagination.total}
                             onResetPage={table.onResetPage}
+                            onClearSearch={handleClearSearch}
                             sx={{ p: 2.5, pt: 0 }}
                         />
                     )}
                     <Box sx={{ position: 'relative' }}>
+                        <TableLoaderOverlay actionType={LEDGER_LIST} />
                         <TableSelectedAction
                             dense={table.dense}
                             numSelected={selectedRows.length}
-                            rowCount={dataFiltered.length}
-                            onSelectAllRows={(checked) => setSelectedRows(checked ? dataFiltered.map(row => row.id) : [])}
+                            rowCount={tableData.length}
+                            onSelectAllRows={(checked) => setSelectedRows(checked ? tableData.map(row => row.id) : [])}
 
                             // action={
                             //     <Tooltip title="Delete">
@@ -192,22 +209,16 @@ export function LedgerListView() {
                                     order={table.order}
                                     orderBy={table.orderBy}
                                     headLabel={TABLE_HEAD}
-                                    rowCount={dataFiltered.length}
+                                    rowCount={pagination.total}
                                     numSelected={selectedRows.length}
-
                                     onSort={table.onSort}
                                     onSelectAllRows={(checked) =>
-                                        setSelectedRows(checked ? dataFiltered.map((row) => row.id) : [])
+                                        setSelectedRows(checked ? tableData.map((row) => row.id) : [])
                                     }
                                 />
 
                                 <TableBody>
-                                    {dataFiltered
-                                        .slice(
-                                            table.page * table.rowsPerPage,
-                                            table.page * table.rowsPerPage + table.rowsPerPage
-                                        )
-                                        .map((row) => (
+                                    {tableData.map((row) => (
                                             <LedgerTableRow
                                                 key={row.id}
                                                 row={row}
@@ -219,7 +230,7 @@ export function LedgerListView() {
 
                                     <TableEmptyRows
                                         height={table.dense ? 56 : 56 + 20}
-                                        emptyRows={emptyRows(table.page, table.rowsPerPage, dataFiltered.length)}
+                                        emptyRows={emptyRows(table.page, table.rowsPerPage, pagination.total)}
                                     />
 
                                     <TableNoData notFound={notFound} />
@@ -231,7 +242,7 @@ export function LedgerListView() {
                     <TablePaginationCustom
                         page={table.page}
                         dense={table.dense}
-                        count={dataFiltered.length}
+                        count={pagination.total}
                         rowsPerPage={table.rowsPerPage}
                         onPageChange={table.onChangePage}
                         onChangeDense={table.onChangeDense}

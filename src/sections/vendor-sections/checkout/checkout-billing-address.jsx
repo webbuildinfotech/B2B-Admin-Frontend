@@ -13,10 +13,11 @@ import useCart from './components/useCart';
 import { addressList, createAddress, deleteAddress, updateAddress } from 'src/store/action/addressActions';
 import { CheckoutPayment } from './checkout-payment';
 import { LoadingButton } from '@mui/lab';
-import { Typography, Card, CardContent, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
+import { Typography, Card, CardContent, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Alert } from '@mui/material';
 import { createOrder, createOrderItem } from 'src/store/action/orderActions';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 const DELIVERY_OPTIONS = [
   { id: 'Transportation', value: 0, label: 'Transportation', description: '3-5 days delivery' },
@@ -114,6 +115,43 @@ export function CheckoutBillingAddress() {
   };
 
   const handleSubmit = async () => {
+    // Validate selected address has mobile and address
+    const selectedAddress = userAddress.find(addr => addr.id === selectedAddressId);
+    
+    if (!selectedAddress) {
+      toast.error('Please select an address');
+      return;
+    }
+
+    // Check if mobile number is missing, null, empty, or invalid
+    const { mobile, street_address: streetAddress } = selectedAddress;
+    const isValidMobile = mobile && 
+                          mobile !== null && 
+                          mobile !== undefined && 
+                          mobile !== 'N/A' && 
+                          mobile !== 'Not Available' && 
+                          typeof mobile === 'string' && 
+                          mobile.trim() !== '';
+    
+    if (!isValidMobile) {
+      toast.error('Mobile number is required. Please update the selected address with a valid mobile number.');
+      return;
+    }
+
+    // Check if street address is missing, null, empty, or invalid
+    const isValidAddress = streetAddress && 
+                          streetAddress !== null && 
+                          streetAddress !== undefined && 
+                          streetAddress !== 'N/A' && 
+                          streetAddress !== 'Not Available' && 
+                          typeof streetAddress === 'string' && 
+                          streetAddress.trim() !== '';
+    
+    if (!isValidAddress) {
+      toast.error('Address is required. Please update the selected address with a valid street address.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     const selectedDeliveryId = methods.getValues('delivery'); // Get selected delivery ID
@@ -258,17 +296,73 @@ export function CheckoutBillingAddress() {
           {subtotal > 0 && (
             <>
               {!selectedAddressId && !isSubmitting && (
-                <Typography variant='body' color="error" sx={{ mb: 1 }}>
-                  Please select any address
-                </Typography>
+                <Alert severity="error" sx={{ mb: 1 }}>
+                  Please select an address
+                </Alert>
               )}
+
+              {selectedAddressId && (() => {
+                const selectedAddress = userAddress.find(addr => addr.id === selectedAddressId);
+                if (!selectedAddress) return null;
+                
+                const { mobile, street_address: streetAddress } = selectedAddress;
+                const hasMobile = mobile && 
+                                mobile !== null && 
+                                mobile !== undefined && 
+                                mobile !== 'N/A' && 
+                                mobile !== 'Not Available' && 
+                                typeof mobile === 'string' && 
+                                mobile.trim() !== '';
+                const hasAddress = streetAddress && 
+                                  streetAddress !== null && 
+                                  streetAddress !== undefined && 
+                                  streetAddress !== 'N/A' && 
+                                  streetAddress !== 'Not Available' && 
+                                  typeof streetAddress === 'string' && 
+                                  streetAddress.trim() !== '';
+                
+                if (!hasMobile || !hasAddress) {
+                  return (
+                    <Alert severity="warning" sx={{ mb: 1 }}>
+                      {!hasMobile && !hasAddress 
+                        ? 'Mobile number and address are required. Please update the selected address.'
+                        : !hasMobile 
+                        ? 'Mobile number is required. Please update the selected address.'
+                        : 'Address is required. Please update the selected address.'}
+                    </Alert>
+                  );
+                }
+                return null;
+              })()}
 
               <LoadingButton
                 fullWidth
                 size="large"
                 type="submit"
                 variant="contained"
-                disabled={!selectedAddressId || isSubmitting}
+                disabled={!selectedAddressId || isSubmitting || (() => {
+                  const selectedAddress = userAddress.find(addr => addr.id === selectedAddressId);
+                  if (!selectedAddress) return true;
+                  
+                  const { mobile, street_address: streetAddress } = selectedAddress;
+                  const hasMobile = mobile && 
+                                  mobile !== null && 
+                                  mobile !== undefined && 
+                                  mobile !== 'N/A' && 
+                                  mobile !== 'Not Available' && 
+                                  typeof mobile === 'string' && 
+                                  mobile.trim() !== '';
+                  
+                  const hasAddress = streetAddress && 
+                                    streetAddress !== null && 
+                                    streetAddress !== undefined && 
+                                    streetAddress !== 'N/A' && 
+                                    streetAddress !== 'Not Available' && 
+                                    typeof streetAddress === 'string' && 
+                                    streetAddress.trim() !== '';
+                  
+                  return !hasMobile || !hasAddress;
+                })()}
                 loading={isSubmitting}
                 onClick={handleSubmit}
                 sx={{

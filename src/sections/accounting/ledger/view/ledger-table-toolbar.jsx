@@ -12,16 +12,20 @@ import { generatePDF } from '../utils/generatePDF';
 
 // ----------------------------------------------------------------------
 
-export function LedgerTableToolbar({ filters, onResetPage, dateError, data }) {
+export function LedgerTableToolbar({ filters, onResetPage, onSearchChange, data }) {
 
   const popover = usePopover();
 
   const handleFilterName = useCallback(
     (event) => {
+      const { value } = event.target;
       onResetPage();
-      filters.setState({ name: event.target.value });
+      filters.setState({ searchTerm: value });
+      if (onSearchChange) {
+        onSearchChange(value);
+      }
     },
-    [filters, onResetPage]
+    [filters, onResetPage, onSearchChange]
   );
 
   const handleFilterStartDate = useCallback(
@@ -124,7 +128,7 @@ export function LedgerTableToolbar({ filters, onResetPage, dateError, data }) {
         <Stack direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
           <TextField
             fullWidth
-            value={filters.state.name}
+            value={filters.state.searchTerm || ''}
             onChange={handleFilterName}
             placeholder="Search..."
             InputProps={{

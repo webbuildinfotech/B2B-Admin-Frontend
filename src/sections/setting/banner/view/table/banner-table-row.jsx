@@ -14,13 +14,14 @@ import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { usePopover, CustomPopover } from 'src/components/custom-popover';
 import { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom'; // Import Link from react-router-dom
+import { Link as RouterLink, useLocation } from 'react-router-dom'; // Import Link from react-router-dom
 import { useFetchBannerData } from '../../components/fetch-banner';
 import { Avatar } from '@mui/material';
 
 export function BannerTableRow({ row, selected, onEditRow, onSelectRow, onDeleteRow }) {
     const confirm = useBoolean();
     const { fetchBannerData } = useFetchBannerData();
+    const location = useLocation();
 
     const popover = usePopover();
 
@@ -52,7 +53,12 @@ export function BannerTableRow({ row, selected, onEditRow, onSelectRow, onDelete
                 <TableCell>
                     <Stack direction="row" alignItems="center">
                         <Tooltip title="Quick Edit" arrow>
-                            <Link component={RouterLink} to={`/settings/banner/edit/${row.id}`} sx={{ textDecoration: 'none' }}>
+                            <Link 
+                                component={RouterLink} 
+                                to={`/settings/banner/edit/${row.id}`}
+                                state={{ returnUrl: location.pathname + location.search }}
+                                sx={{ textDecoration: 'none' }}
+                            >
                                 <IconButton>
                                     <Iconify icon="solar:pen-bold" />
                                 </IconButton>

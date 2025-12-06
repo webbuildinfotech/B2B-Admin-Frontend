@@ -9,11 +9,12 @@ import { LoadingButton } from '@mui/lab';
 import { Field, Form } from 'src/components/hook-form';
 import { deleteProduct, editProduct } from 'src/store/action/productActions';
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 
 export default function ProductNewEditForm({ currentProduct }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const [loading, setLoading] = useState(false);
 
     // States for applyToAll flags
@@ -57,7 +58,35 @@ export default function ProductNewEditForm({ currentProduct }) {
             setLoading(true);
             const res = await dispatch(editProduct(currentProduct.id, formData));
             if (res) {
-                navigate('/products');
+                // Get return URL from location state (passed when navigating to edit)
+                const returnUrl = location.state?.returnUrl;
+                
+                if (returnUrl) {
+                    // Use the return URL from location state
+                    navigate(returnUrl);
+                } else {
+                    // Fallback: Try to get from referrer or use default
+                    const { referrer } = document;
+                    let queryParams = new URLSearchParams();
+                    
+                    if (referrer && referrer.includes('/products')) {
+                        try {
+                            const referrerUrl = new URL(referrer);
+                            queryParams = new URLSearchParams(referrerUrl.search);
+                        } catch (e) {
+                            queryParams.set('page', '1');
+                            queryParams.set('limit', '5');
+                        }
+                    } else {
+                        queryParams.set('page', '1');
+                        queryParams.set('limit', '5');
+                    }
+                    
+                    if (!queryParams.get('page')) queryParams.set('page', '1');
+                    if (!queryParams.get('limit')) queryParams.set('limit', '5');
+                    
+                    navigate(`/products?${queryParams.toString()}`);
+                }
             }
             setLoading(false);
         } catch (error) {

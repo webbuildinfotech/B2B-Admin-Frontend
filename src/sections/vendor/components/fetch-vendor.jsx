@@ -1,38 +1,41 @@
 import { useDispatch } from 'react-redux';
-import { deleteVendor, vendorList,deleteAllItem } from 'src/store/action/vendorActions';
+import { deleteVendor, vendorList, deleteAllItem, getVendorStatusCounts } from 'src/store/action/vendorActions';
 
 export const useFetchVendorData = () => {
   const dispatch = useDispatch();
 
-  const fetchData = async () => {
-    await dispatch(vendorList());
+  const fetchData = async (page, limit, search, status) => {
+    const result = await dispatch(vendorList(page, limit, search, status));
+    return result;
   };
 
-  const fetchDeleteData = async (id) => {
-
+  const fetchDeleteData = async (id, page, limit, search, status) => {
     try {
-      const response = await dispatch(deleteVendor(id));;
+      const response = await dispatch(deleteVendor(id));
       if (response) {
-        fetchData(); // Refetch 
+        await fetchData(page, limit, search, status);
       }
     } catch (error) {
-      console.error("Error deletingVendor:", error);
+      console.error("Error deleting vendor:", error);
     }
   };
 
-  const deleteAllItems = async (id) => {
+  const deleteAllItems = async (ids, page, limit, search, status) => {
     try {
-      const response = await dispatch(deleteAllItem(id));;
+      const response = await dispatch(deleteAllItem(ids));
       if (response) {
-        fetchData(); // Refetch data data only on successful deletion
+        await fetchData(page, limit, search, status);
       }
     } catch (error) {
-      console.error("Error deleting data:", error);
+      console.error("Error deleting vendors:", error);
     }
   };
 
+  const fetchStatusCounts = async () => {
+    const counts = await dispatch(getVendorStatusCounts());
+    return counts;
+  };
 
-
-  return { fetchData, fetchDeleteData,deleteAllItems };
+  return { fetchData, fetchDeleteData, deleteAllItems, fetchStatusCounts };
 };
 

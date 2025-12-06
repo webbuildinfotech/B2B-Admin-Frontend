@@ -15,7 +15,7 @@ import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { usePopover, CustomPopover } from 'src/components/custom-popover';
 import { useFetchProductData } from '../../components/fetch-product';
-import { Link as RouterLink } from 'react-router-dom'; // Import Link from react-router-dom
+import { Link as RouterLink, useLocation } from 'react-router-dom'; // Import Link from react-router-dom
 import { DUMMY_IMAGE } from 'src/components/constants';
 import { fCurrency, formatDateIndian } from 'src/utils/format-number';
 
@@ -24,6 +24,7 @@ export function ProductTableRow({ row, selected, onEditRow, onSelectRow, onDelet
 
     const confirm = useBoolean();
     const { fetchData } = useFetchProductData();
+    const location = useLocation();
 
     const popover = usePopover();
 
@@ -65,12 +66,6 @@ export function ProductTableRow({ row, selected, onEditRow, onSelectRow, onDelet
                 </TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.subGroup1 || 'not available'}</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.subGroup2 || 'not available'}</TableCell>
-                <TableCell sx={{
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    maxWidth: '200px'
-                }}>{row.description || 'not available'}</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>
                     {fCurrency(row?.sellingPrice) || 'not available'}
                 </TableCell>
@@ -82,7 +77,8 @@ export function ProductTableRow({ row, selected, onEditRow, onSelectRow, onDelet
                         <Tooltip title="Quick Edit" arrow>
                             <Link
                                 component={RouterLink}
-                                to={`/products/edit/${row.id}`} // Ensure this route exists
+                                to={`/products/edit/${row.id}`}
+                                state={{ returnUrl: location.pathname + location.search }}
                                 sx={{ textDecoration: 'none' }}
                             >
                                 <IconButton>

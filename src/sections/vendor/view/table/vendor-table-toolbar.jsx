@@ -5,15 +5,19 @@ import InputAdornment from '@mui/material/InputAdornment';
 import { Iconify } from 'src/components/iconify';
 import { usePopover } from 'src/components/custom-popover';
 
-export function VendorTableToolbar({ filters, options, onResetPage, tableData }) {
+export function VendorTableToolbar({ filters, options, onResetPage, tableData, onSearchChange }) {
 
     // Filter by name (search term)
     const handleFilterName = useCallback(
         (event) => {
-            onResetPage(); // Reset to the first page
-            filters.setState({ searchTerm: event.target.value });
+            const { value } = event.target;
+            onResetPage();
+            filters.setState({ searchTerm: value });
+            if (onSearchChange) {
+                onSearchChange(value);
+            }
         },
-        [filters, onResetPage]
+        [filters, onResetPage, onSearchChange]
     );
 
     return (

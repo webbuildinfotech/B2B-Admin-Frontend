@@ -17,7 +17,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { Field, Form, schemaHelper } from 'src/components/hook-form';
 import { deleteQRPayment, editPayment } from 'src/store/action/paymentActions';
 import { useDispatch } from 'react-redux';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams, useLocation } from 'react-router';
 import { validateEmailDomain, validateUpiProvider } from 'src/utils/emailValidation';
 
 // Define schemas for different payment methods
@@ -87,6 +87,7 @@ export function PaymentEditForm({ payment }) {
     const [loading, setLoading] = useState(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const [activeTab, setActiveTab] = useState(payment?.type || 'Bank'); // Default tab based on payment type
 
     const paymentID = useParams()
@@ -151,9 +152,37 @@ export function PaymentEditForm({ payment }) {
 
         setLoading(true);
         try {
-            const response = await dispatch(editPayment(payment.id, formData)); // Dispatch the update action
+            const response = await dispatch(editPayment(payment.id, formData));
             if (response) {
-                navigate('/payments'); // Redirect to payments list
+                // Get return URL from location state (passed when navigating to edit)
+                const returnUrl = location.state?.returnUrl;
+                
+                if (returnUrl) {
+                    // Use the return URL from location state
+                    navigate(returnUrl);
+                } else {
+                    // Fallback: Try to get from referrer or use default
+                    const { referrer } = document;
+                    let queryParams = new URLSearchParams();
+                    
+                    if (referrer && referrer.includes('/payments')) {
+                        try {
+                            const referrerUrl = new URL(referrer);
+                            queryParams = new URLSearchParams(referrerUrl.search);
+                        } catch (e) {
+                            queryParams.set('page', '1');
+                            queryParams.set('limit', '5');
+                        }
+                    } else {
+                        queryParams.set('page', '1');
+                        queryParams.set('limit', '5');
+                    }
+                    
+                    if (!queryParams.get('page')) queryParams.set('page', '1');
+                    if (!queryParams.get('limit')) queryParams.set('limit', '5');
+                    
+                    navigate(`/payments?${queryParams.toString()}`);
+                }
             }
         } catch (error) {
             console.error('Error updating payment:', error);

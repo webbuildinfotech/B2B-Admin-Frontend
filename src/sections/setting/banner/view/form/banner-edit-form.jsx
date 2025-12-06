@@ -13,7 +13,7 @@ import { useRouter } from 'src/routes/hooks';
 import { Box, FormControl, InputLabel, MenuItem, Select, Stack } from '@mui/material';
 
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import {
   deleteBannerAllImage,
   deleteBannerImage,
@@ -42,6 +42,7 @@ export function BannerEditForm({ currentBanner }) {
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const router = useRouter();
 
   const defaultValues = useMemo(
@@ -88,7 +89,35 @@ export function BannerEditForm({ currentBanner }) {
     try {
       const response = await dispatch(editBanner(currentBanner.id, formData));
       if (response) {
-        navigate('/settings/banner');
+        // Get return URL from location state (passed when navigating to edit)
+        const returnUrl = location.state?.returnUrl;
+        
+        if (returnUrl) {
+          // Use the return URL from location state
+          navigate(returnUrl);
+        } else {
+          // Fallback: Try to get from referrer or use default
+          const { referrer } = document;
+          let queryParams = new URLSearchParams();
+          
+          if (referrer && referrer.includes('/settings/banner')) {
+            try {
+              const referrerUrl = new URL(referrer);
+              queryParams = new URLSearchParams(referrerUrl.search);
+            } catch (e) {
+              queryParams.set('page', '1');
+              queryParams.set('limit', '5');
+            }
+          } else {
+            queryParams.set('page', '1');
+            queryParams.set('limit', '5');
+          }
+          
+          if (!queryParams.get('page')) queryParams.set('page', '1');
+          if (!queryParams.get('limit')) queryParams.set('limit', '5');
+          
+          navigate(`/settings/banner?${queryParams.toString()}`);
+        }
       }
     } catch (error) {
       console.error('Submission failed', error);

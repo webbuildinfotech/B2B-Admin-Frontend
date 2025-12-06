@@ -233,14 +233,19 @@ export const createTerm = (termData) => async (dispatch) => {
 };
 
 // Banner
-export const bannerList = () => async (dispatch) => {
+export const bannerList = (page, limit, search) => async (dispatch) => {
     try {
-        const response = await axiosInstance.get('/banner/all');
-        dispatch({
-            type: BANNER_LIST,
-            payload: response.data, // Assuming response contains the customers data
-        });
-        return true;
+        const params = {
+            page: page || 1,
+            limit: limit || 10
+        };
+        if (search) params.search = search;
+
+        const response = await axiosInstance.get('/banner/all', { params });
+        
+        // Always dispatch the full response data (includes pagination)
+        dispatch({ type: BANNER_LIST, payload: response.data });
+        return response.data;
     } catch (error) {
         // Check if error response exists and handle error message
         const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';

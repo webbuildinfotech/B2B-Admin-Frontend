@@ -1,19 +1,12 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback } from 'react';
 import Stack from '@mui/material/Stack';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import Checkbox from '@mui/material/Checkbox';
 import TextField from '@mui/material/TextField';
-import InputLabel from '@mui/material/InputLabel';
-import FormControl from '@mui/material/FormControl';
-import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 import { Iconify } from 'src/components/iconify';
-import { usePopover } from 'src/components/custom-popover';
 
-export function StockTableToolbar({ filters, onResetPage, onSearchChange }) {
-
-    const handleFilterName = useCallback(
+export function LogTableToolbar({ filters, onResetPage, onSearchChange }) {
+    // Filter by search term
+    const handleFilterSearch = useCallback(
         (event) => {
             const { value } = event.target;
             onResetPage();
@@ -32,12 +25,13 @@ export function StockTableToolbar({ filters, onResetPage, onSearchChange }) {
             direction={{ xs: 'column', md: 'row' }}
             sx={{ p: 2.5, pr: { xs: 2.5, md: 1 } }}
         >
+            {/* Search Filter */}
             <Stack direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
                 <TextField
                     fullWidth
-                    value={filters.state.searchTerm}
-                    onChange={handleFilterName}
-                    placeholder="Search..."
+                    value={filters.state.searchTerm || ''}
+                    onChange={handleFilterSearch}
+                    placeholder="Search by sync type..."
                     InputProps={{
                         startAdornment: (
                             <InputAdornment position="start">
@@ -50,3 +44,4 @@ export function StockTableToolbar({ filters, onResetPage, onSearchChange }) {
         </Stack>
     );
 }
+

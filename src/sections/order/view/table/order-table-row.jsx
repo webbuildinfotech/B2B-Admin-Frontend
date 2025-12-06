@@ -29,7 +29,7 @@ import { useDispatch } from 'react-redux';
 
 // ----------------------------------------------------------------------
 
-export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteRow, onDownload }) {
+export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteRow, onDownload, onStatusUpdate }) {
   // const isDownloadable = !!row.invoicePdf; // Check if pdfPath is available
   const userRole = useUserRole();
 
@@ -51,7 +51,7 @@ export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
   const handleClose = () => setModalOpen(false);
 
   const handleConfirm = async (newStatus) => {
-    await dispatch(handleStatusUpdate(row.id, newStatus));
+    await dispatch(handleStatusUpdate(row.id, newStatus, onStatusUpdate));
     setModalOpen(false);
   };
 

@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Tabs from '@mui/material/Tabs';
@@ -39,38 +40,69 @@ import { useFetchOrderData } from '../components/fetch-order';
 import useUserRole from 'src/layouts/components/user-role';
 import { syncOrder } from 'src/store/action/orderActions';
 import { Typography } from '@mui/material';
-import { applyFilter } from '../utils/filterUtils';
 import { toast } from 'sonner';
-// ----------------------------------------------------------------------
-
-const STATUS_OPTIONS = [{ value: 'all', label: 'All' }, ...ORDER_STATUS_OPTIONS];
-
+import { TableLoaderOverlay } from 'src/components/loader/table-loader';
+import { ORDER_LIST } from 'src/store/constants/actionTypes';
 // ----------------------------------------------------------------------
 
 export function OrderListView() {
-  const table = useTable();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlPage = parseInt(searchParams.get('page') || '1', 10) - 1;
+  const urlLimit = parseInt(searchParams.get('limit') || '5', 10);
+  const urlSearch = searchParams.get('search') || '';
+  const urlStatus = searchParams.get('status') || 'all';
+  const urlStartDate = searchParams.get('startDate') || null;
+  const urlEndDate = searchParams.get('endDate') || null;
+
+  const table = useTable({ defaultRowsPerPage: urlLimit, defaultCurrentPage: urlPage });
   const confirm = useBoolean();
   const userRole = useUserRole();
-  const [selectedRows, setSelectedRows] = useState([]); // Store selected row IDs
-  const { fetchData, fetchDeleteData, deleteAllItems } = useFetchOrderData(); // Destructure fetchData from the custom hook
+  const [selectedRows, setSelectedRows] = useState([]);
+  const { fetchData, fetchDeleteData, deleteAllItems, fetchStatusCounts } = useFetchOrderData();
   const dispatch = useDispatch();
-  const confirmSync = useBoolean(); // Separate confirmation state for syncing
-  const [deleting, setDeleting] = useState(false); // Track delete operation
-
-
+  const confirmSync = useBoolean();
+  const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(false);
-  const _orders = useSelector((state) =>
-    userRole === 'Admin' ? state.order?.order || [] : state.order?.order?.orders || []
-  );
-  const [tableData, setTableData] = useState(_orders);
+  const [searchTerm, setSearchTerm] = useState(urlSearch);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(urlSearch);
+  const isFetchingData = useRef(false);
+  const [statusCounts, setStatusCounts] = useState({ all: 0, pending: 0, completed: 0, cancelled: 0 });
+
+  const _orders = useSelector((state) => state.order?.order || []);
+  const pagination = useSelector((state) => state.order?.orderPagination || { total: 0, page: 1, limit: 5, totalPages: 0 });
+  
+  // For vendors, pagination is handled client-side since backend returns all orders
+  const isVendor = userRole === 'Vendor';
+  const totalOrders = isVendor ? _orders.length : pagination.total;
+  
+  // Slice data for vendor pagination (client-side)
+  const paginatedData = useMemo(() => {
+    if (isVendor) {
+      const start = table.page * table.rowsPerPage;
+      const end = start + table.rowsPerPage;
+      return _orders.slice(start, end);
+    }
+    return _orders; // Admin gets paginated data from backend
+  }, [isVendor, _orders, table.page, table.rowsPerPage]);
+  
+  const [tableData, setTableData] = useState(paginatedData);
+  
   const filters = useSetState({
-    name: '',
-    status: 'all',
-    startDate: null,
-    endDate: null,
+    name: urlSearch,
+    status: urlStatus,
+    startDate: urlStartDate ? new Date(urlStartDate) : null,
+    endDate: urlEndDate ? new Date(urlEndDate) : null,
   });
 
   const dateError = fIsAfter(filters.state.startDate, filters.state.endDate);
+  
+  // Use status counts from backend instead of tableData
+  const STATUS_OPTIONS = [
+    { value: 'all', label: 'All', count: statusCounts.all },
+    { value: 'pending', label: 'Pending', count: statusCounts.pending },
+    { value: 'completed', label: 'Completed', count: statusCounts.completed },
+    { value: 'cancelled', label: 'Cancelled', count: statusCounts.cancelled },
+  ];
   //-----------------------------------------------------------------------------------------------------
 
   const TABLE_HEAD = [
@@ -94,13 +126,54 @@ export function OrderListView() {
   ];
 
   //----------------------------------------------------------------------------------------------------
+  // Fetch status counts on mount
   useEffect(() => {
-    fetchData(); // Call fetchData when the component mounts
-  }, []);
+    fetchStatusCounts().then(setStatusCounts);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchTerm !== debouncedSearchTerm) {
+        setDebouncedSearchTerm(searchTerm);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm, debouncedSearchTerm]);
 
   useEffect(() => {
-    setTableData(_orders);
-  }, [_orders]);
+    setTableData(paginatedData);
+  }, [paginatedData]);
+
+  // Unified effect for fetching data
+  useEffect(() => {
+    if (isFetchingData.current) return;
+
+    // For vendors, don't send pagination params (they get all orders at once)
+    // For admin, send pagination params
+    const params = new URLSearchParams();
+    if (!isVendor) {
+      params.set('page', (table.page + 1).toString());
+      params.set('limit', table.rowsPerPage.toString());
+    }
+    if (debouncedSearchTerm) params.set('search', debouncedSearchTerm);
+    if (filters.state.status !== 'all') params.set('status', filters.state.status);
+    if (filters.state.startDate) params.set('startDate', filters.state.startDate.toISOString());
+    if (filters.state.endDate) params.set('endDate', filters.state.endDate.toISOString());
+    setSearchParams(params, { replace: true });
+
+    isFetchingData.current = true;
+    const startDate = filters.state.startDate ? filters.state.startDate.toISOString() : null;
+    const endDate = filters.state.endDate ? filters.state.endDate.toISOString() : null;
+    
+    // For vendors, fetch without pagination (null/undefined for page/limit)
+    // For admin, send pagination params
+    const page = isVendor ? undefined : (table.page + 1);
+    const limit = isVendor ? undefined : table.rowsPerPage;
+    
+    fetchData(page, limit, debouncedSearchTerm, filters.state.status, startDate, endDate)
+      .finally(() => { isFetchingData.current = false; });
+  }, [table.page, table.rowsPerPage, debouncedSearchTerm, filters.state.status, filters.state.startDate, filters.state.endDate, isVendor]); // eslint-disable-line react-hooks/exhaustive-deps
   //----------------------------------------------------------------------------------------------------
 
   const handleSelectRow = useCallback((id) => {
@@ -109,38 +182,65 @@ export function OrderListView() {
     );
   }, []);
 
+  const handleSearchChange = useCallback((value) => {
+    setSearchTerm(value);
+    filters.setState({ name: value });
+    table.onResetPage();
+  }, [filters, table]);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchTerm('');
+    setDebouncedSearchTerm('');
+    filters.setState({ name: '' });
+    table.onResetPage();
+  }, [filters, table]);
+
+  const handleClearAll = useCallback(() => {
+    setSearchTerm('');
+    setDebouncedSearchTerm('');
+    filters.setState({
+      name: '',
+      status: 'all',
+      startDate: null,
+      endDate: null,
+    });
+    table.onResetPage();
+  }, [filters, table]);
+
   const handleDeleteSelectedRows = useCallback(async () => {
-    setDeleting(true); // Start loading for delete operation
+    setDeleting(true);
     try {
-      await deleteAllItems(selectedRows);
-      setSelectedRows([]);
-      fetchData(); // Refresh data after deletion
-      confirm.onFalse();
+      const success = await deleteAllItems(selectedRows);
+      if (success) {
+        setSelectedRows([]);
+        const startDate = filters.state.startDate ? filters.state.startDate.toISOString() : null;
+        const endDate = filters.state.endDate ? filters.state.endDate.toISOString() : null;
+        await fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm, filters.state.status, startDate, endDate);
+        confirm.onFalse();
+      }
     } catch (error) {
       console.error("Error deleting selected rows:", error);
-      // Optionally, show an error message to the user here
     } finally {
-      setDeleting(false); // Stop loading after delete operation
+      setDeleting(false);
     }
-  }, [selectedRows, fetchData, deleteAllItems, confirm]);
+  }, [selectedRows, fetchData, deleteAllItems, confirm, table.page, table.rowsPerPage, debouncedSearchTerm, filters.state.status, filters.state.startDate, filters.state.endDate]);
 
   //----------------------------------------------------------------------------------------------------
-  const dataFiltered = applyFilter({
-    inputData: tableData,
-    comparator: getComparator(table.order, table.orderBy),
-    filters: filters.state,
-    dateError,
-    userRole, // Add userRole here
-  });
-
   const canReset =
-    !!filters.state.name ||
+    !!debouncedSearchTerm ||
     filters.state.status !== 'all' ||
     (!!filters.state.startDate && !!filters.state.endDate);
 
-  const notFound = (!dataFiltered.length && canReset) || !dataFiltered.length;
+  const notFound = !tableData.length;
   //----------------------------------------------------
-  const handleDeleteRow = useCallback((id) => { fetchDeleteData(id) }, []);
+  const handleDeleteRow = useCallback(async (id) => {
+    const success = await fetchDeleteData(id);
+    if (success) {
+      const startDate = filters.state.startDate ? filters.state.startDate.toISOString() : null;
+      const endDate = filters.state.endDate ? filters.state.endDate.toISOString() : null;
+      await fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm, filters.state.status, startDate, endDate);
+    }
+  }, [fetchDeleteData, fetchData, table.page, table.rowsPerPage, debouncedSearchTerm, filters.state.status, filters.state.startDate, filters.state.endDate]);
 
   const handleViewRow = useCallback((id) => id, []);
 
@@ -153,16 +253,17 @@ export function OrderListView() {
   );
 
   const handleSyncAPI = async () => {
-    setLoading(true); // Set loading to true
+    setLoading(true);
     try {
       await dispatch(syncOrder());
-      fetchData(); // Fetch data after syncing
+      const startDate = filters.state.startDate ? filters.state.startDate.toISOString() : null;
+      const endDate = filters.state.endDate ? filters.state.endDate.toISOString() : null;
+      await fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm, filters.state.status, startDate, endDate);
     } catch (error) {
       console.error('Error syncing order invoice:', error);
     } finally {
-      setLoading(false); // Set loading to false after the API call completes
-      confirmSync.onFalse(); // Close the confirmation dialog
-
+      setLoading(false);
+      confirmSync.onFalse();
     }
   };
 
@@ -174,6 +275,16 @@ export function OrderListView() {
       toast.warning('File Not found for this order', id);
     }
   };
+
+  // Refresh callback to maintain current pagination and filters after status update
+  const handleRefreshAfterStatusUpdate = useCallback(async () => {
+    const startDate = filters.state.startDate ? filters.state.startDate.toISOString() : null;
+    const endDate = filters.state.endDate ? filters.state.endDate.toISOString() : null;
+    await fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm, filters.state.status, startDate, endDate);
+    // Also refresh status counts
+    const counts = await fetchStatusCounts();
+    if (counts) setStatusCounts(counts);
+  }, [fetchData, fetchStatusCounts, table.page, table.rowsPerPage, debouncedSearchTerm, filters.state.status, filters.state.startDate, filters.state.endDate]);
 
   //--------------------------------------------------
   return (
@@ -232,9 +343,7 @@ export function OrderListView() {
                       'default'
                     }
                   >
-                    {['completed', 'pending', 'cancelled'].includes(tab.value)
-                      ? tableData.filter((user) => user.status === tab.value).length
-                      : tableData.length}
+                    {tab.count || 0}
                   </Label>
                 }
               />
@@ -246,23 +355,28 @@ export function OrderListView() {
             onResetPage={table.onResetPage}
             dateError={dateError}
             data={tableData}
+            onSearchChange={handleSearchChange}
+            searchTerm={searchTerm}
           />
 
           {canReset && (
             <OrderTableFiltersResult
               filters={filters}
-              totalResults={dataFiltered.length}
+              totalResults={pagination.total}
               onResetPage={table.onResetPage}
+              onClearSearch={handleClearSearch}
+              onClearAll={handleClearAll}
               sx={{ p: 2.5, pt: 0 }}
             />
           )}
 
           <Box sx={{ position: 'relative' }}>
+            <TableLoaderOverlay actionType={ORDER_LIST} />
             <TableSelectedAction
               dense={table.dense}
               numSelected={selectedRows.length}
-              rowCount={dataFiltered.length}
-              onSelectAllRows={(checked) => setSelectedRows(checked ? dataFiltered.map(row => row.id) : [])}
+              rowCount={tableData.length}
+              onSelectAllRows={(checked) => setSelectedRows(checked ? tableData.map(row => row.id) : [])}
 
               action={
                 <Tooltip title="Delete">
@@ -279,36 +393,32 @@ export function OrderListView() {
                   order={table.order}
                   orderBy={table.orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={dataFiltered.length}
+                  rowCount={tableData.length}
                   numSelected={selectedRows.length}
 
                   onSort={table.onSort}
                   onSelectAllRows={(checked) =>
-                    setSelectedRows(checked ? dataFiltered.map((row) => row.id) : [])
+                    setSelectedRows(checked ? tableData.map((row) => row.id) : [])
                   }
                 />
 
                 <TableBody>
-                  {dataFiltered
-                    .slice(
-                      table.page * table.rowsPerPage,
-                      table.page * table.rowsPerPage + table.rowsPerPage
-                    )
-                    .map((row) => (
-                      <OrderTableRow
-                        key={row.id}
-                        row={row}
-                        selected={selectedRows.includes(row.id)}
-                        onSelectRow={() => handleSelectRow(row.id)}
-                        onDeleteRow={() => handleDeleteRow(row.id)}
-                        onViewRow={() => handleViewRow(row.id)}
-                        onDownload={() => handleDownload(row.id)}
-                      />
-                    ))}
+                  {tableData.map((row) => (
+                    <OrderTableRow
+                      key={row.id}
+                      row={row}
+                      selected={selectedRows.includes(row.id)}
+                      onSelectRow={() => handleSelectRow(row.id)}
+                      onDeleteRow={() => handleDeleteRow(row.id)}
+                      onViewRow={() => handleViewRow(row.id)}
+                      onDownload={() => handleDownload(row.id)}
+                      onStatusUpdate={handleRefreshAfterStatusUpdate}
+                    />
+                  ))}
 
                   <TableEmptyRows
                     height={table.dense ? 56 : 56 + 20}
-                    emptyRows={emptyRows(table.page, table.rowsPerPage, dataFiltered.length)}
+                    emptyRows={emptyRows(table.page, table.rowsPerPage, totalOrders)}
                   />
 
                   <TableNoData notFound={notFound} />
@@ -320,7 +430,7 @@ export function OrderListView() {
           <TablePaginationCustom
             page={table.page}
             dense={table.dense}
-            count={dataFiltered.length}
+            count={totalOrders}
             rowsPerPage={table.rowsPerPage}
             onPageChange={table.onChangePage}
             onChangeDense={table.onChangeDense}

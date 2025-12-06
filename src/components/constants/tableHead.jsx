@@ -35,7 +35,6 @@ export const TABLE_PRODUCT_HEAD = [
   { id: 'itemName', label: 'Item Name / Group' },
   { id: 'subGroup1', label: 'Sub-Group 1' },
   { id: 'subGroup2', label: 'Sub-Group 2' },
-  { id: 'description', label: 'Description' },
   { id: 'sellingPrice', label: 'Selling Price' },
   { id: 'sellingPriceDate', label: 'Selling Price Date' },
   { id: 'gstRate', label: 'GST Rate' },

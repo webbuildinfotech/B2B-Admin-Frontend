@@ -1,7 +1,6 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
@@ -11,9 +10,7 @@ import IconButton from '@mui/material/IconButton';
 import { paths } from 'src/routes/paths';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useSetState } from 'src/hooks/use-set-state';
-import { varAlpha } from 'src/theme/styles';
 import { DashboardContent } from 'src/layouts/dashboard';
-import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 import { ConfirmDialog } from 'src/components/custom-dialog';
@@ -39,38 +36,73 @@ import { StockTableFiltersResult } from './table/stock-table-filters-result';
 import { StockTableRow } from './table/stock-table-row';
 import { StockTableToolbar } from './table/stock-table-toolbar';
 import { syncStock } from 'src/store/action/stockSummaryActions';
+import { TableLoaderOverlay } from 'src/components/loader/table-loader';
+import { STOCK_LIST } from 'src/store/constants/actionTypes';
 
 // ----------------------------------------------------------------------
 export function StockListView() {
-    const table = useTable();
+    // Read from URL params
+    const [searchParams, setSearchParams] = useSearchParams();
+    const urlPage = parseInt(searchParams.get('page') || '1', 10) - 1;
+    const urlLimit = parseInt(searchParams.get('limit') || '5', 10);
+    const urlSearch = searchParams.get('search') || '';
+
+    const table = useTable({ 
+        defaultRowsPerPage: urlLimit, 
+        defaultCurrentPage: urlPage 
+    });
+    
+    const [searchTerm, setSearchTerm] = useState(urlSearch);
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(urlSearch);
+    const isFetchingData = useRef(false);
+
+    const filters = useSetState({ searchTerm: urlSearch });
+
     const confirm = useBoolean();
-    const confirmSync = useBoolean(); // Separate confirmation state for syncing
+    const confirmSync = useBoolean();
     const [loading, setLoading] = useState(false);
-    const [selectedRows, setSelectedRows] = useState([]); // Store selected row IDs
-    const [deleting, setDeleting] = useState(false); // Track delete operation
+    const [selectedRows, setSelectedRows] = useState([]);
+    const [deleting, setDeleting] = useState(false);
 
-
-    const { fetchData, deleteAllItems } = useFetchStockData(); // Destructure fetchData from the custom hook
+    const { fetchData, deleteAllItems } = useFetchStockData();
     const dispatch = useDispatch();
     const _stock = useSelector((state) => state.stock?.stock || []);
+    const pagination = useSelector((state) => state.stock?.pagination || { total: 0, page: 1, limit: 10, totalPages: 0 });
     const [tableData, setTableData] = useState(_stock);
-    const options = _stock.map(opt => ({
-        group: opt.group,
-        subGroup1: opt.subGroup1,
-        subGroup2: opt.subGroup2,
-
-    }));
-    // Update the initial state to include lastName, email, and mobile
-    const filters = useSetState({ searchTerm: '', itemName: '', group: '', subGroup1: '', subGroup2: '' });
 
     //----------------------------------------------------------------------------------------------------
+    // Debounce search
     useEffect(() => {
-        fetchData(); // Call fetchData when the component mounts
-    }, []);
+        const timer = setTimeout(() => {
+            if (searchTerm !== debouncedSearchTerm) {
+                setDebouncedSearchTerm(searchTerm);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm, debouncedSearchTerm]);
 
+    // Update table data
     useEffect(() => {
         setTableData(_stock);
     }, [_stock]);
+
+    // Fetch data and update URL
+    useEffect(() => {
+        if (isFetchingData.current) return;
+
+        // Update URL
+        const params = new URLSearchParams();
+        params.set('page', (table.page + 1).toString());
+        params.set('limit', table.rowsPerPage.toString());
+        if (debouncedSearchTerm) params.set('search', debouncedSearchTerm);
+        setSearchParams(params, { replace: true });
+
+        // Fetch data
+        isFetchingData.current = true;
+        fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm)
+            .finally(() => { isFetchingData.current = false; });
+            
+    }, [table.page, table.rowsPerPage, debouncedSearchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
     //----------------------------------------------------------------------------------------------------
 
     const handleSelectRow = useCallback((id) => {
@@ -82,78 +114,50 @@ export function StockListView() {
 
 
     const handleDeleteSelectedRows = useCallback(async () => {
-        setDeleting(true); // Start loading for delete operation
+        setDeleting(true);
         try {
-            await deleteAllItems(selectedRows);
+            await deleteAllItems(selectedRows, table.page + 1, table.rowsPerPage, debouncedSearchTerm);
             setSelectedRows([]);
-            fetchData(); // Refresh data after deletion
             confirm.onFalse();
         } catch (error) {
             console.error("Error deleting selected rows:", error);
-            // Optionally, show an error message to the user here
         } finally {
-            setDeleting(false); // Stop loading after delete operation
+            setDeleting(false);
         }
-    }, [selectedRows, fetchData, deleteAllItems, confirm]);
+    }, [selectedRows, deleteAllItems, confirm, table.page, table.rowsPerPage, debouncedSearchTerm]);
 
 
     //----------------------------------------------------------------------------------------------------
-    // Clear specific group
-    const onClearGroup = useCallback((group) => {
-        filters.setState((prevState) => ({
-            ...prevState,
-            group: prevState.group.filter((g) => g !== group)
-        }));
+    const canReset = !!searchTerm;
+    const notFound = !tableData.length;
+
+    const handleSearchChange = useCallback((value) => {
+        setSearchTerm(value);
+        filters.setState({ searchTerm: value });
     }, [filters]);
 
-    // Clear specific subGroup1
-    const onClearSubGroup1 = useCallback((subGroup1) => {
-        filters.setState((prevState) => ({
-            ...prevState,
-            subGroup1: prevState.subGroup1.filter((sub1) => sub1 !== subGroup1)
-        }));
-    }, [filters]);
-
-    // Clear specific subGroup2
-    const onClearSubGroup2 = useCallback((subGroup2) => {
-        filters.setState((prevState) => ({
-            ...prevState,
-            subGroup2: prevState.subGroup2.filter((sub2) => sub2 !== subGroup2)
-        }));
-    }, [filters]);
-
-
-
-
-
-    //-----------------------------------------------------------------
-
-    const dataFiltered = applyFilter({
-        inputData: tableData,
-        comparator: getComparator(table.order, table.orderBy),
-        filters: filters.state,
-    });
-
-    const canReset = !!filters.state.searchTerm || filters.state.group || filters.state.subGroup1 || filters.state.subGroup2 || filters.state.status !== 'all';
-    const notFound = (!dataFiltered.length && canReset) || !dataFiltered.length;
+    const handleClearSearch = useCallback(() => {
+        setSearchTerm('');
+        setDebouncedSearchTerm('');
+        filters.setState({ searchTerm: '' });
+        table.onResetPage();
+    }, [filters, table]);
 
     //----------------------------------------------------------------------------------------------------
-
-    // Function to trigger sync API after confirmation
     const handleSyncAPI = useCallback(async () => {
-        setLoading(true); // Set loading to true while syncing
+        setLoading(true);
         try {
-            const res = await dispatch(syncStock()); // Call the sync API
+            const res = await dispatch(syncStock());
             if (res) {
-                fetchData(); // Fetch data after syncing
+                await fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm);
             }
         } catch (error) {
             console.error("Failed to sync Stocks", error);
         } finally {
-            setLoading(false); // Reset loading state
-            confirmSync.onFalse(); // Close the confirmation dialog
+            setLoading(false);
+            confirmSync.onFalse();
         }
-    }, [dispatch, fetchData, confirmSync]);
+    }, [dispatch, fetchData, confirmSync, table.page, table.rowsPerPage, debouncedSearchTerm]);
 
     //----------------------------------------------------------------------------------------------------
 
@@ -183,30 +187,27 @@ export function StockListView() {
 
                 <Card>
                     <StockTableToolbar
-                        options={options}
                         filters={filters}
                         onResetPage={table.onResetPage}
-
+                        onSearchChange={handleSearchChange}
                     />
                     {canReset && (
                         <StockTableFiltersResult
                             filters={filters}
-                            totalResults={dataFiltered.length}
+                            totalResults={pagination.total}
                             onResetPage={table.onResetPage}
-                            onClearGroup={onClearGroup} // Pass clear group callback
-                            onClearSubGroup1={onClearSubGroup1} // Pass clear subGroup1 callback
-                            onClearSubGroup2={onClearSubGroup2} // Pass clear subGroup2 callback
-
+                            onClearSearch={handleClearSearch}
                             sx={{ p: 2.5, pt: 0 }}
                         />
                     )}
 
                     <Box sx={{ position: 'relative' }}>
+                        <TableLoaderOverlay actionType={STOCK_LIST} />
                         <TableSelectedAction
                             dense={table.dense}
                             numSelected={selectedRows.length}
-                            rowCount={dataFiltered.length}
-                            onSelectAllRows={(checked) => setSelectedRows(checked ? dataFiltered.map(row => row.id) : [])}
+                            rowCount={tableData.length}
+                            onSelectAllRows={(checked) => setSelectedRows(checked ? tableData.map(row => row.id) : [])}
 
                             action={
                                 <Tooltip title="Delete">
@@ -223,23 +224,16 @@ export function StockListView() {
                                     order={table.order}
                                     orderBy={table.orderBy}
                                     headLabel={TABLE_STOCK_HEAD}
-                                    rowCount={dataFiltered.length}
+                                    rowCount={pagination.total}
                                     numSelected={selectedRows.length}
                                     onSort={table.onSort}
                                     onSelectAllRows={(checked) =>
-                                        setSelectedRows(checked ? dataFiltered.map((row) => row.id) : [])
+                                        setSelectedRows(checked ? tableData.map((row) => row.id) : [])
                                     }
-
                                 />
 
                                 <TableBody>
-                                    {dataFiltered
-                                        .sort((a, b) => a.itemName.localeCompare(b.itemName))
-
-                                        .slice(
-                                            table.page * table.rowsPerPage,
-                                            table.page * table.rowsPerPage + table.rowsPerPage
-                                        ).map((row) => (
+                                    {tableData.map((row) => (
                                             <StockTableRow
                                                 key={row.id}
                                                 row={row}
@@ -252,7 +246,7 @@ export function StockListView() {
 
                                     <TableEmptyRows
                                         height={table.dense ? 56 : 56 + 20}
-                                        emptyRows={emptyRows(table.page, table.rowsPerPage, dataFiltered.length)}
+                                        emptyRows={emptyRows(table.page, table.rowsPerPage, pagination.total)}
                                     />
 
                                     <TableNoData notFound={notFound} />
@@ -265,7 +259,7 @@ export function StockListView() {
                     <TablePaginationCustom
                         page={table.page}
                         dense={table.dense}
-                        count={dataFiltered.length}
+                        count={pagination.total}
                         rowsPerPage={table.rowsPerPage}
                         onPageChange={table.onChangePage}
                         onChangeDense={table.onChangeDense}

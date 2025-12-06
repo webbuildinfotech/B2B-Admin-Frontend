@@ -13,7 +13,7 @@ import { useBoolean } from 'src/hooks/use-boolean';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { usePopover, CustomPopover } from 'src/components/custom-popover';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { Avatar } from '@mui/material';
 import { useFetchData } from '../components/fetch-payment';
 import { DUMMY_BANK_IMAGE } from 'src/components/constants';
@@ -21,6 +21,7 @@ import { DUMMY_BANK_IMAGE } from 'src/components/constants';
 export function PaymentTableRow({ row, selected, onEditRow, onSelectRow, onDeleteRow }) {
     const confirm = useBoolean();
     const { fetchData } = useFetchData();
+    const location = useLocation();
     const popover = usePopover();
 
 
@@ -44,7 +45,8 @@ export function PaymentTableRow({ row, selected, onEditRow, onSelectRow, onDelet
                             <Tooltip title="Direct To Edit Page">
                                 <Link
                                     component={RouterLink}
-                                    to={`/payments/edit/${row.id}`} // Ensure this route exists
+                                    to={`/payments/edit/${row.id}`}
+                                    state={{ returnUrl: location.pathname + location.search }}
                                     sx={{
                                         color: '#1E40AF', // Custom dark blue shade
                                         cursor: 'pointer',
@@ -87,7 +89,8 @@ export function PaymentTableRow({ row, selected, onEditRow, onSelectRow, onDelet
                         <Tooltip title="Quick Edit" arrow>
                             <Link
                                 component={RouterLink}
-                                to={`/payments/edit/${row.id}`} // Ensure this route exists
+                                to={`/payments/edit/${row.id}`}
+                                state={{ returnUrl: location.pathname + location.search }}
                                 sx={{ textDecoration: 'none' }}
                             >
                                 <IconButton>
@@ -121,7 +124,6 @@ export function PaymentTableRow({ row, selected, onEditRow, onSelectRow, onDelet
                         color="error"
                         onClick={() => {
                             onDeleteRow(row.id);
-                            fetchData();
                             confirm.onFalse();
                         }}
                     >

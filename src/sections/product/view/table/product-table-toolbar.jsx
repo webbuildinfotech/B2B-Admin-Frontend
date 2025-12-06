@@ -6,47 +6,25 @@ import Checkbox from '@mui/material/Checkbox';
 import { Grid, InputAdornment } from '@mui/material';
 import { Iconify } from 'src/components/iconify';
 
-export function ProductTableToolbar({ options, filters, onResetPage }) {
-    const [selectedGroups, setSelectedGroups] = useState(filters.state.group || []);
-    const [availableSubGroup1, setAvailableSubGroup1] = useState([]);
+export function ProductTableToolbar({ filters, onResetPage, onSearchChange, subGroup1Options = [], subGroup2Options = [] }) {
     const [selectedSubGroup1, setSelectedSubGroup1] = useState(filters.state.subGroup1 || []);
-    const [availableSubGroup2, setAvailableSubGroup2] = useState([]);
     const [selectedSubGroup2, setSelectedSubGroup2] = useState(filters.state.subGroup2 || []);
 
-    // const uniqueGroups = Array.from(
-    //     new Set(options.map((option) => option.group))
-    // );
+    // Use backend-provided options
+    const availableSubGroup1 = subGroup1Options || [];
+    const availableSubGroup2 = subGroup2Options || [];
 
+    // Clear subGroup2 when subGroup1 changes
     useEffect(() => {
-      const filteredOptions = options.filter(
-          (option) =>
-              selectedSubGroup1.length === 0 || selectedSubGroup1.includes(option.subGroup1)
-      );
-  
-      const availableSubGroup2Set = new Set();
-      filteredOptions.forEach((option) => {
-          availableSubGroup2Set.add(option.subGroup2);
-      });
-  
-      setAvailableSubGroup2(Array.from(availableSubGroup2Set));
-  
-      filters.setState((prev) => ({
-          ...prev,
-          subGroup2: prev.subGroup2.filter((sub) => availableSubGroup2Set.has(sub)),
-      }));
-  }, [selectedSubGroup1, options]);
-  
-    const handleFilterGroup = useCallback(
-        (event, newValue) => {
-            onResetPage();
-            setSelectedGroups(newValue);
-            filters.setState({ group: newValue });
-            setSelectedSubGroup1([]);
+        if (selectedSubGroup1.length === 0) {
             setSelectedSubGroup2([]);
-        },
-        [filters, onResetPage]
-    );
-
+            filters.setState((prev) => ({
+                ...prev,
+                subGroup2: [],
+            }));
+        }
+    }, [selectedSubGroup1, filters]);
+  
     const handleFilterSubGroup1 = useCallback(
         (event, newValue) => {
             onResetPage();
@@ -68,32 +46,33 @@ export function ProductTableToolbar({ options, filters, onResetPage }) {
 
     const handleFilterName = useCallback(
         (event) => {
-            filters.setState({ searchTerm: event.target.value });
+            const { value } = event.target; // Object destructuring
+            filters.setState({ searchTerm: value });
             onResetPage();
+            // Call onSearchChange if provided for server-side search
+            if (onSearchChange) {
+                onSearchChange(value);
+            }
         },
-        [filters, onResetPage]
+        [filters, onResetPage, onSearchChange]
     );
 
         // Sync state with filters
         useEffect(() => {
-            setSelectedGroups(filters.state.group || []); // Ensure it's always an array
             setSelectedSubGroup1(filters.state.subGroup1 || []); // Ensure it's always an array
             setSelectedSubGroup2(filters.state.subGroup2 || []); // Ensure it's always an array
-        }, [filters.state.group, filters.state.subGroup1, filters.state.subGroup2]);
+        }, [filters.state.subGroup1, filters.state.subGroup2]);
     
 
     return (
       
         <Stack sx={{ p: 2.5, pr: { xs: 2.5, md: 1 } }}>
           <Grid container spacing={2}>
-            {/* Group Filter with Search */}
-          
-        
             {/* SubGroup1 Filter with Search */}
             <Grid item xs={12} sm={6} md={6}>
               <Autocomplete
                 multiple
-                options={[...new Set(options.map(opt => opt.subGroup1))].sort((a, b) => a.localeCompare(b))}
+                options={availableSubGroup1.sort((a, b) => a.localeCompare(b))}
                
                 value={selectedSubGroup1}
                 onChange={handleFilterSubGroup1}
@@ -125,7 +104,6 @@ export function ProductTableToolbar({ options, filters, onResetPage }) {
                 )}
                 disableCloseOnSelect
                 disabled={selectedSubGroup1.length === 0} // Disable until SubGroup1 is selected
-             
                 renderOption={(props, option, { selected }) => (
                   <li {...props}>
                     <Checkbox

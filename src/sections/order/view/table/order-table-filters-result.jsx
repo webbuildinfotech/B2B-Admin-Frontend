@@ -8,11 +8,15 @@ import { chipProps, FiltersBlock, FiltersResult } from 'src/components/filters-r
 
 // ----------------------------------------------------------------------
 
-export function OrderTableFiltersResult({ filters, totalResults, onResetPage, sx }) {
+export function OrderTableFiltersResult({ filters, totalResults, onResetPage, onClearSearch, onClearAll, sx }) {
   const handleRemoveKeyword = useCallback(() => {
-    onResetPage();
-    filters.setState({ name: '' });
-  }, [filters, onResetPage]);
+    if (onClearSearch) {
+      onClearSearch();
+    } else {
+      onResetPage();
+      filters.setState({ name: '' });
+    }
+  }, [filters, onResetPage, onClearSearch]);
 
   const handleRemoveStatus = useCallback(() => {
     onResetPage();
@@ -25,9 +29,13 @@ export function OrderTableFiltersResult({ filters, totalResults, onResetPage, sx
   }, [filters, onResetPage]);
 
   const handleReset = useCallback(() => {
-    onResetPage();
-    filters.onResetState();
-  }, [filters, onResetPage]);
+    if (onClearAll) {
+      onClearAll();
+    } else {
+      onResetPage();
+      filters.onResetState();
+    }
+  }, [filters, onResetPage, onClearAll]);
 
   return (
     <FiltersResult totalResults={totalResults} onReset={handleReset} sx={sx}>

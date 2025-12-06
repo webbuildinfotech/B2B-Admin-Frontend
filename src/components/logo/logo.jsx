@@ -1,4 +1,4 @@
-import { useId, forwardRef, useEffect } from 'react';
+import { useId, forwardRef, useEffect, useRef } from 'react';
 
 import Box from '@mui/material/Box';
 import NoSsr from '@mui/material/NoSsr';
@@ -10,6 +10,10 @@ import { logoClasses } from './classes';
 import { useFetchData } from 'src/sections/setting/logo/utils/fetch';
 import { useSelector } from 'react-redux';
 
+// Global flag to prevent multiple logo fetches
+let isLogoFetched = false;
+let isFetching = false;
+
 // ----------------------------------------------------------------------
 
 export const Logo = forwardRef(
@@ -20,8 +24,15 @@ export const Logo = forwardRef(
     const logoList = useSelector((state) => state.setting?.logo || []);
 
     useEffect(() => {
-      fetchData();
-    }, []);
+      // Only fetch if not already fetched or fetching
+      if (!isLogoFetched && !isFetching && !logoList?.logoImage) {
+        isFetching = true;
+        fetchData().finally(() => {
+          isLogoFetched = true;
+          isFetching = false;
+        });
+      }
+    }, []); // Empty deps - only run once per component lifecycle
 
     const gradientId = useId();
 

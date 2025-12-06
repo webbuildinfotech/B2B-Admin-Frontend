@@ -4,16 +4,24 @@ import { chipProps, FiltersBlock, FiltersResult } from 'src/components/filters-r
 
 // ----------------------------------------------------------------------
 
-export function BannerTableFiltersResult({ filters, onResetPage, totalResults, sx }) {
+export function BannerTableFiltersResult({ filters, onResetPage, totalResults, onClearSearch, sx }) {
   const handleRemoveSearchTerm = useCallback(() => {
-    onResetPage();
-    filters.setState({ searchTerm: '' });
-  }, [filters, onResetPage]);
+    if (onClearSearch) {
+      onClearSearch();
+    } else {
+      onResetPage();
+      filters.setState({ searchTerm: '' });
+    }
+  }, [filters, onResetPage, onClearSearch]);
 
   const handleReset = useCallback(() => {
-    onResetPage();
-    filters.onResetState();
-  }, [filters, onResetPage]);
+    if (onClearSearch) {
+      onClearSearch();
+    } else {
+      onResetPage();
+      filters.onResetState();
+    }
+  }, [filters, onResetPage, onClearSearch]);
 
   return (
     <FiltersResult totalResults={totalResults} onReset={handleReset} sx={sx}>

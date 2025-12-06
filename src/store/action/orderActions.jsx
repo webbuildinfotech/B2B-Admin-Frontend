@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import axiosInstance from "src/configs/axiosInstance";
 import { ORDER_LIST, ORDER_BY_LIST } from "../constants/actionTypes";
+import { setLoading, clearLoading } from "./loaderActions";
 
 export const syncOrder = () => async (dispatch) => {
     try {
@@ -26,20 +27,47 @@ export const syncOrder = () => async (dispatch) => {
     }
 }
 
-export const orderList = () => async (dispatch) => {
+export const orderList = (page, limit, search, status, startDate, endDate) => async (dispatch) => {
     try {
-        const response = await axiosInstance.get('/order/get');
-        dispatch({
-            type: ORDER_LIST,
-            payload: response.data, // Assuming response contains the customers data
-        });
-        return true;
+        // Set loading state using constant
+        dispatch(setLoading(ORDER_LIST));
+
+        const params = {
+            page: page || 1,
+            limit: limit || 10
+        };
+        if (search) params.search = search;
+        if (status && status !== 'all') params.status = status;
+        if (startDate) params.startDate = startDate;
+        if (endDate) params.endDate = endDate;
+
+        const response = await axiosInstance.get('/order/get', { params });
+        
+        // Always dispatch the full response data (includes pagination)
+        dispatch({ type: ORDER_LIST, payload: response.data });
+        dispatch(clearLoading(ORDER_LIST));
+        return response.data;
     } catch (error) {
-        // Check if error response exists and handle error message
+        // Clear loading on error
+        dispatch(clearLoading(ORDER_LIST));
         const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);
+        return false;
     }
-    return false; // Return false for any errors
+};
+
+export const getOrderStatusCounts = () => async (dispatch) => {
+    try {
+        const response = await axiosInstance.get('/order/status-counts');
+        if (response.data?.success && response.data?.data) {
+            return response.data.data;
+        }
+        return { all: 0, pending: 0, completed: 0, cancelled: 0 };
+    } catch (error) {
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+        return { all: 0, pending: 0, completed: 0, cancelled: 0 };
+    }
 };
 
 export const orderGetByList = (id) => async (dispatch) => {
@@ -127,12 +155,16 @@ export const deleteAllItem = (ids) => async (dispatch) => {
 };
 
 
-export const handleStatusUpdate = (orderId, newStatus) => async (dispatch) => {
+export const handleStatusUpdate = (orderId, newStatus, refreshCallback) => async (dispatch) => {
     try {
         await axiosInstance.put(`/order/update-status/${orderId}`, { status: newStatus });
         toast.success('Status updated successfully');
-        dispatch(orderList()); // refresh list
-        // Refresh table data here
+        // Call refresh callback if provided, otherwise refresh with default params
+        if (refreshCallback) {
+            refreshCallback();
+        } else {
+            dispatch(orderList(1, 10)); // fallback to page 1
+        }
     } catch (err) {
         toast.error('Failed to update status');
     }

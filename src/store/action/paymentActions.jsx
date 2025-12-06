@@ -1,22 +1,33 @@
 import { toast } from "sonner";
 import axiosInstance from "src/configs/axiosInstance";
 import { PAYMENT_GET_BY_LIST, PAYMENT_LIST } from "../constants/actionTypes";
+import { setLoading, clearLoading } from "./loaderActions";
 
 // FAQ Settings
-export const paymentList = () => async (dispatch) => {
+export const paymentList = (page, limit, search) => async (dispatch) => {
     try {
-        const response = await axiosInstance.get('/bank-accounts/get');
-        dispatch({
-            type: PAYMENT_LIST,
-            payload: response.data, // Assuming response contains the customers data
-        });
-        return true;
+        // Set loading state using constant
+        dispatch(setLoading(PAYMENT_LIST));
+
+        const params = {
+            page: page || 1,
+            limit: limit || 10
+        };
+        if (search) params.search = search;
+
+        const response = await axiosInstance.get('/bank-accounts/get', { params });
+        
+        // Always dispatch the full response data (includes pagination)
+        dispatch({ type: PAYMENT_LIST, payload: response.data });
+        dispatch(clearLoading(PAYMENT_LIST));
+        return response.data;
     } catch (error) {
-        // Check if error response exists and handle error message
+        // Clear loading on error
+        dispatch(clearLoading(PAYMENT_LIST));
         const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);
+        return false;
     }
-    return false; // Return false for any errors
 };
 
 export const paymentGetByList = (id) => async (dispatch) => {

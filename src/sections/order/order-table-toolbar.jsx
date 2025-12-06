@@ -19,15 +19,20 @@ import { Tooltip } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
-export function OrderTableToolbar({ filters, onResetPage, dateError, data }) {
+export function OrderTableToolbar({ filters, onResetPage, dateError, data, onSearchChange, searchTerm }) {
   const popover = usePopover();
 
   const handleFilterName = useCallback(
     (event) => {
-      onResetPage();
-      filters.setState({ name: event.target.value });
+      const { value } = event.target;
+      if (onSearchChange) {
+        onSearchChange(value);
+      } else {
+        onResetPage();
+        filters.setState({ name: value });
+      }
     },
-    [filters, onResetPage]
+    [filters, onResetPage, onSearchChange]
   );
 
   const handleFilterStartDate = useCallback(
@@ -121,9 +126,9 @@ export function OrderTableToolbar({ filters, onResetPage, dateError, data }) {
         <Stack direction="row" alignItems="center" spacing={2} flexGrow={1} sx={{ width: 1 }}>
           <TextField
             fullWidth
-            value={filters.state.name}
+            value={searchTerm !== undefined ? searchTerm : filters.state.name}
             onChange={handleFilterName}
-            placeholder="Search ..."
+            placeholder="Search by Order No, Customer ..."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

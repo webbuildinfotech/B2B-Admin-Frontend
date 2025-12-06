@@ -4,11 +4,15 @@ import { chipProps, FiltersBlock, FiltersResult } from 'src/components/filters-r
 
 // ----------------------------------------------------------------------
 
-export function VendorTableFiltersResult({ filters, onResetPage, totalResults, sx }) {
+export function VendorTableFiltersResult({ filters, onResetPage, totalResults, sx, onClearSearch, onClearAll }) {
   const handleRemoveSearchTerm = useCallback(() => {
-    onResetPage();
-    filters.setState({ searchTerm: '' });
-  }, [filters, onResetPage]);
+    if (onClearSearch) {
+      onClearSearch();
+    } else {
+      onResetPage();
+      filters.setState({ searchTerm: '' });
+    }
+  }, [filters, onResetPage, onClearSearch]);
 
   const handleRemoveStatus = useCallback(() => {
     onResetPage();
@@ -16,9 +20,13 @@ export function VendorTableFiltersResult({ filters, onResetPage, totalResults, s
   }, [filters, onResetPage]);
 
   const handleReset = useCallback(() => {
-    onResetPage();
-    filters.onResetState();
-  }, [filters, onResetPage]);
+    if (onClearAll) {
+      onClearAll();
+    } else {
+      onResetPage();
+      filters.onResetState();
+    }
+  }, [filters, onResetPage, onClearAll]);
 
   return (
     <FiltersResult totalResults={totalResults} onReset={handleReset} sx={sx}>

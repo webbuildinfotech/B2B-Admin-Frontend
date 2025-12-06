@@ -5,8 +5,9 @@ import { deleteAllItem, deleteReceivable, receivableGetByList, receivableList } 
 export const useFetchData = () => {
   const dispatch = useDispatch();
 
-  const fetchData = async () => {
-    await dispatch(receivableList());
+  const fetchData = async (page, limit, search) => {
+    const result = await dispatch(receivableList(page, limit, search));
+    return result;
   };
 
   const fetchByIdData = async (id) => {
@@ -17,17 +18,17 @@ export const useFetchData = () => {
     await dispatch(deleteReceivable(id));
   };
 
-  const deleteAllItems = async (id) => {
+  const deleteAllItems = async (ids, page, limit, search) => {
     try {
-      const response = await dispatch(deleteAllItem(id));;
+      const response = await dispatch(deleteAllItem(ids));
       if (response) {
-        fetchData(); // Refetch data data only on successful deletion
+        await fetchData(page, limit, search);
       }
     } catch (error) {
-      console.error("Error deleting data:", error);
+      console.error("Error deleting receivables:", error);
     }
   };
 
-  return { fetchData, fetchByIdData ,fetchDeleteData,deleteAllItems};
+  return { fetchData, fetchByIdData, fetchDeleteData, deleteAllItems };
 };
 
