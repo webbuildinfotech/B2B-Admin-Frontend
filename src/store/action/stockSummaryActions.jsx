@@ -25,9 +25,7 @@ export const stockList = (page, limit, search) => async (dispatch) => {
         // Set loading state using constant
         dispatch(setLoading(STOCK_LIST));
 
-        const params = {};
-        if (page) params.page = page;
-        if (limit) params.limit = limit;
+        const params = { page: page || 1, limit: limit || 10 }; // Always send page and limit
         if (search) params.search = search;
 
         const response = await axiosInstance.get('/stocks', {
