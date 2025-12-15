@@ -143,14 +143,13 @@ export function ReceivablesListView() {
     const handleDeleteRow = useCallback((id) => { fetchDeleteData(id); }, [fetchDeleteData]);
     const handleViewRow = useCallback((id) => id, []);
 
-    const handleSyncAPI =useCallback(async () => {
+    const handleSyncAPI = useCallback(async () => {
         setLoading(true);
         try {
-            const result = await dispatch(syncReceivable());
-            // If sync was successful or timed out (but still processing), wait a bit before refreshing
-            if (result) {
-                await fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm);
-            }
+            // Pass fetchData as completion callback - it will be called automatically when sync completes
+            await dispatch(syncReceivable(null, () => {
+                fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm);
+            }));
         } catch (error) {
             console.error('Error syncing receivable:', error);
         } finally {
