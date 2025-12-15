@@ -13,7 +13,7 @@ import TableCell from '@mui/material/TableCell';
 import TablePagination from '@mui/material/TablePagination';
 import TextField from '@mui/material/TextField';
 import { fDate } from 'src/utils/format-time';
-import { fCurrency } from 'src/utils/format-number';
+import { fCurrency, fBalanceWithDRCR, fAmountWithoutMinus } from 'src/utils/format-number';
 import { Scrollbar } from 'src/components/scrollbar';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
@@ -81,6 +81,50 @@ export function LedgerListDetails({ invoice }) {
             }
             return true;
         });
+
+    // Calculate totals from filtered vouchers
+    const calculatedTotalDebit = filteredVouchers?.reduce((sum, voucher) => sum + (Math.abs(Number(voucher.debitAmount)) || 0), 0) || 0;
+
+    const calculatedTotalCredit = filteredVouchers?.reduce((sum, voucher) => sum + (Math.abs(Number(voucher.creditAmount)) || 0), 0) || 0;
+
+    // Calculate opening balance from vouchers before the filter date
+    const calculateOpeningBalance = () => {
+        if (!startDate || !ledger?.vouchers) {
+            return ledger?.openingBalance || 0;
+        }
+        
+        const vouchersBeforeDate = ledger.vouchers.filter((voucher) => {
+            const voucherDate = new Date(voucher.date);
+            return voucherDate < new Date(startDate);
+        });
+
+        const openingBalance = ledger.openingBalance || 0;
+        const balanceFromVouchers = vouchersBeforeDate.reduce((sum, voucher) => {
+            const debit = Number(voucher.debitAmount) || 0;
+            const credit = Number(voucher.creditAmount) || 0;
+            return sum + (debit - credit);
+        }, 0);
+
+        return openingBalance + balanceFromVouchers;
+    };
+
+    // Calculate closing balance from filtered vouchers
+    const calculateClosingBalance = () => {
+        const opening = calculateOpeningBalance();
+        const balanceChange = calculatedTotalDebit - calculatedTotalCredit;
+        return opening + balanceChange;
+    };
+
+    const calculatedOpeningBalance = calculateOpeningBalance();
+    const calculatedClosingBalance = calculateClosingBalance();
+
+    // Use calculated values if date filters are applied, otherwise use original ledger values
+    // For search-only filters, we still show totals from filtered vouchers
+    const hasDateFilter = startDate && endDate;
+    const displayOpeningBalance = hasDateFilter ? calculatedOpeningBalance : (ledger?.openingBalance || 0);
+    const displayClosingBalance = hasDateFilter ? calculatedClosingBalance : (ledger?.closingBalance || 0);
+    const displayTotalDebit = (hasDateFilter || searchQuery) ? calculatedTotalDebit : (ledger?.totalDebitAmount || 0);
+    const displayTotalCredit = (hasDateFilter || searchQuery) ? calculatedTotalCredit : (ledger?.totalCreditAmount || 0);
 
         useEffect(() => {
             fetchByIdData(id);
@@ -207,8 +251,8 @@ export function LedgerListDetails({ invoice }) {
                                     <TableCell>{row.ledger || '-'}</TableCell>
                                     <TableCell>{fDate(row.date)}</TableCell>
                                     <TableCell>{row.voucherType || '-'}</TableCell>
-                                    <TableCell align="center">{fCurrency(row.debitAmount) || '-'}</TableCell>
-                                    <TableCell align="center">{fCurrency(row.creditAmount) || '-'}</TableCell>
+                                    <TableCell align="center">{fAmountWithoutMinus(row.debitAmount)}</TableCell>
+                                    <TableCell align="center">{fAmountWithoutMinus(row.creditAmount)}</TableCell>
                                 </TableRow>
                             ))
                     ) : (
@@ -268,25 +312,25 @@ export function LedgerListDetails({ invoice }) {
                         <Typography variant="subtitle2" sx={{ mb: 1 }}>
                             Opening Balance
                         </Typography>
-                        {ledger.openingBalance}
+                        {fBalanceWithDRCR(displayOpeningBalance)}
                     </Stack>
                     <Stack sx={{ typography: 'body2' }}>
                         <Typography variant="subtitle2" sx={{ mb: 1 }}>
                             Closing Balance
                         </Typography>
-                        {ledger.closingBalance}
+                        {fBalanceWithDRCR(displayClosingBalance)}
                     </Stack>
                     <Stack sx={{ typography: 'body2' }}>
                         <Typography variant="subtitle2" sx={{ mb: 1 }}>
                             Total Debit Amount
                         </Typography>
-                        {ledger.totalDebitAmount}
+                        {fAmountWithoutMinus(displayTotalDebit)}
                     </Stack>
                     <Stack sx={{ typography: 'body2' }}>
                         <Typography variant="subtitle2" sx={{ mb: 1 }}>
                             Total Credit Amount
                         </Typography>
-                        {ledger.totalCreditAmount}
+                        {fAmountWithoutMinus(displayTotalCredit)}
                     </Stack>
                 </Box>
                 <Divider sx={{ mt: 4, borderStyle: 'dashed' }} />

@@ -10,6 +10,7 @@ import TableCell from '@mui/material/TableCell';
 import ListItemText from '@mui/material/ListItemText';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { fDate, fTime } from 'src/utils/format-time';
+import { fBalanceWithDRCR, fAmountWithoutMinus } from 'src/utils/format-number';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { usePopover, CustomPopover } from 'src/components/custom-popover';
@@ -41,10 +42,10 @@ export function LedgerTableRow({ row, selected, onSelectRow, onDeleteRow }) {
         </Stack>
       </TableCell>
       <TableCell align="center"> {row?.alias || "-"}</TableCell>
-      <TableCell align="center"> {row?.openingBalance || "-"}</TableCell>
-      <TableCell align="center"> {row.closingBalance || "-"} </TableCell>
-      <TableCell align="center"> {row?.totalDebitAmount || "-"} </TableCell>
-      <TableCell align="center"> {row.totalCreditAmount || "-"} </TableCell>
+      <TableCell align="center"> {fBalanceWithDRCR(row?.openingBalance)}</TableCell>
+      <TableCell align="center"> {fBalanceWithDRCR(row.closingBalance)} </TableCell>
+      <TableCell align="center"> {fAmountWithoutMinus(row?.totalDebitAmount)} </TableCell>
+      <TableCell align="center"> {fAmountWithoutMinus(row.totalCreditAmount)} </TableCell>
 
       <TableCell sx={{ px: 1, whiteSpace: 'nowrap' }}>
         <MenuList>

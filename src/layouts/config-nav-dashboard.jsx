@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 import { CONFIG } from 'src/config-global';
 import { SvgColor } from 'src/components/svg-color';
@@ -195,11 +195,11 @@ export const useNavData = () => {
 
   ];
 
-  const navData = [
+  const navData = useMemo(() => [
     ...commonItems,
     ...(userRole === 'Admin' ? [...adminItems, ...reportsItem,  ...payments,...logsHistory, ...settingsItems,] : []),
     ...(userRole === 'Vendor' ? [...vendorItems, ...reportsVendorsItem, ...paymentsVendor, ...vendorSettingsItem] : []),
-  ];
+  ], [userRole]);
 
   return navData;
 };

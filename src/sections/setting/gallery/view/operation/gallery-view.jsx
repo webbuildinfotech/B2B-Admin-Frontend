@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -19,12 +19,20 @@ export function GalleryView() {
     const dispatch = useDispatch();
     const { id } = useParams();
     const gallery = useSelector((state) => state.setting.getByGallery);
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
     useEffect(() => {
         if (id) {
             dispatch(galleryGetByList(id));
         }
     }, [id, dispatch]);
+
+    // Reset selected index when gallery changes
+    useEffect(() => {
+        if (gallery?.GalleryImages && gallery.GalleryImages.length > 0) {
+            setSelectedImageIndex(0);
+        }
+    }, [gallery?.GalleryImages]);
 
     if (!gallery) {
         return <Typography variant="h6">Loading gallery...</Typography>;
@@ -88,7 +96,10 @@ export function GalleryView() {
                             mb: 4,
                         }}
                     >
-                        <GalleryDetailsCarousel images={gallery.GalleryImages} />
+                        <GalleryDetailsCarousel 
+                            images={gallery.GalleryImages} 
+                            selectedIndex={selectedImageIndex}
+                        />
                     </Box>
                 )}
 
@@ -102,11 +113,14 @@ export function GalleryView() {
                             {gallery.GalleryImages.map((image, index) => (
                                 <Grid item xs={6} sm={4} md={3} lg={2} key={index}>
                                     <Card
+                                        onClick={() => setSelectedImageIndex(index)}
                                         sx={{
                                             height: 'auto',
                                             cursor: 'pointer',
-                                            boxShadow: 2,
-                                            transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+                                            boxShadow: selectedImageIndex === index ? 6 : 2,
+                                            border: selectedImageIndex === index ? 2 : 0,
+                                            borderColor: 'primary.main',
+                                            transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, border 0.3s ease-in-out',
                                             '&:hover': {
                                                 transform: 'scale(1.05)',
                                                 boxShadow: 4,
@@ -115,19 +129,28 @@ export function GalleryView() {
                                     >
                                         <CardMedia
                                             component="img"
-                                            // height="120"
                                             image={image}
                                             alt={`Gallery thumbnail ${index + 1}`}
                                             sx={{
                                                 objectFit: 'cover',
                                                 transition: 'transform 0.3s ease-in-out',
+                                                opacity: selectedImageIndex === index ? 1 : 0.8,
                                                 '&:hover': {
                                                     transform: 'scale(1.1)',
+                                                    opacity: 1,
                                                 },
                                             }}
                                         />
                                         <CardContent sx={{ p: 1 }}>
-                                            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', display: 'block' }}>
+                                            <Typography 
+                                                variant="caption" 
+                                                color={selectedImageIndex === index ? 'primary.main' : 'text.secondary'} 
+                                                sx={{ 
+                                                    textAlign: 'center', 
+                                                    display: 'block',
+                                                    fontWeight: selectedImageIndex === index ? 600 : 400,
+                                                }}
+                                            >
                                                 Image {index + 1}
                                             </Typography>
                                         </CardContent>

@@ -12,6 +12,7 @@ import { ItemView } from 'src/sections/vendor-sections/product/view';
 import { OrderDetailsView } from 'src/sections/order/view';
 import { BannerCreateView, BannerEditView, BannerView } from 'src/sections/setting/banner/view';
 import { ReceivablesListDetails } from 'src/sections/accounting/Receivables/view/receivables-details';
+import { LedgerListDetails } from 'src/sections/accounting/ledger/view/ledger-details';
 
 // Overview
 const IndexPage = lazy(() => import('src/pages/dashboard'));
@@ -109,12 +110,13 @@ export const dashboardRoutes = [
 
   {
     path: 'accounts',
-    element: CONFIG.auth.skip ? <> {layoutContent} </> : <AuthGuard> {layoutContent} </AuthGuard>,
+    element: CONFIG.auth.skip ? <>{layoutContent}</> : <AuthGuard>{layoutContent}</AuthGuard>,
     children: [
       { element: <LedgerPage />, index: true },
       { path: 'ledger', element: <LedgerPage /> },
       { path: 'receivable', element: <ReceivablesPage /> },
       { path: 'view/:id', element: <ReceivablesListDetails /> },
+      { path: 'ledger/view/:id', element: <LedgerListDetails /> },
     ],
   },
 
