@@ -48,18 +48,79 @@ export const receivableGetByList = (id) => async (dispatch) => {
     return false; // Return false for any errors
 };
 
-export const syncReceivable = () => async (dispatch) => {
+// Get receivable sync status
+export const getReceivableSyncStatus = () => async (dispatch) => {
+    try {
+        const response = await axiosInstance.get('/ledgers/sync-status/receivable');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching receivable sync status:', error);
+        return { status: 'idle', message: 'Unable to fetch status' };
+    }
+};
+
+// Poll receivable sync status
+export const pollReceivableSyncStatus = (onStatusUpdate, onComplete, maxAttempts = 60, interval = 2000) => {
+    let attempts = 0;
+    const poll = async () => {
+        try {
+            const response = await axiosInstance.get('/ledgers/sync-status/receivable');
+            const status = response.data;
+            
+            if (onStatusUpdate) {
+                onStatusUpdate(status);
+            }
+            
+            attempts += 1;
+            
+            // Continue polling if processing and haven't exceeded max attempts
+            if (status.status === 'processing' && attempts < maxAttempts) {
+                setTimeout(poll, interval);
+            } else if (status.status === 'completed') {
+                toast.success('Receivable sync completed successfully!');
+                // Auto fetch data after sync completes
+                if (onComplete) {
+                    onComplete();
+                }
+            } else if (status.status === 'error') {
+                toast.error(`Receivable sync failed: ${status.error || status.message}`);
+            }
+        } catch (error) {
+            console.error('Error polling receivable sync status:', error);
+            if (attempts < maxAttempts) {
+                setTimeout(poll, interval);
+            }
+        }
+    };
+    poll();
+};
+
+export const syncReceivable = (onStatusUpdate, onComplete) => async (dispatch) => {
     try {
         const response = await axiosInstance.post('/ledgers/receivable/fetch');
+        if (response && response.status === 202) {
+            // 202 Accepted - Background processing started
+            toast.info(response.data.message || 'Receivable sync started. Processing in background...');
+            
+            // Start polling for status with completion callback
+            pollReceivableSyncStatus(onStatusUpdate, onComplete);
+            
+            return true;
+        }
         if (response && response.status >= 200 && response.status < 300) {
             toast.success(response.data.message || 'outstanding Receivable fetched and stored successfully!');
+            // Fetch data immediately if not background processing
+            if (onComplete) {
+                onComplete();
+            }
             return true;
         }
         return true;
     } catch (error) {
         // Check if error response exists and handle error message
-        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        const errorMessage = error?.response?.data?.message || error?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);
+        console.error('Sync receivable error:', error);
     }
     return false; // Return false for any errors
 };
@@ -150,18 +211,79 @@ export const ledgerGetByList = (id) => async (dispatch) => {
 };
 
 
-export const syncLedger = () => async (dispatch) => {
+// Get ledger sync status
+export const getLedgerSyncStatus = () => async (dispatch) => {
+    try {
+        const response = await axiosInstance.get('/ledgers/sync-status/ledger');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching ledger sync status:', error);
+        return { status: 'idle', message: 'Unable to fetch status' };
+    }
+};
+
+// Poll ledger sync status
+export const pollLedgerSyncStatus = (onStatusUpdate, onComplete, maxAttempts = 60, interval = 2000) => {
+    let attempts = 0;
+    const poll = async () => {
+        try {
+            const response = await axiosInstance.get('/ledgers/sync-status/ledger');
+            const status = response.data;
+            
+            if (onStatusUpdate) {
+                onStatusUpdate(status);
+            }
+            
+            attempts += 1;
+            
+            // Continue polling if processing and haven't exceeded max attempts
+            if (status.status === 'processing' && attempts < maxAttempts) {
+                setTimeout(poll, interval);
+            } else if (status.status === 'completed') {
+                toast.success('Ledger sync completed successfully!');
+                // Auto fetch data after sync completes
+                if (onComplete) {
+                    onComplete();
+                }
+            } else if (status.status === 'error') {
+                toast.error(`Ledger sync failed: ${status.error || status.message}`);
+            }
+        } catch (error) {
+            console.error('Error polling ledger sync status:', error);
+            if (attempts < maxAttempts) {
+                setTimeout(poll, interval);
+            }
+        }
+    };
+    poll();
+};
+
+export const syncLedger = (onStatusUpdate, onComplete) => async (dispatch) => {
     try {
         const response = await axiosInstance.post('/ledgers/fetch');
+        if (response && response.status === 202) {
+            // 202 Accepted - Background processing started
+            toast.info(response.data.message || 'Ledger sync started. Processing in background...');
+            
+            // Start polling for status with completion callback
+            pollLedgerSyncStatus(onStatusUpdate, onComplete);
+            
+            return true;
+        }
         if (response && response.status >= 200 && response.status < 300) {
             toast.success(response.data.message || 'ledgers fetched and stored successfully!');
+            // Fetch data immediately if not background processing
+            if (onComplete) {
+                onComplete();
+            }
             return true;
         }
         return true;
     } catch (error) {
         // Check if error response exists and handle error message
-        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        const errorMessage = error?.response?.data?.message || error?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);
+        console.error('Sync ledger error:', error);
     }
     return false; // Return false for any errors
 };
