@@ -50,22 +50,13 @@ export const receivableGetByList = (id) => async (dispatch) => {
 
 export const syncReceivable = () => async (dispatch) => {
     try {
-        // Increase timeout for sync operations (5 minutes = 300000ms)
-        const response = await axiosInstance.post('/ledgers/receivable/fetch', {}, {
-            timeout: 300000, // 5 minutes timeout for long-running sync operations
-        });
+        const response = await axiosInstance.post('/ledgers/receivable/fetch');
         if (response && response.status >= 200 && response.status < 300) {
             toast.success(response.data.message || 'outstanding Receivable fetched and stored successfully!');
             return true;
         }
         return true;
     } catch (error) {
-        // Handle timeout errors differently - backend might still be processing
-        if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-            toast.info('Sync operation is taking longer than expected. Data is being processed in the background. Please refresh the page after a few moments.');
-            return true; // Return true as the operation might still succeed
-        }
-        
         // Check if error response exists and handle error message
         const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);
@@ -161,22 +152,13 @@ export const ledgerGetByList = (id) => async (dispatch) => {
 
 export const syncLedger = () => async (dispatch) => {
     try {
-        // Increase timeout for sync operations (5 minutes = 300000ms)
-        const response = await axiosInstance.post('/ledgers/fetch', {}, {
-            timeout: 300000, // 5 minutes timeout for long-running sync operations
-        });
+        const response = await axiosInstance.post('/ledgers/fetch');
         if (response && response.status >= 200 && response.status < 300) {
             toast.success(response.data.message || 'ledgers fetched and stored successfully!');
             return true;
         }
         return true;
     } catch (error) {
-        // Handle timeout errors differently - backend might still be processing
-        if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-            toast.info('Sync operation is taking longer than expected. Data is being processed in the background. Please refresh the page after a few moments.');
-            return true; // Return true as the operation might still succeed
-        }
-        
         // Check if error response exists and handle error message
         const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);

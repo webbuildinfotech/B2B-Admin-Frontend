@@ -127,32 +127,21 @@ export function LedgerListView() {
 
     const handleViewRow = useCallback((id) => id, []);
 
-    const handleSyncAPI = async () => {
+    const handleSyncAPI =useCallback(async () => {
         setLoading(true);
         try {
             const result = await dispatch(syncLedger());
             // If sync was successful or timed out (but still processing), wait a bit before refreshing
             if (result) {
-                // Wait 2 seconds before refreshing to allow backend to process
-                await new Promise(resolve => setTimeout(resolve, 2000));
                 await fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm);
-            } else {
-                // If sync failed, still try to refresh data in case it was partially processed
-                setTimeout(async () => {
-                    await fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm);
-                }, 3000);
             }
         } catch (error) {
             console.error('Error syncing ledger:', error);
-            // Even on error, try to refresh data after a delay
-            setTimeout(async () => {
-                await fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm);
-            }, 3000);
         } finally {
             setLoading(false);
             confirmSync.onFalse();
         }
-    };
+    }, [dispatch, fetchData, confirmSync, table.page, table.rowsPerPage, debouncedSearchTerm]);
 
     //---------------------------------------------------------
     return (
