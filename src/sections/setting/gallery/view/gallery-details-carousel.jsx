@@ -13,7 +13,7 @@ const DUMMY_IMAGE = 'https://media.istockphoto.com/id/1409329028/vector/no-pictu
 
 // ----------------------------------------------------------------------
 
-export function GalleryDetailsCarousel({ images }) {
+export function GalleryDetailsCarousel({ images, selectedIndex = 0 }) {
   // Handle both single image string and multiple images array
   const imageArray = Array.isArray(images) ? images : [images];
   const validImages = imageArray.filter(img => img && typeof img === 'string');
@@ -29,6 +29,13 @@ export function GalleryDetailsCarousel({ images }) {
   });
 
   const lightbox = useLightBox(slides);
+
+  // Scroll to selected index when it changes (from thumbnail click)
+  useEffect(() => {
+    if (carousel.mainApi && selectedIndex >= 0 && selectedIndex < slides.length) {
+      carousel.mainApi.scrollTo(selectedIndex, true);
+    }
+  }, [carousel.mainApi, selectedIndex, slides.length]);
 
   useEffect(() => {
     if (lightbox.open) {

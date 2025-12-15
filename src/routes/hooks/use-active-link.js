@@ -17,6 +17,14 @@ export function useActiveLink(itemPath, deep = true) {
   /* End check */
 
   /**
+   * Special case: /accounts/view/:id should match /accounts/receivable
+   * This handles the receivables detail view route
+   */
+  if (itemPath === '/accounts/receivable' && pathname.startsWith('/accounts/view/')) {
+    return true;
+  }
+
+  /**
    * [1] Apply for Item has children or has params.
    */
   const isDeep = deep || pathHasParams;

@@ -63,14 +63,13 @@ export const vendorRoutes = [
     },
     {
         path: 'accounts',
-        element: CONFIG.auth.skip ? <> {layoutContent} </> : <AuthGuard> {layoutContent} </AuthGuard>,
+        element: CONFIG.auth.skip ? <>{layoutContent}</> : <AuthGuard>{layoutContent}</AuthGuard>,
         children: [
             { element: <LedgerPage />, index: true },
             { path: 'ledger', element: <LedgerPage /> },
             { path: 'receivable', element: <ReceivablesPage /> },
             { path: 'view/:id', element: <ReceivablesListDetails /> },
             { path: 'ledger/view/:id', element: <LedgerListDetails /> },
-
         ],
     },
     {

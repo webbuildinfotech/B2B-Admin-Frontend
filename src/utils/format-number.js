@@ -141,3 +141,39 @@ export function formatDateIndian(inputDate) {
   // Return formatted date
   return `${day}-${month}-${year}`;
 }
+
+// ----------------------------------------------------------------------
+
+/**
+ * Format balance with DR/CR suffix
+ * Negative values show "DR", positive values show "CR"
+ * Removes minus sign from the formatted value
+ */
+export function fBalanceWithDRCR(inputValue, options) {
+  const number = processInput(inputValue);
+  if (number === null || number === undefined) return '-';
+
+  // Format the absolute value (remove minus sign)
+  const absNumber = Math.abs(number);
+  const formatted = fCurrency(absNumber, options);
+  
+  // Add DR for negative, CR for positive
+  const suffix = number < 0 ? ' Dr.' : ' Cr.';
+  
+  return formatted + suffix;
+}
+
+// ----------------------------------------------------------------------
+
+/**
+ * Format amount by removing minus sign if present
+ * Used for total debit and credit amounts
+ */
+export function fAmountWithoutMinus(inputValue, options) {
+  const number = processInput(inputValue);
+  if (number === null || number === undefined) return '-';
+
+  // Format the absolute value (remove minus sign)
+  const absNumber = Math.abs(number);
+  return fCurrency(absNumber, options);
+}

@@ -13,7 +13,7 @@ import TableCell from '@mui/material/TableCell';
 import TablePagination from '@mui/material/TablePagination';
 import TextField from '@mui/material/TextField';
 import { fDate } from 'src/utils/format-time';
-import { fCurrency } from 'src/utils/format-number';
+import { fCurrency, fBalanceWithDRCR } from 'src/utils/format-number';
 import { Scrollbar } from 'src/components/scrollbar';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
@@ -23,7 +23,6 @@ import { useParams } from 'react-router';
 import { useSelector } from 'react-redux';
 import { writeFile, utils } from 'xlsx';
 import { generatePDF } from '../utils/generatePDF';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { ReceivablesTableFiltersResult } from './table/receivables-table-filters-result';
 
 
@@ -38,53 +37,21 @@ export function ReceivablesListDetails() {
 
     // Search state
     const [searchQuery, setSearchQuery] = useState('');
-    // const [startDate, setStartDate] = useState(null);
-    // const [endDate, setEndDate] = useState(null);
-    // const [dateError, setDateError] = useState('');
-
-    // const handleStartDateChange = (date) => {
-    //     setStartDate(date);
-    //     // Clear any previous error when start date is updated
-    //     if (endDate && new Date(date) > new Date(endDate)) {
-    //         setDateError('Start date must be earlier than the end date.');
-    //     } else {
-    //         setDateError('');
-    //     }
-    // };
-
-    // const handleEndDateChange = (date) => {
-    //     setEndDate(date);
-    //     if (startDate && new Date(date) < new Date(startDate)) {
-    //         setDateError('End date must be later than the start date.');
-    //     } else {
-    //         setDateError('');
-    //         // Apply the filter only when end date is set
-    //         if (startDate && date) {
-    //             // Trigger the filtering logic
-    //             setPage(0); // Reset to the first page
-    //         }
-    //     }
-    // };
 
     // Filtered data
     const filteredBills = receivable?.bills?.filter((bill) =>
         Object.values(bill).some((value) =>
             String(value).toLowerCase().includes(searchQuery.toLowerCase())
         )
-    )
-    // ?.filter((voucher) => {
-    //     const voucherDate = new Date(voucher.billDate);
-    //     // Only filter by date if both startDate and endDate are selected
-    //     if (startDate && endDate) {
-    //         if (voucherDate < new Date(startDate)) return false;
-    //         if (voucherDate > new Date(endDate)) return false;
-    //     }
-    //     return true;
-    // });
+    );
+
+    // Calculate pending balance from filtered bills
+    const calculatedPendingBalance = filteredBills?.reduce((sum, bill) => sum + (Number(bill.closingBalance) || 0), 0) || 0;
+
+    // Use calculated value if search filter is applied, otherwise use original receivable value
+    const displayPendingBalance = searchQuery ? calculatedPendingBalance : (receivable?.closingBalance || 0);
 
     const handleResetFilters = useCallback(() => {
-        // setStartDate(null);
-        // setEndDate(null);
         setSearchQuery('');
         setPage(0);
     }, []);
@@ -136,7 +103,7 @@ export function ReceivablesListDetails() {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0); // Reset to the first page
     };
-    const isFilterApplied = !!searchQuery 
+    const isFilterApplied = !!searchQuery; 
 
 
 
@@ -161,7 +128,6 @@ export function ReceivablesListDetails() {
                         <TableCell>#</TableCell>
                         <TableCell>Tally Invoice No</TableCell>
                         <TableCell>Tally Order ID</TableCell>
-                        <TableCell>NX Order ID</TableCell>
                         <TableCell align="center">Opening Balance</TableCell>
                         <TableCell align="center">Pending Balance</TableCell>
                         <TableCell align="center">Credit Period</TableCell>
@@ -177,16 +143,15 @@ export function ReceivablesListDetails() {
                                     <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                                     <TableCell>{row.tallyInvNo}</TableCell>
                                     <TableCell>{row.tallyOrdId || '-'}</TableCell>
-                                    <TableCell>{row.nxOrderId || '-'}</TableCell>
-                                    <TableCell align="center">{fCurrency(row.openingBalance) || '-'}</TableCell>
-                                    <TableCell align="center">{fCurrency(row.closingBalance) || '-'}</TableCell>
+                                    <TableCell align="center">{fBalanceWithDRCR(row.openingBalance)}</TableCell>
+                                    <TableCell align="center">{fBalanceWithDRCR(row.closingBalance)}</TableCell>
                                     <TableCell align="center">{row.creditPeriod || '-'}</TableCell>
                                     <TableCell align="center">{fDate(row.billDate) || '-'}</TableCell>
                                 </TableRow>
                             ))
                     ) : (
                         <TableRow>
-                            <TableCell colSpan={8} align="center">
+                            <TableCell colSpan={7} align="center">
                                 <Typography variant="body2" color="text.secondary">
                                     No bills available.
                                 </Typography>
@@ -240,7 +205,7 @@ export function ReceivablesListDetails() {
                         <Typography variant="subtitle2" sx={{ mb: 1 }}>
                             Pending Balance
                         </Typography>
-                        {fCurrency(receivable.closingBalance)}
+                        {fBalanceWithDRCR(displayPendingBalance)}
                     </Stack>
                 </Box>
                 <Divider sx={{ mt: 5, borderStyle: 'dashed' }} />
@@ -252,56 +217,24 @@ export function ReceivablesListDetails() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     sx={{
-
                         mb: 2,
                         mt: 2,
-
                     }}
                 />
-                {/* 
-                    <DatePicker
-                        label="Start Date"
-                        value={startDate}
-                        onChange={handleStartDateChange}
-                        slotProps={{ textField: { fullWidth: true } }}
-                        sx={{
-                            flex: '1 1 200px', // Adjusts based on available space
-                            minWidth: '150px', // Ensures a minimum width
-                        }}
-                    />
-                    <DatePicker
-                        label="End Date"
-                        value={endDate}
-                        onChange={handleEndDateChange}
-                        slotProps={{
-                            textField: {
-                                fullWidth: true,
-                                error: !!dateError,
-                                helperText: dateError || null,
-                            },
-                        }}
-                        sx={{
-                            flex: '1 1 200px', // Adjusts based on available space
-                            minWidth: '150px', // Ensures a minimum width
-                        }}
-                    />
-                    */}
 
 
 
                 {isFilterApplied && (
                     <ReceivablesTableFiltersResult
                         filters={{
-                            state: {  name: searchQuery },
-                            // setState: ({ startDate: newStartDate, endDate: newEndDate, name: newName }) => {
-                            //     setStartDate(newStartDate ?? null);
-                            //     setEndDate(newEndDate ?? null);
-                            //     setSearchQuery(newName ?? '');
-                            // },
-                            onResetState: handleResetFilters,
+                            state: { searchTerm: searchQuery },
+                            setState: ({ searchTerm: newSearchTerm }) => {
+                                setSearchQuery(newSearchTerm ?? '');
+                            },
                         }}
                         totalResults={filteredBills?.length || 0}
                         onResetPage={() => setPage(0)}
+                        onClearSearch={handleResetFilters}
                         sx={{ mb: 3 }}
                     />
                 )}

@@ -100,7 +100,7 @@ export const adminRoute =[
 
     {
         path: 'accounts',
-        element: CONFIG.auth.skip ? <> {layoutContent} </> : <AuthGuard> {layoutContent} </AuthGuard>,
+        element: CONFIG.auth.skip ? <>{layoutContent}</> : <AuthGuard>{layoutContent}</AuthGuard>,
         children: [
           { element: <LedgerPage />, index: true },
           { path: 'ledger', element: <LedgerPage /> },
