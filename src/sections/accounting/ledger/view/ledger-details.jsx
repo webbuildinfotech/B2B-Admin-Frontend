@@ -19,8 +19,9 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import { paths } from 'src/routes/paths';
 import { useFetchData } from '../components/fetch-ledger';
-import { useParams } from 'react-router';
+import { useParams, useNavigate } from 'react-router';
 import { useSelector } from 'react-redux';
+import { Iconify } from 'src/components/iconify';
 import { writeFile, utils } from 'xlsx'; // Library for Excel export
 import { generatePDF } from '../utils/generatePDF';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -31,6 +32,7 @@ export function LedgerListDetails({ invoice }) {
     const { fetchByIdData } = useFetchData();
     const { id } = useParams(); // Get the vendor ID from URL
     const ledger = useSelector((state) => state.accounting.getByLedger || []);
+    const navigate = useNavigate();
 
     // Pagination state
     const [page, setPage] = useState(0);
@@ -279,9 +281,18 @@ export function LedgerListDetails({ invoice }) {
                     { name: 'View' },
                 ]}
                 action={
-                    <Button variant="contained" onClick={handleDownloadPdf}>
-                        Download
-                    </Button>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                        <Button
+                            variant="outlined"
+                            startIcon={<Iconify icon="eva:arrow-back-fill" />}
+                            onClick={() => navigate(-1)}
+                        >
+                            Back
+                        </Button>
+                        <Button variant="contained" onClick={handleDownloadPdf}>
+                            Download
+                        </Button>
+                    </Box>
                 }
                 sx={{ mb: { xs: 3, md: 5 } }}
             />

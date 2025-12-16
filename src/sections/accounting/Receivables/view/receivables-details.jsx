@@ -19,8 +19,9 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import { paths } from 'src/routes/paths';
 import { useFetchData } from '../components/fetch-receivable';
-import { useParams } from 'react-router';
+import { useParams, useNavigate } from 'react-router';
 import { useSelector } from 'react-redux';
+import { Iconify } from 'src/components/iconify';
 import { writeFile, utils } from 'xlsx';
 import { generatePDF } from '../utils/generatePDF';
 import { ReceivablesTableFiltersResult } from './table/receivables-table-filters-result';
@@ -30,6 +31,7 @@ export function ReceivablesListDetails() {
     const { fetchByIdData } = useFetchData();
     const { id } = useParams();
     const receivable = useSelector((state) => state.accounting?.getByReceivable || []);
+    const navigate = useNavigate();
     // Pagination state
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -173,9 +175,18 @@ export function ReceivablesListDetails() {
                     { name: 'View' },
                 ]}
                 action={
-                    <Button variant="contained" onClick={handleDownloadPdf}>
-                        Download
-                    </Button>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                        <Button
+                            variant="outlined"
+                            startIcon={<Iconify icon="eva:arrow-back-fill" />}
+                            onClick={() => navigate(-1)}
+                        >
+                            Back
+                        </Button>
+                        <Button variant="contained" onClick={handleDownloadPdf}>
+                            Download
+                        </Button>
+                    </Box>
                 }
                 sx={{ mb: { xs: 3, md: 5 } }}
             />
