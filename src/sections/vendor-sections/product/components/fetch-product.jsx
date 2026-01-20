@@ -1,5 +1,5 @@
 import { useDispatch } from 'react-redux';
-import { deleteProduct, itemList, productList } from 'src/store/action/productActions';
+import { deleteProduct, getAllItemsForFilter, itemList, productList } from 'src/store/action/productActions';
 
 
 export const useFetchProductData = () => {
@@ -8,8 +8,11 @@ export const useFetchProductData = () => {
   const fetchData = async () => {
     await dispatch(itemList());
   };
+  const fetchAllItems = async () => {
+    await dispatch(getAllItemsForFilter());
+  };
 
 
-  return { fetchData };
+  return { fetchData, fetchAllItems };
 };
 

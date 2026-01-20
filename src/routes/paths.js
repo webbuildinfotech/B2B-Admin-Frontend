@@ -46,6 +46,12 @@ export const paths = {
 
   },
 
+  salesInvoice: {
+    root: `/sales-invoice`,
+    list: `/sales-invoice/list`,
+    view: (id) => `/sales-invoice/view/${id}`,
+  },
+
   stocks: {
     root: `/stocks`,
     list: `/stocks/list`,

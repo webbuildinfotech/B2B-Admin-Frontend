@@ -57,6 +57,7 @@ export function LedgerListView() {
     const userRole = useUserRole();
     const [selectedRows, setSelectedRows] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [syncStatus, setSyncStatus] = useState(null);
 
     const { fetchData, deleteAllItems } = useFetchData();
     const dispatch = useDispatch();
@@ -129,16 +130,39 @@ export function LedgerListView() {
 
     const handleSyncAPI = useCallback(async () => {
         setLoading(true);
+        setSyncStatus(null);
+        confirmSync.onFalse(); // Close dialog immediately
+        
         try {
-            // Pass fetchData as completion callback - it will be called automatically when sync completes
-            await dispatch(syncLedger(null, () => {
-                fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm);
-            }));
+            // Pass status update callback and completion callback
+            const result = await dispatch(syncLedger(
+                (status) => {
+                    // Update sync status for UI display
+                    setSyncStatus(status);
+                    
+                    // If error status detected, stop loading immediately
+                    if (status.status === 'error') {
+                        setLoading(false);
+                        setSyncStatus(null);
+                    }
+                },
+                () => {
+                    // Fetch data when sync completes (or fails)
+                    fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm);
+                    setLoading(false);
+                    setSyncStatus(null);
+                }
+            ));
+            
+            // If sync returns false, it means there was an error
+            if (result === false) {
+                setLoading(false);
+                setSyncStatus(null);
+            }
         } catch (error) {
             console.error('Error syncing ledger:', error);
-        } finally {
             setLoading(false);
-            confirmSync.onFalse();
+            setSyncStatus(null);
         }
     }, [dispatch, fetchData, confirmSync, table.page, table.rowsPerPage, debouncedSearchTerm]);
 
@@ -163,7 +187,11 @@ export function LedgerListView() {
                                 startIcon={<Iconify icon="eva:sync-fill" />}
                                 disabled={loading}
                             >
-                                {loading ? 'Syncing...' : 'Sync Data'}
+                                {loading 
+                                    ? (syncStatus?.status === 'processing' && syncStatus?.totalRecords 
+                                        ? `Syncing... ${syncStatus.processedRecords || 0}/${syncStatus.totalRecords}` 
+                                        : 'Syncing...') 
+                                    : 'Sync Data'}
                             </Button>
                         )
                     }

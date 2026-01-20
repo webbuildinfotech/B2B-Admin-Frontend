@@ -23,6 +23,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { editSyncSetting, syncSettingList } from "src/store/action/settingActions";
 import { TallyView } from "../../tally/tally-view";
 import { bgcolor } from "@mui/system";
+import { LedgerDateRangeCard } from "../components/ledger-date-range-card";
+import { OutstandingDateRangeCard } from "../components/outstanding-date-range-card";
 
 export function SyncView() {
     const dispatch = useDispatch();
@@ -172,6 +174,20 @@ export function SyncView() {
                 </li>
             </Box>
         </Box>
+
+            {/* Date Range Settings Cards */}
+            <Card sx={{ mt: 3 }}>
+                <Typography variant="h5" p={2}>Financial Year Wise Data Settings</Typography>
+                <Divider />
+                <Grid container spacing={2} sx={{ p: 2 }}>
+                    <Grid item xs={12} sm={6} md={6}>
+                        <LedgerDateRangeCard />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={6}>
+                        <OutstandingDateRangeCard />
+                    </Grid>
+                </Grid>
+            </Card>
 
             {/* Confirmation Dialog */}
             <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>

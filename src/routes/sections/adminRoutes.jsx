@@ -15,6 +15,7 @@ import { PaymentCreateView } from 'src/sections/payments/payment-form';
 import { PaymentEditView } from 'src/sections/payments/payment-edit';
 import { PaymentViewUi } from 'src/sections/payments/payment-vendor-view';
 import { LedgerListDetails } from 'src/sections/accounting/ledger/view/ledger-details';
+import { SalesInvoiceDetails } from 'src/sections/accounting/sales-invoice/view';
 import { GalleryCreateView } from 'src/sections/setting/gallery/view/operation/gallery-create';
 import { GalleryEditView } from 'src/sections/setting/gallery/view/operation/gallery-edit';
 import { GalleryView } from 'src/sections/setting/gallery/view/operation/gallery-view';
@@ -27,6 +28,7 @@ const StockPage = lazy(() => import('src/pages/stock-summary'));
 const OrderPage = lazy(() => import('src/pages/orders'));
 const LedgerPage = lazy(() => import('src/pages/accounting/ledger'));
 const ReceivablesPage = lazy(() => import('src/pages/accounting/Receivables'));
+const SalesInvoicePage = lazy(() => import('src/pages/accounting/sales-invoice'));
 const VendorPage = lazy(() => import('src/pages/vendors'));
 const FAQPage = lazy(() => import('src/pages/settings/faq'));
 const BannerPage = lazy(() => import('src/pages/settings/banner'));
@@ -94,7 +96,16 @@ export const adminRoute =[
       children: [
         { element: <OrderPage />, index: true },
         { path: 'details/:id', element: <OrderDetailsView /> },
-  
+
+      ],
+    },
+
+    {
+      path: 'sales-invoice',
+      element: CONFIG.auth.skip ? <>{layoutContent}</> : <AuthGuard>{layoutContent}</AuthGuard>,
+      children: [
+        { element: <SalesInvoicePage />, index: true },
+        { path: 'view/:id', element: <SalesInvoiceDetails /> },
       ],
     },
 

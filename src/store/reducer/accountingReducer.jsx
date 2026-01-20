@@ -1,4 +1,4 @@
-import { LEDGER_GET_BY_LIST, LEDGER_LIST, RECEIVABLE_GET_BY_LIST, RECEIVABLE_LIST } from "../constants/actionTypes";
+import { LEDGER_GET_BY_LIST, LEDGER_LIST, RECEIVABLE_GET_BY_LIST, RECEIVABLE_LIST, SALES_INVOICE_GET_BY_LIST, SALES_INVOICE_LIST } from "../constants/actionTypes";
 
 const initialState = {
     receivable: [],
@@ -12,6 +12,14 @@ const initialState = {
     ledger: [],
     getByLedger: '',
     ledgerPagination: {
+        total: 0,
+        page: 1,
+        limit: 10,
+        totalPages: 0
+    },
+    salesInvoice: [],
+    getBySalesInvoice: null,
+    salesInvoicePagination: {
         total: 0,
         page: 1,
         limit: 10,
@@ -67,6 +75,30 @@ const AccountingReducer = (state = initialState, { type, payload } = {}) => {
             return {
                 ...state,
                 getByLedger: payload,
+            };
+
+        case SALES_INVOICE_LIST:
+            if (payload && payload.data && Array.isArray(payload.data)) {
+                return {
+                    ...state,
+                    salesInvoice: payload.data,
+                    salesInvoicePagination: {
+                        total: payload.total,
+                        page: payload.page,
+                        limit: payload.limit,
+                        totalPages: payload.totalPages
+                    }
+                };
+            }
+            return {
+                ...state,
+                salesInvoice: Array.isArray(payload) ? payload : [],
+            };
+            
+        case SALES_INVOICE_GET_BY_LIST:
+            return {
+                ...state,
+                getBySalesInvoice: payload,
             };
 
         default:

@@ -63,34 +63,189 @@ export const vendorGetByList = (id) => async (dispatch) => {
     return false; // Return false for any errors
 };
 
-export const syncVendor = () => async (dispatch) => {
+export const syncVendor = (onStatusUpdate, onComplete) => async (dispatch) => {
     try {
-        const response = await axiosInstance.post('/vendors/fetch');
-        if (response && response.status >= 200 && response.status < 300) {
-            toast.success(response.data.message || 'Vendors fetched and stored successfully!');
+        // Start sync (returns immediately)
+        const startResponse = await axiosInstance.post('/vendors/fetch', {}, {
+            timeout: 10000 // 10 seconds timeout for starting sync
+        });
+
+        if (startResponse && startResponse.status === 202) {
+            toast.info('Sync started. Monitoring progress...', { duration: 3000 });
+            
+            // Poll status endpoint every 5 seconds
+            const pollInterval = 5000; // 5 seconds
+            const maxPollTime = 10 * 60 * 1000; // 10 minutes max
+            const startTime = Date.now();
+            let pollCount = 0;
+
+            const pollStatus = async () => {
+                try {
+                    const statusResponse = await axiosInstance.get('/vendors/sync-status', {
+                        timeout: 5000 // 5 seconds timeout for status check
+                    });
+
+                    const status = statusResponse.data;
+                    pollCount += 1;
+
+                    // Call status update callback if provided
+                    if (onStatusUpdate) {
+                        onStatusUpdate(status);
+                    }
+
+                    // Check if sync is completed
+                    if (status.status === 'completed') {
+                        toast.success(status.message || 'Vendors synced successfully!');
+                        if (onComplete) {
+                            onComplete();
+                        }
+                        return true;
+                    }
+
+                    // Check if sync failed
+                    if (status.status === 'error') {
+                        toast.error(status.error || status.message || 'Sync failed. Please try again.');
+                        // Stop loading and call completion callback to reset UI
+                        if (onComplete) {
+                            onComplete();
+                        }
+                        return false;
+                    }
+
+                    // Check if still processing
+                    if (status.status === 'processing') {
+                        // Show progress if available
+                        if (status.totalRecords && status.processedRecords !== undefined) {
+                            const progress = Math.round((status.processedRecords / status.totalRecords) * 100);
+                            const progressMessage = status.message || `Processing... ${progress}%`;
+                            if (pollCount % 3 === 0) { // Update toast every 15 seconds (3 polls * 5 seconds)
+                                toast.info(progressMessage, { duration: 2000 });
+                            }
+                        }
+
+                        // Check if exceeded max poll time
+                        if (Date.now() - startTime > maxPollTime) {
+                            toast.warning('Sync is taking longer than expected. Please check back later or refresh the page.');
+                            if (onComplete) {
+                                // Still try to fetch data
+                                setTimeout(() => onComplete(), 5000);
+                            }
+                            return false;
+                        }
+
+                        // Continue polling
+                        setTimeout(pollStatus, pollInterval);
+                        return null; // Still processing
+                    }
+
+                    // If status is idle, sync might have completed already
+                    if (status.status === 'idle') {
+                        toast.info('Sync completed. Refreshing data...');
+                        if (onComplete) {
+                            onComplete();
+                        }
+                        return true;
+                    }
+
+                    // Continue polling for other statuses
+                    setTimeout(pollStatus, pollInterval);
+                    return null;
+                } catch (pollError) {
+                    // If status check fails, continue polling (might be temporary network issue)
+                    console.warn('Status check failed, retrying...', pollError);
+                    
+                    // Only stop if we've exceeded max time
+                    if (Date.now() - startTime > maxPollTime) {
+                        toast.warning('Unable to check sync status. Please refresh the page to see updated data.');
+                        if (onComplete) {
+                            setTimeout(() => onComplete(), 5000);
+                        }
+                        return false;
+                    }
+
+                    // Retry after a longer interval on error
+                    setTimeout(pollStatus, pollInterval * 2);
+                    return null;
+                }
+            };
+
+            // Start polling
+            await pollStatus();
+            return true;
+        }
+
+        // If response is not 202, handle as before
+        if (startResponse && startResponse.status >= 200 && startResponse.status < 300) {
+            toast.success(startResponse.data.message || 'Vendors fetched and stored successfully!');
+            if (onComplete) {
+                onComplete();
+            }
             return true;
         }
         return true;
     } catch (error) {
-        // Check if error response exists and handle error message
-        if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-            // Show full-screen popup notification using SweetAlert
-            swal({
-                title: "Vendor Sync in Progress",
-                text: "Please wait, background process is running. The vendor sync operation is taking longer than expected. Please check the vendor list after a few minutes.",
-                icon: "info",
-                button: "Got it",
-                className: "swal-wide",
-                allowOutsideClick: true,
-                allowEscapeKey: true,
+        // Check for gateway timeout or request timeout errors
+        const isTimeoutError = 
+            error?.code === 'ECONNABORTED' || 
+            error?.message?.includes('timeout') || 
+            error?.response?.status === 504 ||
+            error?.response?.status === 408;
+
+        if (isTimeoutError) {
+            // Even if start request times out, sync might have started
+            toast.info('Sync request sent. Please wait and refresh the page in a few minutes to see updated data.', {
+                duration: 8000,
             });
-            return true; // Return true because sync might have started
+            
+            // Try to poll status anyway
+            try {
+                const statusResponse = await axiosInstance.get('/vendors/sync-status', { timeout: 5000 });
+                if (statusResponse.data.status === 'processing') {
+                    toast.info('Sync is in progress. Monitoring...', { duration: 3000 });
+                    // Start polling
+                    const pollInterval = 5000;
+                    const pollStatus = async () => {
+                        try {
+                            const status = await axiosInstance.get('/vendors/sync-status', { timeout: 5000 });
+                            if (status.data.status === 'completed') {
+                                toast.success('Sync completed!');
+                                if (onComplete) onComplete();
+                                return;
+                            }
+                            if (status.data.status === 'error') {
+                                toast.error(status.data.error || 'Sync failed');
+                                if (onComplete) {
+                                    onComplete();
+                                }
+                                return;
+                            }
+                            setTimeout(pollStatus, pollInterval);
+                        } catch (e) {
+                            setTimeout(pollStatus, pollInterval * 2);
+                        }
+                    };
+                    setTimeout(pollStatus, pollInterval);
+                }
+            } catch (e) {
+                // If status check also fails, just show message
+            }
+            
+            // Fallback: auto-refresh after delay
+            if (onComplete) {
+                setTimeout(() => {
+                    toast.info('Automatically fetching data...');
+                    onComplete();
+                }, 120000); // 2 minutes
+            }
+            return true;
         }
         
-        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        // Handle other errors
+        const errorMessage = error?.response?.data?.message || error?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);
+        console.error('Sync vendor error:', error);
+        return false;
     }
-    return false; // Return false for any errors
 };
 
 

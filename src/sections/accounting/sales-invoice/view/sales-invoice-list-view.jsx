@@ -7,6 +7,7 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import TableBody from '@mui/material/TableBody';
 import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 import { paths } from 'src/routes/paths';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useSetState } from 'src/hooks/use-set-state';
@@ -18,61 +19,59 @@ import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 import {
     useTable,
     emptyRows,
-    rowInPage,
     TableNoData,
-    getComparator,
     TableEmptyRows,
     TableHeadCustom,
     TableSelectedAction,
     TablePaginationCustom,
 } from 'src/components/table';
-
 import { useDispatch, useSelector } from 'react-redux';
-import { Typography } from '@mui/material';
-import { getProductStatusOptions, TABLE_STOCK_HEAD } from '../../../components/constants';
-import { applyFilter } from '../utils';
-import { useFetchStockData } from '../components/fetch-stock';
-import { StockTableFiltersResult } from './table/stock-table-filters-result';
-import { StockTableRow } from './table/stock-table-row';
-import { StockTableToolbar } from './table/stock-table-toolbar';
-import { syncStock } from 'src/store/action/stockSummaryActions';
+import useUserRole from 'src/layouts/components/user-role';
+import { SalesInvoiceTableToolbar } from './sales-invoice-table-toolbar';
+import { SalesInvoiceTableFiltersResult } from './table/sales-invoice-table-filters-result';
+import { SalesInvoiceTableRow } from './table/sales-invoice-table-row';
+import { useFetchSalesInvoice } from '../components/fetch-sales-invoice';
 import { TableLoaderOverlay } from 'src/components/loader/table-loader';
-import { STOCK_LIST } from 'src/store/constants/actionTypes';
+import { SALES_INVOICE_LIST } from 'src/store/constants/actionTypes';
 
-// ----------------------------------------------------------------------
-export function StockListView() {
-    // Read from URL params
+export function SalesInvoiceListView() {
     const [searchParams, setSearchParams] = useSearchParams();
     const urlPage = parseInt(searchParams.get('page') || '1', 10) - 1;
-    const urlLimit = parseInt(searchParams.get('limit') || '5', 10);
+    const urlLimit = parseInt(searchParams.get('limit') || '10', 10);
     const urlSearch = searchParams.get('search') || '';
 
-    const table = useTable({ 
-        defaultRowsPerPage: urlLimit, 
-        defaultCurrentPage: urlPage 
-    });
-    
+    const table = useTable({ defaultRowsPerPage: urlLimit, defaultCurrentPage: urlPage });
     const [searchTerm, setSearchTerm] = useState(urlSearch);
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(urlSearch);
     const isFetchingData = useRef(false);
-
+    
     const filters = useSetState({ searchTerm: urlSearch });
-
     const confirm = useBoolean();
-    const confirmSync = useBoolean();
-    const [loading, setLoading] = useState(false);
-    const [syncStatus, setSyncStatus] = useState(null);
+    const userRole = useUserRole();
     const [selectedRows, setSelectedRows] = useState([]);
     const [deleting, setDeleting] = useState(false);
 
-    const { fetchData, deleteAllItems } = useFetchStockData();
+    const { fetchData, fetchDeleteData, deleteAllItems } = useFetchSalesInvoice();
     const dispatch = useDispatch();
-    const _stock = useSelector((state) => state.stock?.stock || []);
-    const pagination = useSelector((state) => state.stock?.pagination || { total: 0, page: 1, limit: 10, totalPages: 0 });
-    const [tableData, setTableData] = useState(_stock);
+    const _salesInvoice = useSelector((state) => state.accounting?.salesInvoice || []);
+    const pagination = useSelector((state) => state.accounting?.salesInvoicePagination || { 
+        total: 0, 
+        page: 1, 
+        limit: 10, 
+        totalPages: 0 
+    });
+    const [tableData, setTableData] = useState(_salesInvoice);
 
-    //----------------------------------------------------------------------------------------------------
-    // Debounce search
+    const TABLE_HEAD = [
+        { id: 'voucherNo', label: 'Voucher No' },
+        { id: 'partyName', label: 'Party Name' },
+        { id: 'voucherDate', label: 'Date' },
+        { id: 'voucherType', label: 'Type' },
+        { id: 'amount', label: 'Amount', align: 'right' },
+        { id: 'closingBalance', label: 'Closing Balance', align: 'right' },
+        { id: 'actions', label: 'Actions', align: 'center' }
+    ];
+
     useEffect(() => {
         const timer = setTimeout(() => {
             if (searchTerm !== debouncedSearchTerm) {
@@ -82,37 +81,29 @@ export function StockListView() {
         return () => clearTimeout(timer);
     }, [searchTerm, debouncedSearchTerm]);
 
-    // Update table data
     useEffect(() => {
-        setTableData(_stock);
-    }, [_stock]);
+        setTableData(_salesInvoice);
+    }, [_salesInvoice]);
 
-    // Fetch data and update URL
     useEffect(() => {
         if (isFetchingData.current) return;
 
-        // Update URL
         const params = new URLSearchParams();
         params.set('page', (table.page + 1).toString());
         params.set('limit', table.rowsPerPage.toString());
         if (debouncedSearchTerm) params.set('search', debouncedSearchTerm);
         setSearchParams(params, { replace: true });
 
-        // Fetch data
         isFetchingData.current = true;
         fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm)
             .finally(() => { isFetchingData.current = false; });
-            
-    }, [table.page, table.rowsPerPage, debouncedSearchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
-    //----------------------------------------------------------------------------------------------------
+    }, [table.page, table.rowsPerPage, debouncedSearchTerm]);
 
     const handleSelectRow = useCallback((id) => {
         setSelectedRows((prev) =>
             prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [...prev, id]
         );
     }, []);
-
-
 
     const handleDeleteSelectedRows = useCallback(async () => {
         setDeleting(true);
@@ -127,11 +118,6 @@ export function StockListView() {
         }
     }, [selectedRows, deleteAllItems, confirm, table.page, table.rowsPerPage, debouncedSearchTerm]);
 
-
-    //----------------------------------------------------------------------------------------------------
-    const canReset = !!searchTerm;
-    const notFound = !tableData.length;
-
     const handleSearchChange = useCallback((value) => {
         setSearchTerm(value);
         filters.setState({ searchTerm: value });
@@ -144,92 +130,61 @@ export function StockListView() {
         table.onResetPage();
     }, [filters, table]);
 
-    //----------------------------------------------------------------------------------------------------
-    const handleSyncAPI = useCallback(async () => {
-        setLoading(true);
-        setSyncStatus(null);
-        try {
-            const res = await dispatch(syncStock(
-                (status) => {
-                    // Status update callback
-                    setSyncStatus(status);
-                },
-                () => {
-                    // Completion callback
-                    setLoading(false);
-                    setSyncStatus(null);
-                    confirmSync.onFalse();
-                    fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm);
-                }
-            ));
-            if (!res) {
-                // If sync failed, reset loading state
-                setLoading(false);
-                setSyncStatus(null);
-                confirmSync.onFalse();
-            }
-        } catch (error) {
-            console.error("Failed to sync Stocks", error);
-            setLoading(false);
-            setSyncStatus(null);
-            confirmSync.onFalse();
-        }
-    }, [dispatch, fetchData, confirmSync, table.page, table.rowsPerPage, debouncedSearchTerm]);
+    const handleClearAll = useCallback(() => {
+        setSearchTerm('');
+        setDebouncedSearchTerm('');
+        filters.setState({ searchTerm: '' });
+        table.onResetPage();
+    }, [filters, table]);
 
-    //----------------------------------------------------------------------------------------------------
+    const canReset = !!searchTerm;
+    const notFound = !tableData.length;
+
+    const handleDeleteRow = useCallback((id) => { 
+        fetchDeleteData(id).then(() => {
+            fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm);
+        });
+    }, [fetchDeleteData, fetchData, table.page, table.rowsPerPage, debouncedSearchTerm]);
 
     return (
-        <>
+        <div>
             <DashboardContent maxWidth="2xl">
                 <CustomBreadcrumbs
-                    heading="List"
+                    heading="Sales Invoice"
                     links={[
                         { name: 'Dashboard', href: paths.dashboard.root },
-                        { name: 'Stocks', href: paths?.dashboard?.stocks?.root },
-                        { name: 'List' },
+                        { name: 'Sales Invoice' },
                     ]}
-                    action={
-                        <Button
-                            // href={paths?.dashboard?.user?.new}
-                            onClick={confirmSync.onTrue} // Open the sync confirmation dialog
-                            variant="contained"
-                            startIcon={<Iconify icon="eva:sync-fill" />}
-                            disabled={loading}
-                        >
-                            {loading 
-                                ? (syncStatus?.status === 'processing' && syncStatus?.totalRecords 
-                                    ? `Syncing... ${syncStatus.processedRecords || 0}/${syncStatus.totalRecords}` 
-                                    : 'Syncing...') 
-                                : 'Sync Stocks'}
-                        </Button>
-                    }
                     sx={{ mb: { xs: 3, md: 5 } }}
                 />
 
                 <Card>
-                    <StockTableToolbar
+                    <SalesInvoiceTableToolbar
                         filters={filters}
                         onResetPage={table.onResetPage}
                         onSearchChange={handleSearchChange}
                     />
+
                     {canReset && (
-                        <StockTableFiltersResult
+                        <SalesInvoiceTableFiltersResult
                             filters={filters}
                             totalResults={pagination.total}
                             onResetPage={table.onResetPage}
                             onClearSearch={handleClearSearch}
+                            onClearAll={handleClearAll}
                             sx={{ p: 2.5, pt: 0 }}
                         />
                     )}
 
                     <Box sx={{ position: 'relative' }}>
-                        <TableLoaderOverlay actionType={STOCK_LIST} />
+                        <TableLoaderOverlay actionType={SALES_INVOICE_LIST} />
                         <TableSelectedAction
                             dense={table.dense}
                             numSelected={selectedRows.length}
                             rowCount={tableData.length}
-                            onSelectAllRows={(checked) => setSelectedRows(checked ? tableData.map(row => row.id) : [])}
-
+                            onSelectAllRows={(checked) => 
+                                setSelectedRows(checked ? tableData.map(row => row.id) : [])
+                            }
                             action={
                                 <Tooltip title="Delete">
                                     <IconButton color="primary" onClick={confirm.onTrue}>
@@ -239,12 +194,12 @@ export function StockListView() {
                             }
                         />
 
-                        <Scrollbar>
+                        <Scrollbar sx={{ minHeight: 444 }}>
                             <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 960 }}>
                                 <TableHeadCustom
                                     order={table.order}
                                     orderBy={table.orderBy}
-                                    headLabel={TABLE_STOCK_HEAD}
+                                    headLabel={TABLE_HEAD}
                                     rowCount={pagination.total}
                                     numSelected={selectedRows.length}
                                     onSort={table.onSort}
@@ -255,18 +210,17 @@ export function StockListView() {
 
                                 <TableBody>
                                     {tableData.map((row) => (
-                                            <StockTableRow
-                                                key={row.id}
-                                                row={row}
-                                                selected={selectedRows.includes(row.id)}
-                                                onSelectRow={() => handleSelectRow(row.id)}
-
-
-                                            />
-                                        ))}
+                                        <SalesInvoiceTableRow
+                                            key={row.id}
+                                            row={row}
+                                            selected={selectedRows.includes(row.id)}
+                                            onSelectRow={() => handleSelectRow(row.id)}
+                                            onDeleteRow={() => handleDeleteRow(row.id)}
+                                        />
+                                    ))}
 
                                     <TableEmptyRows
-                                        height={table.dense ? 56 : 56 + 20}
+                                        height={table.dense ? 56 : 76}
                                         emptyRows={emptyRows(table.page, table.rowsPerPage, pagination.total)}
                                     />
 
@@ -274,7 +228,6 @@ export function StockListView() {
                                 </TableBody>
                             </Table>
                         </Scrollbar>
-
                     </Box>
 
                     <TablePaginationCustom
@@ -289,37 +242,15 @@ export function StockListView() {
                 </Card>
             </DashboardContent>
 
-            {/* Sync Confirmation Dialog */}
-            <ConfirmDialog
-                open={confirmSync.value}
-                onClose={confirmSync.onFalse}
-                content={
-                    <Box>
-                        <Typography gutterBottom>Are you sure you want to sync the Stocks?</Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                            This action will update the stocks data and may take a few moments.
-                        </Typography>
-                    </Box>
-                }
-                action={
-                    <Button
-                        onClick={handleSyncAPI} // Trigger sync API call on confirmation
-                        variant="contained"
-                        color="primary"
-                        disabled={loading} // Disable button while loading
-                    >
-                        {loading ? 'Syncing...' : 'Confirm Sync'}
-                    </Button>
-                }
-            />
-
             <ConfirmDialog
                 open={confirm.value}
                 onClose={confirm.onFalse}
-                title="Delete Stocks?"
+                title="Delete Sales Invoices?"
                 content={
                     <Box>
-                        <Typography gutterBottom>Are you sure you want to delete the selected Stocks?</Typography>
+                        <Typography gutterBottom>
+                            Are you sure you want to delete the selected sales invoice(s)?
+                        </Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                             This action cannot be undone.
                         </Typography>
@@ -330,14 +261,13 @@ export function StockListView() {
                         variant="contained"
                         color="error"
                         onClick={handleDeleteSelectedRows}
-                        disabled={deleting} // Disable while deleting
+                        disabled={deleting}
                     >
                         {deleting ? 'Deleting...' : 'Delete'}
                     </Button>
                 }
             />
-
-        </>
+        </div>
     );
 }
 

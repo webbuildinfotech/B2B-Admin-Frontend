@@ -21,6 +21,7 @@ const ICONS = {
   receivables: icon('ic-ecommerce'),
   payments: icon('ic-analytics'), // ✅ New
   logs: icon('ic-ecommerce'),         // ✅ New
+  salesInvoice: icon('ic-invoice'),
 };
 
 export const useNavData = () => {
@@ -66,6 +67,7 @@ export const useNavData = () => {
       subheader: 'Reports',
       items: [
         { title: 'Order Reports', path: paths.orders.root, icon: ICONS.orders },
+        { title: 'Sales Invoice', path: paths.salesInvoice.root, icon: ICONS.salesInvoice },
         {
           title: 'Accounting',
           path: paths.accounts.root,
@@ -95,6 +97,7 @@ export const useNavData = () => {
       subheader: 'Reports',
       items: [
         { title: 'Orders Reports', path: paths.orders.root, icon: ICONS.orders },
+        { title: 'Sales Invoice', path: paths.salesInvoice.root, icon: ICONS.salesInvoice },
         {
           title: 'Accounting',
           path: paths.accounts.root,

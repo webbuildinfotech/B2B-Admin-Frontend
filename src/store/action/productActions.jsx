@@ -49,6 +49,30 @@ export const itemList = (page, limit, search, subGroup1, subGroup2) => async (di
     }
 };
 
+// Get all items without pagination for vendor items filter
+export const getAllItemsForFilter = (search, subGroup1, subGroup2) => async (dispatch) => {
+    try {
+        const params = {};
+        if (search) params.search = search;
+        if (subGroup1 && subGroup1.length > 0) params.subGroup1 = subGroup1;
+        if (subGroup2 && subGroup2.length > 0) params.subGroup2 = subGroup2;
+
+        const response = await axiosInstance.get('/items', {
+            params
+        });
+        // Return all items as array (without pagination)
+        dispatch({
+            type: PRODUCT_LIST,
+            payload: response.data?.data,
+        });
+        return true;
+    } catch (error) {
+        const errorMessage = error?.response?.data?.message || 'Failed to fetch items for filter.';
+        toast.error(errorMessage);
+        return [];
+    }
+};
+
 // Get all subGroup1 options from backend
 export const getAllSubGroup1Options = () => async (dispatch) => {
     try {

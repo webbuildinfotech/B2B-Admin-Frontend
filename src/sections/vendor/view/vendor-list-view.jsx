@@ -77,6 +77,7 @@ export function VendorListView() {
     const [selectedRows, setSelectedRows] = useState([]);
     const [deleting, setDeleting] = useState(false);
     const [statusCounts, setStatusCounts] = useState({ all: 0, active: 0, inactive: 0 });
+    const [syncStatus, setSyncStatus] = useState(null);
 
     const { fetchData, fetchDeleteData, deleteAllItems, fetchStatusCounts } = useFetchVendorData();
     const dispatch = useDispatch();
@@ -258,19 +259,43 @@ export function VendorListView() {
         [filters, table]
     );
 
-    const handleSyncAPI = async () => {
+    const handleSyncAPI = useCallback(async () => {
         setLoading(true);
+        setSyncStatus(null);
+        confirmSync.onFalse(); // Close dialog immediately
+        
         try {
-            await dispatch(syncVendor());
-            await fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm, filters.state.status);
-            // Status counts will be refreshed automatically via useEffect when pagination.total changes
+            // Pass status update callback and completion callback
+            const result = await dispatch(syncVendor(
+                (status) => {
+                    // Update sync status for UI display
+                    setSyncStatus(status);
+                    
+                    // If error status detected, stop loading immediately
+                    if (status.status === 'error') {
+                        setLoading(false);
+                        setSyncStatus(null);
+                    }
+                },
+                () => {
+                    // Fetch data when sync completes (or fails)
+                    fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm, filters.state.status);
+                    setLoading(false);
+                    setSyncStatus(null);
+                }
+            ));
+            
+            // If sync returns false, it means there was an error
+            if (result === false) {
+                setLoading(false);
+                setSyncStatus(null);
+            }
         } catch (error) {
             console.error('Error syncing vendor:', error);
-        } finally {
             setLoading(false);
-            confirmSync.onFalse();
+            setSyncStatus(null);
         }
-    };
+    }, [dispatch, fetchData, confirmSync, table.page, table.rowsPerPage, debouncedSearchTerm, filters.state.status]);
 
     //----------------------------------------------------------------------------------------------------
 
@@ -292,7 +317,11 @@ export function VendorListView() {
                             startIcon={<Iconify icon="eva:sync-fill" />} // Changed icon
                             disabled={loading} // Disable button while loading
                         >
-                            {loading ? 'Syncing...' : 'Sync Vendors'}
+                            {loading 
+                                ? (syncStatus?.status === 'processing' && syncStatus?.totalRecords 
+                                    ? `Syncing... ${syncStatus.processedRecords || 0}/${syncStatus.totalRecords}` 
+                                    : 'Syncing...') 
+                                : 'Sync Vendors'}
                         </Button>
                     }
                     sx={{ mb: { xs: 3, md: 5 } }}

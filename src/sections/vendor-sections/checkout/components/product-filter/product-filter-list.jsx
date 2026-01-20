@@ -20,7 +20,7 @@ import ListboxComponent from './ListboxComponent';
 
 
 export function ProductFilterView() {
-    const { fetchData } = useFetchProductData(); // Destructure fetchData from the custom hook
+    const { fetchAllItems } = useFetchProductData(); // Destructure fetchData from the custom hook
     const _productList = useSelector((state) => state.product?.product || []);
     const [tableData, setTableData] = useState(_productList);
     const [autocompleteOpen, setAutocompleteOpen] = useState(false);
@@ -44,7 +44,7 @@ export function ProductFilterView() {
     });
 
     useEffect(() => {
-        fetchData(); // Call fetchData when the component mounts
+        fetchAllItems(); // Call fetchData when the component mounts
     }, []);
 
     const dataFiltered = applyFilterData({
