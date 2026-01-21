@@ -20,7 +20,7 @@ export function MainSetting() {
     };
 
     return (
-        <DashboardContent maxWidth="xl">
+        <DashboardContent maxWidth="2xl">
             <CustomBreadcrumbs
                 heading="Settings"
                 links={[
