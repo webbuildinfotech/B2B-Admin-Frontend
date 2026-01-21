@@ -34,18 +34,11 @@ export function SalesInvoiceDetails() {
         }
     }, [id]);
 
-    if (!salesInvoice) {
-        return (
-            <DashboardContent>
-                <Typography>Loading...</Typography>
-            </DashboardContent>
-        );
-    }
 
     return (
         <DashboardContent maxWidth="2xl">
             <CustomBreadcrumbs
-                heading={`Sales Invoice #${salesInvoice.voucherNo || id}`}
+                heading={`Sales Invoice #${salesInvoice?.voucherNo || id || 'Loading...'}`}
                 links={[
                     { name: 'Dashboard', href: paths.dashboard.root },
                     { name: 'Sales Invoice', href: paths.salesInvoice.root },
@@ -76,7 +69,7 @@ export function SalesInvoiceDetails() {
                                     Voucher No:
                                 </Typography>
                                 <Typography variant="body2" fontWeight="medium">
-                                    {salesInvoice.voucherNo || '-'}
+                                    {salesInvoice?.voucherNo ?? null}
                                 </Typography>
                             </Box>
                             <Box display="flex" justifyContent="space-between">
@@ -84,7 +77,7 @@ export function SalesInvoiceDetails() {
                                     Voucher Date:
                                 </Typography>
                                 <Typography variant="body2" fontWeight="medium">
-                                    {fDate(salesInvoice.voucherDate) || '-'}
+                                    {salesInvoice?.voucherDate ? fDate(salesInvoice.voucherDate) : null}
                                 </Typography>
                             </Box>
                             <Box display="flex" justifyContent="space-between">
@@ -92,7 +85,7 @@ export function SalesInvoiceDetails() {
                                     Voucher Type:
                                 </Typography>
                                 <Typography variant="body2" fontWeight="medium">
-                                    {salesInvoice.voucherType || '-'}
+                                    {salesInvoice?.voucherType ?? null}
                                 </Typography>
                             </Box>
                             <Box display="flex" justifyContent="space-between">
@@ -100,7 +93,23 @@ export function SalesInvoiceDetails() {
                                     Reference No:
                                 </Typography>
                                 <Typography variant="body2" fontWeight="medium">
-                                    {salesInvoice.referenceNo || '-'}
+                                    {salesInvoice?.referenceNo ?? null}
+                                </Typography>
+                            </Box>
+                            <Box display="flex" justifyContent="space-between">
+                                <Typography variant="body2" color="text.secondary">
+                                    GUID:
+                                </Typography>
+                                <Typography variant="body2" fontWeight="medium">
+                                    {salesInvoice?.guid ?? null}
+                                </Typography>
+                            </Box>
+                            <Box display="flex" justifyContent="space-between">
+                                <Typography variant="body2" color="text.secondary">
+                                    Master ID:
+                                </Typography>
+                                <Typography variant="body2" fontWeight="medium">
+                                    {salesInvoice?.masterId ?? null}
                                 </Typography>
                             </Box>
                             <Box display="flex" justifyContent="space-between">
@@ -108,7 +117,7 @@ export function SalesInvoiceDetails() {
                                     Amount:
                                 </Typography>
                                 <Typography variant="body2" fontWeight="medium">
-                                    {fCurrency(salesInvoice.amount) || '-'}
+                                    {salesInvoice?.amount != null ? fCurrency(salesInvoice.amount) : null}
                                 </Typography>
                             </Box>
                         </Stack>
@@ -125,7 +134,23 @@ export function SalesInvoiceDetails() {
                                     Party Name:
                                 </Typography>
                                 <Typography variant="body2" fontWeight="medium">
-                                    {salesInvoice.partyName || '-'}
+                                    {salesInvoice?.partyName ?? null}
+                                </Typography>
+                            </Box>
+                            <Box display="flex" justifyContent="space-between">
+                                <Typography variant="body2" color="text.secondary">
+                                    NX Party Code:
+                                </Typography>
+                                <Typography variant="body2" fontWeight="medium">
+                                    {salesInvoice?.nxPartyCode && salesInvoice.nxPartyCode !== 'NULL' ? salesInvoice.nxPartyCode : null}
+                                </Typography>
+                            </Box>
+                            <Box display="flex" justifyContent="space-between">
+                                <Typography variant="body2" color="text.secondary">
+                                    Customer Name:
+                                </Typography>
+                                <Typography variant="body2" fontWeight="medium">
+                                    {salesInvoice?.customerName && salesInvoice.customerName !== 'NULL' ? salesInvoice.customerName : null}
                                 </Typography>
                             </Box>
                             <Box display="flex" justifyContent="space-between">
@@ -133,7 +158,15 @@ export function SalesInvoiceDetails() {
                                     GSTIN:
                                 </Typography>
                                 <Typography variant="body2" fontWeight="medium">
-                                    {salesInvoice.partyGstin || '-'}
+                                    {salesInvoice?.partyGstin ?? null}
+                                </Typography>
+                            </Box>
+                            <Box display="flex" justifyContent="space-between">
+                                <Typography variant="body2" color="text.secondary">
+                                    Email ID:
+                                </Typography>
+                                <Typography variant="body2" fontWeight="medium">
+                                    {salesInvoice?.emailId ?? null}
                                 </Typography>
                             </Box>
                             <Box display="flex" justifyContent="space-between">
@@ -141,7 +174,7 @@ export function SalesInvoiceDetails() {
                                     Email:
                                 </Typography>
                                 <Typography variant="body2" fontWeight="medium">
-                                    {salesInvoice.emailId || '-'}
+                                    {salesInvoice?.eMail ?? null}
                                 </Typography>
                             </Box>
                             <Box display="flex" justifyContent="space-between">
@@ -149,7 +182,7 @@ export function SalesInvoiceDetails() {
                                     Mobile:
                                 </Typography>
                                 <Typography variant="body2" fontWeight="medium">
-                                    {salesInvoice.mobileNumber || '-'}
+                                    {salesInvoice?.mobileNumber ?? null}
                                 </Typography>
                             </Box>
                             <Box display="flex" justifyContent="space-between">
@@ -157,7 +190,7 @@ export function SalesInvoiceDetails() {
                                     Closing Balance:
                                 </Typography>
                                 <Typography variant="body2" fontWeight="medium">
-                                    {fCurrency(salesInvoice.closingBalance) || '-'}
+                                    {salesInvoice?.closingBalance != null ? fCurrency(salesInvoice.closingBalance) : null}
                                 </Typography>
                             </Box>
                         </Stack>
@@ -170,95 +203,156 @@ export function SalesInvoiceDetails() {
 
                     {/* Address Information and Payment Terms in Grid */}
                     <Grid xs={12} md={6}>
-                        {(salesInvoice.buyerAddress || salesInvoice.consigneeAddress || salesInvoice.state) && (
-                            <>
-                                <Typography variant="h6" sx={{ mb: 2 }}>
-                                    Address Information
+                        <Typography variant="h6" sx={{ mb: 2 }}>
+                            Address Information
+                        </Typography>
+                        <Stack spacing={1.5}>
+                            <Box>
+                                <Typography variant="body2" color="text.secondary">
+                                    Buyer Address:
                                 </Typography>
-                                <Stack spacing={1.5}>
-                                    {salesInvoice.buyerAddress && (
-                                        <Box>
-                                            <Typography variant="body2" color="text.secondary">
-                                                Buyer Address:
-                                            </Typography>
-                                            <Typography variant="body2" fontWeight="medium">
-                                                {salesInvoice.buyerAddress}
-                                            </Typography>
-                                        </Box>
-                                    )}
-                                    {salesInvoice.consigneeAddress && (
-                                        <Box>
-                                            <Typography variant="body2" color="text.secondary">
-                                                Consignee Address:
-                                            </Typography>
-                                            <Typography variant="body2" fontWeight="medium">
-                                                {salesInvoice.consigneeAddress}
-                                            </Typography>
-                                        </Box>
-                                    )}
-                                    {salesInvoice.state && (
-                                        <Box display="flex" justifyContent="space-between">
-                                            <Typography variant="body2" color="text.secondary">
-                                                State:
-                                            </Typography>
-                                            <Typography variant="body2" fontWeight="medium">
-                                                {salesInvoice.state}
-                                            </Typography>
-                                        </Box>
-                                    )}
-                                    {salesInvoice.placeOfSupply && (
-                                        <Box display="flex" justifyContent="space-between">
-                                            <Typography variant="body2" color="text.secondary">
-                                                Place of Supply:
-                                            </Typography>
-                                            <Typography variant="body2" fontWeight="medium">
-                                                {salesInvoice.placeOfSupply}
-                                            </Typography>
-                                        </Box>
-                                    )}
-                                </Stack>
-                            </>
-                        )}
+                                <Typography variant="body2" fontWeight="medium">
+                                    {salesInvoice?.buyerAddress ?? null}
+                                </Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="body2" color="text.secondary">
+                                    Consignee Address:
+                                </Typography>
+                                <Typography variant="body2" fontWeight="medium">
+                                    {salesInvoice?.consigneeAddress ?? null}
+                                </Typography>
+                            </Box>
+                            <Box display="flex" justifyContent="space-between">
+                                <Typography variant="body2" color="text.secondary">
+                                    State:
+                                </Typography>
+                                <Typography variant="body2" fontWeight="medium">
+                                    {salesInvoice?.state ?? null}
+                                </Typography>
+                            </Box>
+                            <Box display="flex" justifyContent="space-between">
+                                <Typography variant="body2" color="text.secondary">
+                                    Place of Supply:
+                                </Typography>
+                                <Typography variant="body2" fontWeight="medium">
+                                    {salesInvoice?.placeOfSupply ?? null}
+                                </Typography>
+                            </Box>
+                        </Stack>
                     </Grid>
 
                     {/* Payment Terms */}
                     <Grid xs={12} md={6}>
-                        {salesInvoice.paymentTerms && salesInvoice.paymentTerms.length > 0 && (
-                            <>
-                                <Typography variant="h6" sx={{ mb: 2 }}>
-                                    Payment Terms
+                        <Typography variant="h6" sx={{ mb: 2 }}>
+                            Payment Terms
+                        </Typography>
+                        <Stack spacing={1}>
+                            {salesInvoice?.paymentTerms && salesInvoice.paymentTerms.length > 0 ? (
+                                salesInvoice.paymentTerms.map((term, index) => (
+                                    <Typography key={term.id || index} variant="body2">
+                                        {term.terms ?? null}
+                                    </Typography>
+                                ))
+                            ) : (
+                                <Typography variant="body2" color="text.secondary">
+                                    {null}
                                 </Typography>
-                                <Stack spacing={1}>
-                                    {salesInvoice.paymentTerms.map((term, index) => (
-                                        <Typography key={term.id || index} variant="body2">
-                                            {term.terms || '-'}
-                                        </Typography>
-                                    ))}
-                                </Stack>
-                            </>
-                        )}
+                            )}
+                        </Stack>
                     </Grid>
 
-                    {/* Divider before Items */}
-                    {salesInvoice.items && salesInvoice.items.length > 0 && (
-                        <>
-                            {((salesInvoice.buyerAddress || salesInvoice.consigneeAddress || salesInvoice.state) || (salesInvoice.paymentTerms && salesInvoice.paymentTerms.length > 0)) && (
-                                <Grid xs={12}>
-                                    <Divider sx={{ mt: 3, mb: 3, borderStyle: 'dashed' }} />
-                                </Grid>
-                            )}
-                            <Grid xs={12}>
-                            <Typography variant="h6" sx={{ mb: 2 }}>
-                                Items
-                            </Typography>
+                    {/* Orders Information */}
+                    <Grid xs={12}>
+                        <Divider sx={{ mt: 3, mb: 3, borderStyle: 'dashed' }} />
+                    </Grid>
+                    <Grid xs={12}>
+                        <Typography variant="h6" sx={{ mb: 2 }}>
+                            Orders
+                        </Typography>
+                        <Scrollbar>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Order ID</TableCell>
+                                        <TableCell>NX Order ID</TableCell>
+                                        <TableCell>TL Order ID</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {(() => {
+                                        const orders = salesInvoice?.orders;
+                                        const hasValidOrders = orders && Array.isArray(orders) && orders.length > 0 && 
+                                            orders.some(order => 
+                                                (order.orderId && order.orderId !== 'NULL') || 
+                                                (order.nxOrderId && order.nxOrderId !== 'NULL') || 
+                                                (order.tlOrderId && order.tlOrderId !== 'NULL')
+                                            );
+                                        
+                                        console.log('Orders Data:', orders);
+                                        console.log('Has Valid Orders Check:', hasValidOrders);
+                                        console.log('Condition Check:', {
+                                            'orders exists': !!orders,
+                                            'is array': Array.isArray(orders),
+                                            'length': orders?.length,
+                                            'has valid data': orders?.some(order => 
+                                                (order.orderId && order.orderId !== 'NULL') || 
+                                                (order.nxOrderId && order.nxOrderId !== 'NULL') || 
+                                                (order.tlOrderId && order.tlOrderId !== 'NULL')
+                                            )
+                                        });
+                                        
+                                        return hasValidOrders ? (
+                                            orders.map((order, index) => (
+                                                <TableRow key={order.id || index}>
+                                                    <TableCell>{order.orderId && order.orderId !== 'NULL' ? order.orderId : null}</TableCell>
+                                                    <TableCell>{order.nxOrderId && order.nxOrderId !== 'NULL' ? order.nxOrderId : null}</TableCell>
+                                                    <TableCell>{order.tlOrderId && order.tlOrderId !== 'NULL' ? order.tlOrderId : null}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={3} align="center" sx={{ py: 3 }}>
+                                                    <Typography variant="body2" color="text.secondary">
+                                                        No orders found
+                                                    </Typography>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })()}
+                                </TableBody>
+                            </Table>
+                        </Scrollbar>
+                    </Grid>
+
+                    {/* Items */}
+                    <Grid xs={12}>
+                        <Divider sx={{ mt: 3, mb: 3, borderStyle: 'dashed' }} />
+                    </Grid>
+                    <Grid xs={12}>
+                        <Typography variant="h6" sx={{ mb: 2 }}>
+                            Items
+                        </Typography>
+                        {salesInvoice?.items && salesInvoice.items.length > 0 ? (
                             <Scrollbar>
                                 <Table>
                                     <TableHead>
                                         <TableRow>
                                             <TableCell>Item Name</TableCell>
-                                            <TableCell align="right">Qty</TableCell>
+                                            <TableCell>Order No</TableCell>
+                                            <TableCell>Order Due</TableCell>
+                                            <TableCell>NX Item Code</TableCell>
+                                            <TableCell>Part No</TableCell>
+                                            <TableCell>Base Units</TableCell>
+                                            <TableCell align="right">Actual Qty</TableCell>
+                                            <TableCell align="right">Billed Qty</TableCell>
+                                            <TableCell align="right">Incl Rate</TableCell>
                                             <TableCell align="right">Rate</TableCell>
+                                            <TableCell align="right">Disc %</TableCell>
+                                            <TableCell align="right">Disc Amt</TableCell>
+                                            <TableCell align="right">Disc Prop</TableCell>
                                             <TableCell align="right">Amount</TableCell>
+                                            <TableCell>Accounting Name</TableCell>
                                             <TableCell align="right">GST %</TableCell>
                                         </TableRow>
                                     </TableHead>
@@ -268,42 +362,53 @@ export function SalesInvoiceDetails() {
                                                 <TableCell>
                                                     <Box>
                                                         <Typography variant="body2" fontWeight="medium">
-                                                            {item.itemName || '-'}
+                                                            {item.itemName ?? null}
                                                         </Typography>
                                                         {item.descriptions && item.descriptions.length > 0 && (
                                                             <Typography variant="caption" color="text.secondary">
                                                                 {item.descriptions.map((desc, idx) => (
-                                                                    <Box key={idx}>{desc.desc}</Box>
+                                                                    <Box key={idx}>{desc.desc ?? null}</Box>
                                                                 ))}
                                                             </Typography>
                                                         )}
                                                     </Box>
                                                 </TableCell>
-                                                <TableCell align="right">{item.billedQty || '-'}</TableCell>
-                                                <TableCell align="right">{fCurrency(item.rate) || '-'}</TableCell>
-                                                <TableCell align="right">{fCurrency(item.amount) || '-'}</TableCell>
-                                                <TableCell align="right">{item.gstPer ? `${item.gstPer}%` : '-'}</TableCell>
+                                                <TableCell>{item.orderNo ?? null}</TableCell>
+                                                <TableCell>{item.orderDue ? fDate(item.orderDue) : null}</TableCell>
+                                                <TableCell>{item.nxItemCode && item.nxItemCode !== 'NULL' ? item.nxItemCode : null}</TableCell>
+                                                <TableCell>{item.partNo && item.partNo !== 'NULL' ? item.partNo : null}</TableCell>
+                                                <TableCell>{item.baseUnits ?? null}</TableCell>
+                                                <TableCell align="right">{item.actualQty ?? null}</TableCell>
+                                                <TableCell align="right">{item.billedQty ?? null}</TableCell>
+                                                <TableCell align="right">{item.inclRate != null ? fCurrency(item.inclRate) : null}</TableCell>
+                                                <TableCell align="right">{item.rate != null ? fCurrency(item.rate) : null}</TableCell>
+                                                <TableCell align="right">{item.discPerc ?? null}</TableCell>
+                                                <TableCell align="right">{item.discAmt != null ? fCurrency(item.discAmt) : null}</TableCell>
+                                                <TableCell align="right">{item.discProp ?? null}</TableCell>
+                                                <TableCell align="right">{item.amount != null ? fCurrency(item.amount) : null}</TableCell>
+                                                <TableCell>{item.accountingName ?? null}</TableCell>
+                                                <TableCell align="right">{item.gstPer ? `${item.gstPer}%` : null}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
                                 </Table>
                             </Scrollbar>
-                            </Grid>
-                        </>
-                    )}
-
-                    {/* Divider before Ledgers */}
-                    {salesInvoice.ledgers && salesInvoice.ledgers.length > 0 && (
-                        <>
-                            {salesInvoice.paymentTerms && salesInvoice.paymentTerms.length > 0 && (
-                                <Grid xs={12}>
-                                    <Divider sx={{ mt: 3, mb: 3, borderStyle: 'dashed' }} />
-                                </Grid>
-                            )}
-                            <Grid xs={12}>
-                            <Typography variant="h6" sx={{ mb: 2 }}>
-                                Tax Ledgers
+                        ) : (
+                            <Typography variant="body2" color="text.secondary">
+                                {null}
                             </Typography>
+                        )}
+                    </Grid>
+
+                    {/* Tax Ledgers */}
+                    <Grid xs={12}>
+                        <Divider sx={{ mt: 3, mb: 3, borderStyle: 'dashed' }} />
+                    </Grid>
+                    <Grid xs={12}>
+                        <Typography variant="h6" sx={{ mb: 2 }}>
+                            Tax Ledgers
+                        </Typography>
+                        {salesInvoice?.ledgers && salesInvoice.ledgers.length > 0 ? (
                             <Scrollbar>
                                 <Table>
                                     <TableHead>
@@ -316,17 +421,20 @@ export function SalesInvoiceDetails() {
                                     <TableBody>
                                         {salesInvoice.ledgers.map((ledger, index) => (
                                             <TableRow key={ledger.id || index}>
-                                                <TableCell>{ledger.ledgerName || '-'}</TableCell>
-                                                <TableCell align="right">{ledger.ratePerc || '-'}</TableCell>
-                                                <TableCell align="right">{fCurrency(ledger.amount) || '-'}</TableCell>
+                                                <TableCell>{ledger.ledgerName ?? null}</TableCell>
+                                                <TableCell align="right">{ledger.ratePerc ?? null}</TableCell>
+                                                <TableCell align="right">{ledger.amount != null ? fCurrency(ledger.amount) : null}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
                                 </Table>
                             </Scrollbar>
-                            </Grid>
-                        </>
-                    )}
+                        ) : (
+                            <Typography variant="body2" color="text.secondary">
+                                {null}
+                            </Typography>
+                        )}
+                    </Grid>
                 </Grid>
             </Card>
         </DashboardContent>
