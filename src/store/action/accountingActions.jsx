@@ -532,7 +532,7 @@ export const salesInvoiceList = (page, limit, search) => async (dispatch) => {
         const params = { page: page || 1, limit: limit || 10 };
         if (search) params.search = search;
 
-        const response = await axiosInstance.get('/sales-invoices', {
+        const response = await axiosInstance.get('/items/sales-invoices', {
             params: Object.keys(params).length > 0 ? params : undefined
         });
 
@@ -554,7 +554,7 @@ export const salesInvoiceList = (page, limit, search) => async (dispatch) => {
 
 export const salesInvoiceGetById = (id) => async (dispatch) => {
     try {
-        const response = await axiosInstance.get(`/sales-invoices/${id}`);
+        const response = await axiosInstance.get(`/items/sales-invoices/${id}`);
         dispatch({
             type: SALES_INVOICE_GET_BY_LIST,
             payload: response.data?.data,
@@ -569,7 +569,7 @@ export const salesInvoiceGetById = (id) => async (dispatch) => {
 
 export const createSalesInvoice = (data) => async (dispatch) => {
     try {
-        const response = await axiosInstance.post('/sales-invoices', data);
+        const response = await axiosInstance.post('/items/sales-invoices', data);
         if (response && response.status >= 200 && response.status < 300) {
             toast.success(response.data.message || 'Sales invoice created successfully!');
             return response.data;
@@ -591,7 +591,7 @@ export const updateSalesInvoice = (id, data) => async (dispatch) => {
                 ...data
             }]
         };
-        const response = await axiosInstance.post('/sales-invoices', updateData);
+        const response = await axiosInstance.post('/items/sales-invoices', updateData);
         if (response && response.status >= 200 && response.status < 300) {
             toast.success(response.data.message || 'Sales invoice updated successfully!');
             return response.data;
@@ -606,7 +606,7 @@ export const updateSalesInvoice = (id, data) => async (dispatch) => {
 
 export const deleteSalesInvoice = (id) => async (dispatch) => {
     try {
-        const response = await axiosInstance.delete(`/sales-invoices/${id}`);
+        const response = await axiosInstance.delete(`/items/sales-invoices/${id}`);
         if (response && response.status >= 200 && response.status < 300) {
             toast.success(response.data.message || 'Sales invoice deleted successfully!');
             return true;
@@ -621,7 +621,7 @@ export const deleteSalesInvoice = (id) => async (dispatch) => {
 
 export const deleteAllSalesInvoice = (ids) => async (dispatch) => {
     try {
-        const response = await axiosInstance.delete('/sales-invoices/delete/multiple', {
+        const response = await axiosInstance.delete('/items/sales-invoices/delete/multiple', {
             data: { ids }
         });
 
