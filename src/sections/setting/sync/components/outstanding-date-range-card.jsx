@@ -86,11 +86,17 @@ export function OutstandingDateRangeCard() {
     };
 
     if (!outstandingSync) {
-        return null;
+        return (
+            <Card sx={{ p: 2, backgroundColor: 'background.neutral', minHeight: '350px', height: '100%' }}>
+                <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center', mt: 4 }}>
+                    Loading...
+                </Typography>
+            </Card>
+        );
     }
 
     return (
-        <Card sx={{ p: 2, backgroundColor: 'background.neutral' }}>
+        <Card sx={{ p: 2, backgroundColor: 'background.neutral', minHeight: '350px', height: '100%' }}>
             <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main', mb: 1 }}>
                 Outstanding
             </Typography>

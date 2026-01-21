@@ -719,3 +719,63 @@ export const deleteAllGalleryItem = (ids) => async (dispatch) => {
     }
     return false; // Return false for any errors or unsuccessful attempts
 };
+
+// Cron Settings
+export const cronSettingsList = () => async (dispatch) => {
+    try {
+        const response = await axiosInstance.get('/cron-settings');
+        return response.data || [];
+    } catch (error) {
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return [];
+};
+
+export const updateCronSetting = (data) => async (dispatch) => {
+    try {
+        const response = await axiosInstance.post('/cron-settings', data);
+        if (response && response.status >= 200 && response.status < 300) {
+            // Don't show toast here - let the component handle it
+            return true;
+        }
+    } catch (error) {
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false;
+};
+
+export const rescheduleCronJob = (type) => async (dispatch) => {
+    try {
+        let endpoint = '';
+        switch (type) {
+            case 'Invoice Upload':
+                endpoint = '/order/reschedule-invoice-upload-cron';
+                break;
+            case 'Vendor Sync':
+                endpoint = '/vendors/reschedule-cron';
+                break;
+            case 'Ledger Statement':
+                endpoint = '/ledgers/reschedule-cron';
+                break;
+            case 'Outstanding Receivable':
+                endpoint = '/ledgers/receivable/reschedule-cron';
+                break;
+            case 'Stock Summary':
+                endpoint = '/stocks/reschedule-cron';
+                break;
+            default:
+                return false;
+        }
+        const response = await axiosInstance.post(endpoint);
+        if (response && response.status >= 200 && response.status < 300) {
+            // Don't show toast here - let the component handle it
+            return true;
+        }
+    } catch (error) {
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false;
+};
