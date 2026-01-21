@@ -96,14 +96,7 @@ export function SalesInvoiceDetails() {
                                     {salesInvoice?.referenceNo ?? null}
                                 </Typography>
                             </Box>
-                            <Box display="flex" justifyContent="space-between">
-                                <Typography variant="body2" color="text.secondary">
-                                    GUID:
-                                </Typography>
-                                <Typography variant="body2" fontWeight="medium">
-                                    {salesInvoice?.guid ?? null}
-                                </Typography>
-                            </Box>
+                         
                             <Box display="flex" justifyContent="space-between">
                                 <Typography variant="body2" color="text.secondary">
                                     Master ID:
@@ -118,6 +111,14 @@ export function SalesInvoiceDetails() {
                                 </Typography>
                                 <Typography variant="body2" fontWeight="medium">
                                     {salesInvoice?.amount != null ? fCurrency(salesInvoice.amount) : null}
+                                </Typography>
+                            </Box>
+                            <Box display="flex" justifyContent="space-between">
+                                <Typography variant="body2" color="text.secondary">
+                                    Closing Balance:
+                                </Typography>
+                                <Typography variant="body2" fontWeight="medium">
+                                    {salesInvoice?.closingBalance != null ? fCurrency(salesInvoice.closingBalance) : null}
                                 </Typography>
                             </Box>
                         </Stack>
@@ -139,7 +140,7 @@ export function SalesInvoiceDetails() {
                             </Box>
                             <Box display="flex" justifyContent="space-between">
                                 <Typography variant="body2" color="text.secondary">
-                                    NX Party Code:
+                                    Party Code:
                                 </Typography>
                                 <Typography variant="body2" fontWeight="medium">
                                     {salesInvoice?.nxPartyCode && salesInvoice.nxPartyCode !== 'NULL' ? salesInvoice.nxPartyCode : null}
@@ -169,14 +170,7 @@ export function SalesInvoiceDetails() {
                                     {salesInvoice?.emailId ?? null}
                                 </Typography>
                             </Box>
-                            <Box display="flex" justifyContent="space-between">
-                                <Typography variant="body2" color="text.secondary">
-                                    Email:
-                                </Typography>
-                                <Typography variant="body2" fontWeight="medium">
-                                    {salesInvoice?.eMail ?? null}
-                                </Typography>
-                            </Box>
+
                             <Box display="flex" justifyContent="space-between">
                                 <Typography variant="body2" color="text.secondary">
                                     Mobile:
@@ -185,14 +179,7 @@ export function SalesInvoiceDetails() {
                                     {salesInvoice?.mobileNumber ?? null}
                                 </Typography>
                             </Box>
-                            <Box display="flex" justifyContent="space-between">
-                                <Typography variant="body2" color="text.secondary">
-                                    Closing Balance:
-                                </Typography>
-                                <Typography variant="body2" fontWeight="medium">
-                                    {salesInvoice?.closingBalance != null ? fCurrency(salesInvoice.closingBalance) : null}
-                                </Typography>
-                            </Box>
+                         
                         </Stack>
                     </Grid>
 
@@ -207,7 +194,7 @@ export function SalesInvoiceDetails() {
                             Address Information
                         </Typography>
                         <Stack spacing={1.5}>
-                            <Box>
+                        <Box display="flex" justifyContent="space-between">
                                 <Typography variant="body2" color="text.secondary">
                                     Buyer Address:
                                 </Typography>
@@ -215,7 +202,7 @@ export function SalesInvoiceDetails() {
                                     {salesInvoice?.buyerAddress ?? null}
                                 </Typography>
                             </Box>
-                            <Box>
+                            <Box display="flex" justifyContent="space-between">
                                 <Typography variant="body2" color="text.secondary">
                                     Consignee Address:
                                 </Typography>
@@ -262,69 +249,6 @@ export function SalesInvoiceDetails() {
                         </Stack>
                     </Grid>
 
-                    {/* Orders Information */}
-                    <Grid xs={12}>
-                        <Divider sx={{ mt: 3, mb: 3, borderStyle: 'dashed' }} />
-                    </Grid>
-                    <Grid xs={12}>
-                        <Typography variant="h6" sx={{ mb: 2 }}>
-                            Orders
-                        </Typography>
-                        <Scrollbar>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Order ID</TableCell>
-                                        <TableCell>NX Order ID</TableCell>
-                                        <TableCell>TL Order ID</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {(() => {
-                                        const orders = salesInvoice?.orders;
-                                        const hasValidOrders = orders && Array.isArray(orders) && orders.length > 0 && 
-                                            orders.some(order => 
-                                                (order.orderId && order.orderId !== 'NULL') || 
-                                                (order.nxOrderId && order.nxOrderId !== 'NULL') || 
-                                                (order.tlOrderId && order.tlOrderId !== 'NULL')
-                                            );
-                                        
-                                        console.log('Orders Data:', orders);
-                                        console.log('Has Valid Orders Check:', hasValidOrders);
-                                        console.log('Condition Check:', {
-                                            'orders exists': !!orders,
-                                            'is array': Array.isArray(orders),
-                                            'length': orders?.length,
-                                            'has valid data': orders?.some(order => 
-                                                (order.orderId && order.orderId !== 'NULL') || 
-                                                (order.nxOrderId && order.nxOrderId !== 'NULL') || 
-                                                (order.tlOrderId && order.tlOrderId !== 'NULL')
-                                            )
-                                        });
-                                        
-                                        return hasValidOrders ? (
-                                            orders.map((order, index) => (
-                                                <TableRow key={order.id || index}>
-                                                    <TableCell>{order.orderId && order.orderId !== 'NULL' ? order.orderId : null}</TableCell>
-                                                    <TableCell>{order.nxOrderId && order.nxOrderId !== 'NULL' ? order.nxOrderId : null}</TableCell>
-                                                    <TableCell>{order.tlOrderId && order.tlOrderId !== 'NULL' ? order.tlOrderId : null}</TableCell>
-                                                </TableRow>
-                                            ))
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={3} align="center" sx={{ py: 3 }}>
-                                                    <Typography variant="body2" color="text.secondary">
-                                                        No orders found
-                                                    </Typography>
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })()}
-                                </TableBody>
-                            </Table>
-                        </Scrollbar>
-                    </Grid>
-
                     {/* Items */}
                     <Grid xs={12}>
                         <Divider sx={{ mt: 3, mb: 3, borderStyle: 'dashed' }} />
@@ -341,19 +265,15 @@ export function SalesInvoiceDetails() {
                                             <TableCell>Item Name</TableCell>
                                             <TableCell>Order No</TableCell>
                                             <TableCell>Order Due</TableCell>
-                                            <TableCell>NX Item Code</TableCell>
-                                            <TableCell>Part No</TableCell>
                                             <TableCell>Base Units</TableCell>
                                             <TableCell align="right">Actual Qty</TableCell>
                                             <TableCell align="right">Billed Qty</TableCell>
                                             <TableCell align="right">Incl Rate</TableCell>
                                             <TableCell align="right">Rate</TableCell>
                                             <TableCell align="right">Disc %</TableCell>
-                                            <TableCell align="right">Disc Amt</TableCell>
-                                            <TableCell align="right">Disc Prop</TableCell>
-                                            <TableCell align="right">Amount</TableCell>
-                                            <TableCell>Accounting Name</TableCell>
                                             <TableCell align="right">GST %</TableCell>
+
+                                            <TableCell align="right">Amount</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -375,19 +295,15 @@ export function SalesInvoiceDetails() {
                                                 </TableCell>
                                                 <TableCell>{item.orderNo ?? null}</TableCell>
                                                 <TableCell>{item.orderDue ? fDate(item.orderDue) : null}</TableCell>
-                                                <TableCell>{item.nxItemCode && item.nxItemCode !== 'NULL' ? item.nxItemCode : null}</TableCell>
-                                                <TableCell>{item.partNo && item.partNo !== 'NULL' ? item.partNo : null}</TableCell>
                                                 <TableCell>{item.baseUnits ?? null}</TableCell>
                                                 <TableCell align="right">{item.actualQty ?? null}</TableCell>
                                                 <TableCell align="right">{item.billedQty ?? null}</TableCell>
                                                 <TableCell align="right">{item.inclRate != null ? fCurrency(item.inclRate) : null}</TableCell>
                                                 <TableCell align="right">{item.rate != null ? fCurrency(item.rate) : null}</TableCell>
                                                 <TableCell align="right">{item.discPerc ?? null}</TableCell>
-                                                <TableCell align="right">{item.discAmt != null ? fCurrency(item.discAmt) : null}</TableCell>
-                                                <TableCell align="right">{item.discProp ?? null}</TableCell>
-                                                <TableCell align="right">{item.amount != null ? fCurrency(item.amount) : null}</TableCell>
-                                                <TableCell>{item.accountingName ?? null}</TableCell>
                                                 <TableCell align="right">{item.gstPer ? `${item.gstPer}%` : null}</TableCell>
+
+                                                <TableCell align="right">{item.amount != null ? fCurrency(item.amount) : null}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>

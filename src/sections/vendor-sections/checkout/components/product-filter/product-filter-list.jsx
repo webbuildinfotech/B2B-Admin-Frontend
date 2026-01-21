@@ -28,11 +28,13 @@ export function ProductFilterView() {
     const clearFiltersRef = useRef(null);
 
     const options = _productList.map((opt) => ({
+        id: opt.id,
         group: opt.group,
         subGroup1: opt.subGroup1,
         subGroup2: opt.subGroup2,
         itemName: opt.itemName,
         quantity: opt.quantity,
+        stockQuantity: opt.stockQuantity || opt.quantity || 0,
     }));
 
     const filters = useSetState({
@@ -127,7 +129,7 @@ export function ProductFilterView() {
                     <Autocomplete
                         multiple
                         options={dataFiltered}
-                        getOptionLabel={(option) => option.itemName}
+                        getOptionLabel={(option) => `${option.itemName} (Stock: ${option.stockQuantity || 0})`}
                         value={selectedProducts}
                         open={autocompleteOpen}
                         onOpen={() => setAutocompleteOpen(true)}
@@ -141,7 +143,12 @@ export function ProductFilterView() {
                                     style={{ marginRight: 8 }}
                                     checked={selected}
                                 />
-                                {option.itemName}
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flex: 1 }}>
+                                    <Typography variant="body1">{option.itemName}</Typography>
+                                    <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
+                                        Stock: {option.stockQuantity || 0}
+                                    </Typography>
+                                </Box>
                             </li>
                         )}
                         renderInput={(params) => (
