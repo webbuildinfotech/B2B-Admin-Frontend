@@ -163,8 +163,15 @@ export function SyncView() {
                 </Tabs>
             </Card>
 
-            {/* Tab Panel: Sync Settings */}
+            {/* Tab Panel: Tally Settings */}
             {currentTab === 0 && (
+                <Box sx={{ mt: 2 }}>
+                    <TallyView />
+                </Box>
+            )}
+
+            {/* Tab Panel: Sync Settings */}
+            {currentTab === 1 && (
                 <Box>
                     <Card>
                         <Typography variant="h5" p={2}>Sync Settings</Typography>
@@ -216,7 +223,7 @@ export function SyncView() {
             )}
 
             {/* Tab Panel: Date Range Settings */}
-            {currentTab === 1 && (
+            {currentTab === 2 && (
                 <Card sx={{ mt: 2, minHeight: '500px', display: 'flex', flexDirection: 'column' }}>
                     <Typography variant="h5" p={2}>Financial Year Wise Data Settings</Typography>
                     <Divider />
@@ -236,7 +243,7 @@ export function SyncView() {
             )}
 
             {/* Tab Panel: Cron Job Settings */}
-            {currentTab === 2 && (
+            {currentTab === 3 && (
                 <Card sx={{ mt: 2 }}>
                     <Typography variant="h5" p={2}>Cron Job Settings</Typography>
                     <Divider />
@@ -263,13 +270,6 @@ export function SyncView() {
                         </Grid>
                     </Box>
                 </Card>
-            )}
-
-            {/* Tab Panel: Tally Settings */}
-            {currentTab === 3 && (
-                <Box sx={{ mt: 2 }}>
-                    <TallyView />
-                </Box>
             )}
 
             {/* Confirmation Dialog */}
