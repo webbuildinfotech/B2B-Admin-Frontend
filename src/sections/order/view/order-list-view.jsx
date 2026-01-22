@@ -307,7 +307,7 @@ export function OrderListView() {
                 startIcon={<Iconify icon="eva:sync-fill" />}
                 disabled={loading}
               >
-                {loading ? 'Syncing...' : 'Sync Invoices'}
+                {loading ? 'Syncing...' : 'Sync Orders'}
               </Button>
             )
           }

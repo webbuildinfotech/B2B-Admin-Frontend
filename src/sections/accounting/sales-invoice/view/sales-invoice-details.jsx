@@ -96,7 +96,7 @@ export function SalesInvoiceDetails() {
                                     {salesInvoice?.referenceNo ?? null}
                                 </Typography>
                             </Box>
-                         
+
                             <Box display="flex" justifyContent="space-between">
                                 <Typography variant="body2" color="text.secondary">
                                     Master ID:
@@ -179,7 +179,7 @@ export function SalesInvoiceDetails() {
                                     {salesInvoice?.mobileNumber ?? null}
                                 </Typography>
                             </Box>
-                         
+
                         </Stack>
                     </Grid>
 
@@ -194,7 +194,7 @@ export function SalesInvoiceDetails() {
                             Address Information
                         </Typography>
                         <Stack spacing={1.5}>
-                        <Box display="flex" justifyContent="space-between">
+                            <Box display="flex" justifyContent="space-between">
                                 <Typography variant="body2" color="text.secondary">
                                     Buyer Address:
                                 </Typography>
@@ -268,7 +268,7 @@ export function SalesInvoiceDetails() {
                                             <TableCell>Base Units</TableCell>
                                             <TableCell align="right">Actual Qty</TableCell>
                                             <TableCell align="right">Billed Qty</TableCell>
-                                            <TableCell align="right">Incl Rate</TableCell>
+
                                             <TableCell align="right">Rate</TableCell>
                                             <TableCell align="right">Disc %</TableCell>
                                             <TableCell align="right">GST %</TableCell>
@@ -296,12 +296,12 @@ export function SalesInvoiceDetails() {
                                                 <TableCell>{item.orderNo ?? null}</TableCell>
                                                 <TableCell>{item.orderDue ? fDate(item.orderDue) : null}</TableCell>
                                                 <TableCell>{item.baseUnits ?? null}</TableCell>
-                                                <TableCell align="right">{item.actualQty ?? null}</TableCell>
-                                                <TableCell align="right">{item.billedQty ?? null}</TableCell>
-                                                <TableCell align="right">{item.inclRate != null ? fCurrency(item.inclRate) : null}</TableCell>
+                                                <TableCell align="center">{item.actualQty ?? null}</TableCell>
+                                                <TableCell align="center">{item.billedQty ?? null}</TableCell>
+
                                                 <TableCell align="right">{item.rate != null ? fCurrency(item.rate) : null}</TableCell>
-                                                <TableCell align="right">{item.discPerc ?? null}</TableCell>
-                                                <TableCell align="right">{item.gstPer ? `${item.gstPer}%` : null}</TableCell>
+                                                <TableCell align="center">{item.discPerc ?? null}</TableCell>
+                                                <TableCell align="center">{item.gstPer ? `${item.gstPer}%` : "0"}</TableCell>
 
                                                 <TableCell align="right">{item.amount != null ? fCurrency(item.amount) : null}</TableCell>
                                             </TableRow>
