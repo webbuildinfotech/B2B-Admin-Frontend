@@ -32,10 +32,15 @@ export const orderList = (page, limit, search, status, startDate, endDate) => as
         // Set loading state using constant
         dispatch(setLoading(ORDER_LIST));
 
-        const params = {
-            page: page || 1,
-            limit: limit || 10
-        };
+        const params = {};
+        // Only include pagination params if explicitly provided (not null/undefined)
+        // This allows dashboard to fetch data without pagination
+        if (page !== null && page !== undefined) {
+            params.page = page;
+        }
+        if (limit !== null && limit !== undefined) {
+            params.limit = limit;
+        }
         if (search) params.search = search;
         if (status && status !== 'all') params.status = status;
         if (startDate) params.startDate = startDate;

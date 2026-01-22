@@ -35,7 +35,8 @@ export function CheckoutBillingAddress() {
   const stdPackages = mappedData.reduce((acc, item) => acc + item.stdPkg, 0);
 
   const subtotal = mappedData.reduce((acc, item) => acc + item.totalAmount, 0);
-  const quantity = mappedData.reduce((acc, item) => acc + item.quantity, 0);
+  // Calculate totalQuantity as sum of (stdPkg * noOfPkg) for each item
+  const quantity = mappedData.reduce((acc, item) => acc + (item.stdPkg * item.noOfPkg), 0);
 
   const total = (subtotal - discountData) // Apply percentage discount
   const discountPercentage = ((discountData / subtotal) * 100)
@@ -178,7 +179,8 @@ export function CheckoutBillingAddress() {
           orderId: orderResponse.data?.id,
           products: mappedData.map((item) => ({
             productId: item.productID,
-            quantity: item.quantity,
+            // Send actual quantity (stdPkg * noOfPkg) to Tally, not just noOfPkg
+            quantity: item.stdPkg * item.noOfPkg,
           })),
         };
 

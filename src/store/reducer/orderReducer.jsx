@@ -31,7 +31,12 @@ const orderReducer = (state = initialState, { type, payload } = {}) => {
             if (payload?.orders && Array.isArray(payload.orders)) {
                 return {
                     ...state,
-                    order: payload.orders,
+                    // Store the full vendor response object so statusSummary and monthlyData are accessible
+                    order: {
+                        orders: payload.orders,
+                        statusSummary: payload.statusSummary,
+                        monthlyData: payload.monthlyData
+                    },
                     orderPagination: {
                         total: payload.orders.length,
                         page: 1,

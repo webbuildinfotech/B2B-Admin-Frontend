@@ -97,14 +97,7 @@ export function SalesInvoiceDetails() {
                                 </Typography>
                             </Box>
 
-                            <Box display="flex" justifyContent="space-between">
-                                <Typography variant="body2" color="text.secondary">
-                                    Master ID:
-                                </Typography>
-                                <Typography variant="body2" fontWeight="medium">
-                                    {salesInvoice?.masterId ?? null}
-                                </Typography>
-                            </Box>
+                          
                             <Box display="flex" justifyContent="space-between">
                                 <Typography variant="body2" color="text.secondary">
                                     Amount:

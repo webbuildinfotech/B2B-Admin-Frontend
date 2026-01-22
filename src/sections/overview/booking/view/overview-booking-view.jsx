@@ -23,12 +23,17 @@ export function OverviewBookingView() {
   const navigate = useNavigate();
 
   const { fetchData } = useFetchOrderData();
-  const _orders = useSelector((state) => state.order?.order || []);
+  // Handle both array (admin) and object (vendor) response structures
+  const orderState = useSelector((state) => state.order?.order);
+  const _orders = Array.isArray(orderState) 
+    ? {} // Admin response is array, vendor dashboard needs object structure
+    : (orderState || {});
   
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
-    fetchData();
+    // Pass null for page and limit to fetch data without pagination for dashboard
+    fetchData(null, null);
   }, []);
 
   const allMonths = Array.from({ length: 12 }, (_, i) =>

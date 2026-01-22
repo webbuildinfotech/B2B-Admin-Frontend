@@ -27,12 +27,19 @@ export function CheckoutCartProduct({ productID, row, onDownload, onDelete }) {
 
   const available = row.stockQuantity; // Change this to 0 to simulate product not available
 
-  const [quantity, setQuantity] = useState(row.noOfPkg); // Quantity state
+  const [quantity, setQuantity] = useState(row.noOfPkg || 1); // Quantity state with fallback
   const [isLoading, setIsLoading] = useState(false); // State for loader
   const [isTickVisible, setIsTickVisible] = useState(false); // State for showing the green tick
   const [errorMessage, setErrorMessage] = useState(""); // State for error message when quantity exceeds available stock
   const [productUnavailableMessage, setProductUnavailableMessage] = useState(""); // State for unavailable message
   const dispatch = useDispatch();
+
+  // Sync quantity state when row.noOfPkg changes (e.g., when data is loaded)
+  useEffect(() => {
+    if (row.noOfPkg !== undefined && row.noOfPkg !== null) {
+      setQuantity(row.noOfPkg);
+    }
+  }, [row.noOfPkg]);
 
   const handleQuantityChange = (e) => {
     let newQuantity = e.target.value.trim() === "" ? "" : parseInt(e.target.value, 10); // Handle empty input
@@ -186,11 +193,11 @@ export function CheckoutCartProduct({ productID, row, onDownload, onDelete }) {
         )}
       </TableCell>
 
-      <TableCell align="center">{row.stdPkg * quantity}</TableCell>
+      <TableCell align="center">{row.stdPkg * (quantity || 0)}</TableCell>
 
 
       <TableCell align="center">{available}</TableCell>
-      <TableCell align="center">{fCurrency(row.price * row.quantity)}</TableCell>
+      <TableCell align="center">{fCurrency(row.price * row.stdPkg * (quantity || 0))}</TableCell>
 
       <TableCell align="center" sx={{ px: 6 }}>
         <Tooltip title={isDownloadable ? "Download File" : "File not available"}>

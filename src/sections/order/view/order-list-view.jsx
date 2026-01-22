@@ -68,7 +68,11 @@ export function OrderListView() {
   const isFetchingData = useRef(false);
   const [statusCounts, setStatusCounts] = useState({ all: 0, pending: 0, completed: 0, cancelled: 0 });
 
-  const _orders = useSelector((state) => state.order?.order || []);
+  // Handle both array (admin) and object (vendor) response structures
+  const orderState = useSelector((state) => state.order?.order);
+  const _orders = Array.isArray(orderState) 
+    ? orderState 
+    : (orderState?.orders || []);
   const pagination = useSelector((state) => state.order?.orderPagination || { total: 0, page: 1, limit: 5, totalPages: 0 });
   
   // For vendors, pagination is handled client-side since backend returns all orders
