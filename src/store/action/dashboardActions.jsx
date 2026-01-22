@@ -11,8 +11,22 @@ export const dashboardList = () => async (dispatch) => {
         });
         return true;
     } catch (error) {
-        // Check if error response exists and handle error message
-        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        console.error('Dashboard list error:', error);
+        
+        // Handle different error types
+        let errorMessage = 'An unexpected error occurred. Please try again.';
+        
+        if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+            errorMessage = 'Request timeout. The server is taking too long to respond. Please try again.';
+        } else if (error.code === 'ERR_NETWORK' || !error.response) {
+            errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (error.response?.data) {
+            // Handle NestJS error format: { message: string } or { message: string, error: string }
+            errorMessage = error.response.data.message || error.response.data.error || errorMessage;
+        } else if (error.response?.status) {
+            errorMessage = `Server error (${error.response.status}). Please try again later.`;
+        }
+        
         toast.error(errorMessage);
     }
     return false; // Return false for any errors

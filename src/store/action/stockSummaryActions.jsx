@@ -217,6 +217,7 @@ export const stockList = (page, limit, search) => async (dispatch) => {
         dispatch(clearLoading(STOCK_LIST));
         return true;
     } catch (error) {
+        console.error('Stock list error:', error);
         // Clear loading on error
         dispatch(clearLoading(STOCK_LIST));
         const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
