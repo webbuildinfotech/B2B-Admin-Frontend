@@ -1,5 +1,6 @@
 export const AUTH_DATA = "AUTH_DATA";
 export const USER_LIST = "USER_LIST";
+export const ADMIN_STATE = "ADMIN_STATE";
 export const ADDRESS_LIST = "ADDRESS_LIST";
 export const ADDRESS_BY_LIST = "ADDRESS_BY_LIST"
 
@@ -33,6 +34,7 @@ export const TERM_LIST = "TERM_LIST"
 export const VENDOR_GET_BY_LIST = "VENDOR_GET_BY_LIST"
 export const VENDOR_LIST = "VENDOR_LIST"
 export const CART_LIST = "CART_LIST"
+export const UPDATE_CART_ITEM_DISCOUNT = "UPDATE_CART_ITEM_DISCOUNT"
 
 export const ORDER_BY_LIST = "ORDER_BY_LIST"
 export const ORDER_LIST = "ORDER_LIST"

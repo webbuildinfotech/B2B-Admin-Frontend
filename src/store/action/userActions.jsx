@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 import axiosInstance from "src/configs/axiosInstance";
-import { USER_LIST, AUTH_DATA } from "../constants/actionTypes";
+import { USER_LIST, AUTH_DATA, ADMIN_STATE } from "../constants/actionTypes";
 
 export const userList = () => async (dispatch) => {
     try {
@@ -123,4 +123,18 @@ export const updateAdminProfile = (adminId, profileData) => async (dispatch) => 
         }
     }
     return false; // Return false for any errors or unsuccessful attempts
+};
+
+export const getAdminState = () => async (dispatch) => {
+    try {
+        const response = await axiosInstance.get('/users/admin-state');
+        dispatch({
+            type: ADMIN_STATE,
+            payload: response.data, // Admin state value
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Failed to fetch admin state:', error);
+        return null;
+    }
 };

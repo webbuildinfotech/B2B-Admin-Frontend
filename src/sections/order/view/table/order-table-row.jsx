@@ -200,29 +200,58 @@ export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
                 <Avatar
                   src={item.product.productImages?.[0]}
                   variant="rounded"
-                  sx={{ width: 48, height: 48, mr: 2 }}
+                  sx={{ width: 48, height: 48, mr: 2, flexShrink: 0 }}
                 />
                 <ListItemText
                   primary={item.product.itemName}
                   secondary={item.product.alias}
-                  primaryTypographyProps={{ typography: 'body2' }}
+                  primaryTypographyProps={{ 
+                    typography: 'body2',
+                    noWrap: true,
+                    sx: { maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }
+                  }}
                   secondaryTypographyProps={{
                     component: 'span',
                     color: 'text.disabled',
                     mt: 0.5,
+                    sx: { 
+                      display: 'block',
+                      maxWidth: 200,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }
                   }}
+                  sx={{ flex: '1 1 auto', minWidth: 0, mr: 2 }}
                 />
-                <Box sx={{ width: 130, textAlign: 'right', margin: 2 }}>
-                  <Typography variant="body2" color="text.primary">
-                    {`Original Price: ${fCurrency(item.product.sellingPrice)}`}
+                <Box sx={{ width: 100, textAlign: 'right', mr: 2, flexShrink: 0 }}>
+                  <Typography variant="body2" color="text.primary" noWrap>
+                    Price: {fCurrency(item.product.sellingPrice)}
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ width: 30, textAlign: 'center' }}>
-                  x {item.quantity}
-                </Typography>
-                <Box sx={{ width: 130, textAlign: 'right' }}>
-                  <Typography variant="body2" color="text.primary">
-                    {fCurrency(item.product.sellingPrice * item.quantity)}
+                <Box sx={{ width: 50, textAlign: 'center', mr: 2, flexShrink: 0 }}>
+                  <Typography variant="body2">
+                    x {item.quantity}
+                  </Typography>
+                </Box>
+                {item.discount > 0 ? (() => {
+                  const itemTotal = (item.product?.sellingPrice || 0) * (item.quantity || 0);
+                  const discountPercentage = itemTotal > 0 
+                    ? Math.round((item.discount / itemTotal) * 100) 
+                    : 0;
+                  return (
+                    <Box sx={{ width: 120, textAlign: 'right', mr: 2, flexShrink: 0 }}>
+                      <Typography variant="body2" color="error.main" noWrap>
+                        Discount @{discountPercentage}%
+                      </Typography>
+                    </Box>
+                  );
+                })() : (
+                  <Box sx={{ width: 120, mr: 2, flexShrink: 0 }} />
+                )}
+                <Box sx={{ width: 130, textAlign: 'right', flexShrink: 0 }}>
+                  <Typography variant="body2" color="text.primary" fontWeight="bold" noWrap>
+                    {fCurrency((item.product.sellingPrice * item.quantity) - (item.discount || 0))}
                   </Typography>
                 </Box>
               </Stack>

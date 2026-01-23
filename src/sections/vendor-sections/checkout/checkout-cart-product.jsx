@@ -11,9 +11,9 @@ import { toast } from "sonner";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 import { TextField, Tooltip, CircularProgress, FormHelperText, InputAdornment } from '@mui/material';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { addQuantity, cartList } from 'src/store/action/cartActions';
+import { addQuantity, cartList, updateDiscount } from 'src/store/action/cartActions';
 import { Link } from 'react-router-dom';
 import { DUMMY_IMAGE } from 'src/components/constants';
 
@@ -28,9 +28,24 @@ export function CheckoutCartProduct({ productID, row, onDownload, onDelete }) {
   const available = row.stockQuantity; // Change this to 0 to simulate product not available
 
   const [quantity, setQuantity] = useState(row.noOfPkg || 1); // Quantity state with fallback
+  // Calculate discount percentage from stored discount amount
+  const calculateDiscountPercentage = () => {
+    const itemTotal = row.price * row.stdPkg * row.noOfPkg;
+    if (itemTotal > 0 && row.discount) {
+      // Round to whole number to avoid floating point precision issues
+      return Math.round((row.discount / itemTotal) * 100);
+    }
+    return 0;
+  };
+  const [discount, setDiscount] = useState(calculateDiscountPercentage()); // Discount percentage state
   const [isLoading, setIsLoading] = useState(false); // State for loader
+  const [isDiscountLoading, setIsDiscountLoading] = useState(false); // State for discount loader
+  const discountInputRef = useRef(null); // Ref for discount input field
+  const discountTimeoutRef = useRef(null); // Ref for discount timeout (per component instance)
   const [isTickVisible, setIsTickVisible] = useState(false); // State for showing the green tick
+  const [isDiscountTickVisible, setIsDiscountTickVisible] = useState(false); // State for discount tick
   const [errorMessage, setErrorMessage] = useState(""); // State for error message when quantity exceeds available stock
+  const [discountErrorMessage, setDiscountErrorMessage] = useState(""); // State for discount error message
   const [productUnavailableMessage, setProductUnavailableMessage] = useState(""); // State for unavailable message
   const dispatch = useDispatch();
 
@@ -40,6 +55,32 @@ export function CheckoutCartProduct({ productID, row, onDownload, onDelete }) {
       setQuantity(row.noOfPkg);
     }
   }, [row.noOfPkg]);
+
+  // Sync discount percentage when row.discount changes
+  useEffect(() => {
+    if (row.discount !== undefined && row.discount !== null) {
+      const itemTotal = row.price * row.stdPkg * row.noOfPkg;
+      if (itemTotal > 0) {
+        // Round to whole number to avoid floating point precision issues
+        const discountPercentage = Math.round((row.discount / itemTotal) * 100);
+        setDiscount(discountPercentage);
+      } else {
+        setDiscount(0);
+      }
+    } else {
+      setDiscount(0);
+    }
+  }, [row.discount, row.price, row.stdPkg, row.noOfPkg]);
+
+  // Cleanup timeout on component unmount
+  // eslint-disable-next-line arrow-body-style
+  useEffect(() => {
+    return () => {
+      if (discountTimeoutRef.current) {
+        clearTimeout(discountTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleQuantityChange = (e) => {
     let newQuantity = e.target.value.trim() === "" ? "" : parseInt(e.target.value, 10); // Handle empty input
@@ -100,6 +141,86 @@ export function CheckoutCartProduct({ productID, row, onDownload, onDelete }) {
     }
     // Call your API function here
     // await api.submitQuantity(newQuantity);
+  };
+
+  const handleDiscountChange = (e) => {
+    const inputValue = e.target.value.trim();
+    
+    // Reset error message
+    setDiscountErrorMessage("");
+
+    // Only allow whole numbers (integers), reject decimals
+    if (inputValue === "") {
+      setDiscount("");
+      return;
+    }
+
+    // Check if input contains decimal point
+    if (inputValue.includes('.')) {
+      setDiscountErrorMessage("Only whole numbers allowed (e.g., 10, 14)");
+      return;
+    }
+
+    let discountPercentage = parseInt(inputValue, 10);
+    
+    // Check if it's a valid number
+    if (Number.isNaN(discountPercentage)) {
+      setDiscountErrorMessage("Please enter a valid number");
+      return;
+    }
+
+    // Check for negative discount percentage
+    if (discountPercentage < 0) {
+      setDiscountErrorMessage("Discount cannot be negative");
+      discountPercentage = 0;
+    }
+
+    // Check if percentage exceeds 100
+    if (discountPercentage > 100) {
+      setDiscountErrorMessage("Discount cannot exceed 100%");
+      discountPercentage = 100;
+    }
+
+    // Calculate item total: price * stdPkg * noOfPkg (total quantity)
+    const totalQuantity = row.stdPkg * row.noOfPkg;
+    const itemTotal = row.price * totalQuantity;
+    
+    // Calculate discount amount from percentage and round to 2 decimal places
+    const discountAmount = discountPercentage > 0 
+      ? Math.round(((itemTotal * discountPercentage) / 100) * 100) / 100 
+      : 0;
+
+    // Store rounded whole number percentage for display
+    setDiscount(Math.round(discountPercentage));
+    setIsDiscountLoading(true);
+    setIsDiscountTickVisible(false);
+
+    // Clear any previous timeout for this specific component instance
+    if (discountTimeoutRef.current) {
+      clearTimeout(discountTimeoutRef.current);
+    }
+    
+    // Start a new timeout for this component instance
+    discountTimeoutRef.current = setTimeout(() => {
+      setIsDiscountLoading(false);
+      if (discountPercentage >= 0 && discountPercentage <= 100 && !discountErrorMessage) {
+        setIsDiscountTickVisible(true);
+        if (discountPercentage !== "" && discountPercentage !== null) {
+          // Submit discount amount (not percentage) to backend
+          submitDiscount(discountAmount);
+          // Blur the input field after submission
+          if (discountInputRef.current) {
+            discountInputRef.current.blur();
+          }
+        }
+      }
+      discountTimeoutRef.current = null; // Clear the ref after timeout completes
+    }, 2000);
+  };
+
+  const submitDiscount = async (newDiscount) => {
+    // updateDiscount now updates Redux state directly, no need to refetch entire cart
+    await dispatch(updateDiscount(row.id, newDiscount));
   };
 
   return (
@@ -195,9 +316,84 @@ export function CheckoutCartProduct({ productID, row, onDownload, onDelete }) {
 
       <TableCell align="center">{row.stdPkg * (quantity || 0)}</TableCell>
 
+      <TableCell align="center">
+        <TextField
+          fullWidth
+          type="number"
+          value={Math.round(discount || 0)} // Always display as whole number
+          onChange={handleDiscountChange}
+          inputRef={discountInputRef}
+          sx={{
+            width: 120,
+            textAlign: 'center',
+            fontSize: '16px',
+            backgroundColor: 'transparent',
+            color: 'inherit',
+          }}
+          inputProps={{
+            style: {
+              textAlign: 'center',
+            },
+            min: 0,
+            max: 100,
+            step: 1, // Only allow whole numbers
+          }}
+          onBlur={(e) => {
+            // Ensure value is a whole number on blur
+            const { value } = e.target;
+            if (value && value.includes('.')) {
+              const wholeNumber = Math.round(parseFloat(value));
+              setDiscount(wholeNumber);
+            } else if (value) {
+              // Round any floating point values
+              const wholeNumber = Math.round(parseFloat(value));
+              setDiscount(wholeNumber);
+            }
+          }}
+          InputProps={{
+            endAdornment: isDiscountLoading ? (
+              <InputAdornment position="end">
+                <CircularProgress size={20} />
+              </InputAdornment>
+            ) : isDiscountTickVisible && discount !== "" && discount !== 0 ? (
+              <InputAdornment position="end">
+                <CheckCircleIcon sx={{ color: 'green', fontSize: '20px' }} />
+              </InputAdornment>
+            ) : (
+              <InputAdornment position="end">
+                <CheckCircleIcon sx={{ color: 'grey', fontSize: '20px' }} />
+              </InputAdornment>
+            ),
+          }}
+        />
+        {discountErrorMessage && (
+          <Typography
+            variant="caption"
+            color="error"
+            sx={{
+              display: 'inline-block',
+              marginTop: '4px',
+              fontSize: '0.75rem',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {discountErrorMessage}
+          </Typography>
+        )}
+      </TableCell>
+
+      <TableCell align="center">{row.gstRate || 0}%</TableCell>
 
       <TableCell align="center">{available}</TableCell>
-      <TableCell align="center">{fCurrency(row.price * row.stdPkg * (quantity || 0))}</TableCell>
+      <TableCell align="center">
+        {(() => {
+          const itemTotal = row.price * row.stdPkg * row.noOfPkg;
+          const discountPercentage = discount || 0;
+          const discountAmount = (itemTotal * discountPercentage) / 100;
+          const totalAfterDiscount = itemTotal - discountAmount;
+          return fCurrency(totalAfterDiscount);
+        })()}
+      </TableCell>
 
       <TableCell align="center" sx={{ px: 6 }}>
         <Tooltip title={isDownloadable ? "Download File" : "File not available"}>

@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 import axiosInstance from "src/configs/axiosInstance";
-import { CART_LIST } from "../constants/actionTypes";
+import { CART_LIST, UPDATE_CART_ITEM_DISCOUNT } from "../constants/actionTypes";
 
 export const cartList = () => async (dispatch) => {
     try {
@@ -72,6 +72,23 @@ export const clearCartItem = () => async (dispatch) => {
 
     try {
         await axiosInstance.delete('/cart/clear');
+        return true;
+    } catch (error) {
+        // Check if error response exists and handle error message
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+        toast.error(errorMessage);
+    }
+    return false; // Return false for any errors
+};
+
+export const updateDiscount = (id, discount) => async (dispatch) => {
+    try {
+        await axiosInstance.patch(`/cart/discount/${id}`, { discount });
+        // Update Redux state directly without refetching entire cart to maintain order
+        dispatch({
+            type: UPDATE_CART_ITEM_DISCOUNT,
+            payload: { cartItemId: id, discount },
+        });
         return true;
     } catch (error) {
         // Check if error response exists and handle error message

@@ -89,7 +89,10 @@ const timeline = [
               totalAmount={order?.totalPrice}
               discount={order?.discount}
               finalAmount={order?.finalAmount}
-
+              cgst={order?.cgst}
+              sgst={order?.sgst}
+              igst={order?.igst}
+              totalGst={order?.totalGst}
             />
 
             <OrderDetailsHistory orderDate={order} history={timeline} />

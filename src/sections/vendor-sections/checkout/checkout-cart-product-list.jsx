@@ -14,8 +14,10 @@ const TABLE_HEAD = [
   { id: 'std_pkg', label: 'Standard Packaging', align: 'center' },
   { id: 'no_pkg', label: 'No Of Package', align: 'center' },
   { id: 'quantity', label: 'Quantity', align: 'center' },
+  { id: 'discount', label: 'Discount', align: 'center' },
+  { id: 'gst', label: 'GST', align: 'center' },
   { id: 'available', label: 'Available', align: 'center' },
-  { id: 'totalAmount', label: 'Total Price', align: 'center' },
+  { id: 'totalAmount', label: 'Total Amount', align: 'center' },
   { id: 'dimensional', label: 'Dimensional', align: 'center' },
   { id: '' },
 ];

@@ -4,7 +4,8 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { OrderCompleteIllustration } from 'src/assets/illustrations';
 import { Iconify } from 'src/components/iconify';
@@ -12,6 +13,8 @@ import { RouterLink } from 'src/routes/components';
 import { paths } from 'src/routes/paths';
 
 export function CheckoutOrderComplete({ open, onReset }) {
+  const navigate = useNavigate();
+  const redirectTimeoutRef = useRef(null);
 
   // Prevent user from going back with browser back button
   useEffect(() => {
@@ -25,6 +28,29 @@ export function CheckoutOrderComplete({ open, onReset }) {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
+
+  // Auto-redirect to orders page after 5 seconds
+  useEffect(() => {
+    if (open) {
+      // Clear any existing timeout
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+
+      // Set new timeout for 5 seconds
+      redirectTimeoutRef.current = setTimeout(() => {
+        navigate(paths.orders.root);
+        onReset(); // Reset checkout state
+      }, 5000);
+    }
+
+    // Cleanup timeout on unmount or when dialog closes
+    return () => {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
+  }, [open, navigate, onReset]);
 
   return (
     <Dialog

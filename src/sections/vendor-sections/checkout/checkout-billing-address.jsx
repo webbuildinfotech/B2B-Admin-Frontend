@@ -11,6 +11,7 @@ import { AddressItem, AddressNewForm } from 'src/sections/vendor-sections/addres
 import { useDispatch, useSelector } from 'react-redux';
 import useCart from './components/useCart';
 import { addressList, createAddress, deleteAddress, updateAddress } from 'src/store/action/addressActions';
+import { getAdminState } from 'src/store/action/userActions';
 import { CheckoutPayment } from './checkout-payment';
 import { LoadingButton } from '@mui/lab';
 import { Typography, Card, CardContent, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Alert } from '@mui/material';
@@ -27,6 +28,7 @@ const DELIVERY_OPTIONS = [
 export function CheckoutBillingAddress() {
 
   const [discountData, setDiscountData] = useState(0); // State for discount value
+  const [selectedDelivery, setSelectedDelivery] = useState(null); // Track selected delivery option
   const checkout = useCheckoutContext();
   const dispatch = useDispatch();
   const mappedData = useCart();
@@ -34,12 +36,111 @@ export function CheckoutBillingAddress() {
   const noOfPackages = mappedData.reduce((acc, item) => acc + item.noOfPkg, 0);
   const stdPackages = mappedData.reduce((acc, item) => acc + item.stdPkg, 0);
 
+  // Subtotal is already calculated in useCart with discounts applied
+  // totalAmount in mappedData is already (price * stdPkg * noOfPkg) - discount
   const subtotal = mappedData.reduce((acc, item) => acc + item.totalAmount, 0);
+  
   // Calculate totalQuantity as sum of (stdPkg * noOfPkg) for each item
   const quantity = mappedData.reduce((acc, item) => acc + (item.stdPkg * item.noOfPkg), 0);
 
-  const total = (subtotal - discountData) // Apply percentage discount
-  const discountPercentage = ((discountData / subtotal) * 100)
+  // Round discount percentage to 2 decimal places to avoid floating point precision issues
+  const discountPercentage = subtotal > 0 ? Math.round(((discountData / subtotal) * 100) * 100) / 100 : 0;
+  
+  // Calculate GST breakdown for final amount (same logic as checkout-summary)
+  const [adminState, setAdminState] = useState(null);
+  const [vendorState, setVendorState] = useState(null);
+  const [isStateMatch, setIsStateMatch] = useState(false);
+  
+  // Get admin state from Redux store
+  const adminStateFromStore = useSelector((state) => state.user?.adminState);
+  
+  // Fetch admin state and get vendor state from localStorage
+  useEffect(() => {
+    const fetchStates = async () => {
+      try {
+        // Get admin state from Redux store (fetch if not available)
+        let adminStateValue = adminStateFromStore;
+        if (!adminStateValue) {
+          adminStateValue = await dispatch(getAdminState());
+        }
+        setAdminState(adminStateValue);
+        
+        // Get vendor state from localStorage (userData)
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const vendorStateValue = userData?.user?.state || null;
+        setVendorState(vendorStateValue);
+        
+        const match = !!(adminStateValue && vendorStateValue && adminStateValue === vendorStateValue);
+        setIsStateMatch(match);
+      } catch (error) {
+        console.error('Failed to fetch states:', error);
+      }
+    };
+    fetchStates();
+  }, [dispatch, adminStateFromStore]);
+  
+  // Calculate GST breakdown - GST should be calculated AFTER order-level discount
+  const calculateGSTBreakdown = () => {
+    if (!mappedData || mappedData.length === 0) {
+      return { totalGST: 0, cgst: 0, sgst: 0, igst: 0, isSameState: false };
+    }
+    
+    const isSameState = isStateMatch;
+    
+    // Calculate total before order-level discount
+    const totalBeforeOrderDiscount = mappedData.reduce((sum, item) => {
+      const itemTotal = item.price * item.stdPkg * item.noOfPkg;
+      const itemDiscount = item.discount || 0;
+      return sum + (itemTotal - itemDiscount);
+    }, 0);
+    
+    let totalCGST = 0;
+    let totalSGST = 0;
+    let totalIGST = 0;
+    
+    mappedData.forEach((item) => {
+      const itemTotal = item.price * item.stdPkg * item.noOfPkg;
+      const itemDiscount = item.discount || 0;
+      const priceAfterItemDiscount = itemTotal - itemDiscount;
+      
+      // Calculate proportion of this item in the total
+      const itemProportion = totalBeforeOrderDiscount > 0 ? priceAfterItemDiscount / totalBeforeOrderDiscount : 0;
+      
+      // Apply order-level discount proportionally to this item
+      const itemPriceAfterOrderDiscount = priceAfterItemDiscount - (discountData * itemProportion);
+      
+      const gstRate = item.gstRate || 0;
+      
+      if (gstRate > 0) {
+        if (isSameState) {
+          // Calculate GST on the amount after order-level discount
+          const cgst = (itemPriceAfterOrderDiscount * gstRate) / 200;
+          const sgst = (itemPriceAfterOrderDiscount * gstRate) / 200;
+          totalCGST += cgst;
+          totalSGST += sgst;
+        } else {
+          // Calculate GST on the amount after order-level discount
+          const igst = (itemPriceAfterOrderDiscount * gstRate) / 100;
+          totalIGST += igst;
+        }
+      }
+    });
+    
+    return {
+      cgst: totalCGST,
+      sgst: totalSGST,
+      igst: totalIGST,
+      totalGST: totalCGST + totalSGST + totalIGST,
+      isSameState,
+    };
+  };
+  
+  const gstBreakdown = calculateGSTBreakdown();
+  const subtotalAfterDiscount = subtotal - discountData;
+  const finalTotalWithGST = subtotalAfterDiscount + gstBreakdown.totalGST;
+  
+  // For display in CheckoutSummary
+  const total = finalTotalWithGST;
 
   const addressForm = useBoolean();
   const userAddress = useSelector((state) => state.address?.address || []);
@@ -52,6 +153,13 @@ export function CheckoutBillingAddress() {
 
   const defaultValues = { delivery: checkout.shipping };
   const methods = useForm({ defaultValues });
+
+  // Watch delivery selection to update GST display in real-time
+  const deliveryValue = methods.watch('delivery');
+  
+  useEffect(() => {
+    setSelectedDelivery(deliveryValue);
+  }, [deliveryValue]);
 
 
   useEffect(() => {
@@ -167,9 +275,11 @@ export function CheckoutBillingAddress() {
         addressId: selectedAddressId,
         delivery: selectedDeliveryOption.id,
         discount: discountPercentage,
-        finalAmount: total
-
-
+        finalAmount: finalTotalWithGST,
+        cgst: gstBreakdown.cgst,
+        sgst: gstBreakdown.sgst,
+        igst: gstBreakdown.igst,
+        totalGst: gstBreakdown.totalGST
       };
 
       const orderResponse = await dispatch(createOrder(orderData));
@@ -181,6 +291,8 @@ export function CheckoutBillingAddress() {
             productId: item.productID,
             // Send actual quantity (stdPkg * noOfPkg) to Tally, not just noOfPkg
             quantity: item.stdPkg * item.noOfPkg,
+            // Include per-item discount
+            discount: item.discount || 0,
           })),
         };
 
@@ -293,6 +405,12 @@ export function CheckoutBillingAddress() {
             subtotal={subtotal}
             shipping={checkout.shipping}
             discount={discountData}
+            cartItems={mappedData}
+            selectedAddressState={
+              selectedAddressId && selectedDelivery 
+                ? userAddress.find(addr => addr.id === selectedAddressId)?.state 
+                : null
+            }
           />
 
           {subtotal > 0 && (

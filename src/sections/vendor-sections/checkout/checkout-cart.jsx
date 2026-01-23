@@ -31,8 +31,11 @@ export function CheckoutCart() {
   const [itemsToRemove, setItemsToRemove] = useState([]);
 
   const totalItems = mappedData.reduce((acc, item) => acc + item.quantity, 0);
+  // Subtotal is already calculated in useCart with discounts applied
+  // totalAmount in mappedData is already (price * stdPkg * noOfPkg) - discount
   const subtotal = mappedData.reduce((acc, item) => acc + item.totalAmount, 0);
-  // Calculate the total after applying the discount
+  
+  // Calculate the total after applying the discount (GST will be added in summary)
   const total =
     discountType === 'percentage'
       ? subtotal - (subtotal * discount) / 100 // Apply percentage discount
@@ -218,6 +221,7 @@ export function CheckoutCart() {
           discount={discount}
           subtotal={subtotal}
           onApplyDiscount={handleApplyDiscount}
+          cartItems={mappedData}
         />
 
         <Box

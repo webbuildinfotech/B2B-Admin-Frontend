@@ -1,8 +1,9 @@
-import { USER_LIST } from "../constants/actionTypes";
+import { USER_LIST, ADMIN_STATE } from "../constants/actionTypes";
 
 const initialState = {
     user: [],
-    userByID: ''
+    userByID: '',
+    adminState: null
 };
 const userReducer = (state = initialState, { type, payload } = {}) => {
     switch (type) {
@@ -10,6 +11,11 @@ const userReducer = (state = initialState, { type, payload } = {}) => {
             return {
                 ...state,
                 user: payload,
+            };
+        case ADMIN_STATE:
+            return {
+                ...state,
+                adminState: payload,
             };
         // case "SET_USER_BY_DATA":
             // return {
