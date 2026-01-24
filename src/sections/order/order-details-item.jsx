@@ -35,8 +35,11 @@ export function OrderDetailsItems({
   // Determine if same state (CGST/SGST exists) or different state (IGST exists)
   const isSameState = (cgst > 0 || sgst > 0);
   
-  // Calculate base amount for GST (subtotal after item discounts, before order discount)
-  const baseAmountForGST = calculateBaseAmountForGST(items, totalAmount);
+  // Calculate base amount for GST (subtotal after item discounts AND order discount)
+  // GST is calculated on the amount AFTER order discount, so we need to use that as base
+  const subtotalAfterItemDiscount = calculateBaseAmountForGST(items, totalAmount);
+  const orderLevelDiscount = discount && subtotalAfterItemDiscount ? (subtotalAfterItemDiscount * discount) / 100 : 0;
+  const baseAmountForGST = subtotalAfterItemDiscount - orderLevelDiscount;
   
   // Calculate GST percentages using utility function
   const { cgstPercentage, sgstPercentage, igstPercentage } = calculateGSTPercentages({
