@@ -9,12 +9,14 @@ import { OrderDetailsView } from 'src/sections/order/view';
 import { ReceivablesListDetails } from 'src/sections/accounting/Receivables/view/receivables-details';
 import { PaymentViewUi } from 'src/sections/payments/payment-vendor-view';
 import { LedgerListDetails } from 'src/sections/accounting/ledger/view/ledger-details';
-import {  ProductView } from 'src/sections/product/view';
+import { SalesInvoiceDetails } from 'src/sections/accounting/sales-invoice/view';
+import { ProductView } from 'src/sections/product/view';
 // Overview
 const IndexPage = lazy(() => import('src/pages/dashboard'));
 const OrderPage = lazy(() => import('src/pages/orders'));
 const LedgerPage = lazy(() => import('src/pages/accounting/ledger'));
 const ReceivablesPage = lazy(() => import('src/pages/accounting/Receivables'));
+const SalesInvoicePage = lazy(() => import('src/pages/accounting/sales-invoice'));
 const ProfilePage = lazy(() => import('src/pages/vendor-page/settings/profile'));
 const LogoutPage = lazy(() => import('src/pages/settings/logout'));
 
@@ -59,6 +61,14 @@ export const vendorRoutes = [
         children: [
             { element: <OrderPage />, index: true },
             { path: 'details/:id', element: <OrderDetailsView /> },
+        ],
+    },
+    {
+        path: 'sales-invoice',
+        element: CONFIG.auth.skip ? <>{layoutContent}</> : <AuthGuard>{layoutContent}</AuthGuard>,
+        children: [
+            { element: <SalesInvoicePage />, index: true },
+            { path: 'view/:id', element: <SalesInvoiceDetails /> },
         ],
     },
     {

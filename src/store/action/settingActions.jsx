@@ -751,7 +751,7 @@ export const rescheduleCronJob = (type) => async (dispatch) => {
         let endpoint = '';
         switch (type) {
             case 'Invoice Upload':
-                endpoint = '/order/reschedule-invoice-upload-cron';
+                endpoint = '/items/sales-invoices/reschedule-invoice-upload-cron';
                 break;
             case 'Vendor Sync':
                 endpoint = '/vendors/reschedule-cron';

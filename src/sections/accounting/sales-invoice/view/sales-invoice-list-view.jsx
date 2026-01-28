@@ -16,6 +16,7 @@ import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
+import { toast } from 'sonner';
 import {
     useTable,
     emptyRows,
@@ -26,7 +27,6 @@ import {
     TablePaginationCustom,
 } from 'src/components/table';
 import { useDispatch, useSelector } from 'react-redux';
-import useUserRole from 'src/layouts/components/user-role';
 import { SalesInvoiceTableToolbar } from './sales-invoice-table-toolbar';
 import { SalesInvoiceTableFiltersResult } from './table/sales-invoice-table-filters-result';
 import { SalesInvoiceTableRow } from './table/sales-invoice-table-row';
@@ -47,7 +47,6 @@ export function SalesInvoiceListView() {
     
     const filters = useSetState({ searchTerm: urlSearch });
     const confirm = useBoolean();
-    const userRole = useUserRole();
     const [selectedRows, setSelectedRows] = useState([]);
     const [deleting, setDeleting] = useState(false);
 
@@ -64,6 +63,7 @@ export function SalesInvoiceListView() {
 
     const TABLE_HEAD = [
         { id: 'voucherNo', label: 'Voucher No' },
+        { id: 'invoice', label: 'Invoice', align: 'center' },
         { id: 'partyName', label: 'Party Name' },
         { id: 'voucherDate', label: 'Date' },
         { id: 'voucherType', label: 'Type' },
@@ -146,6 +146,14 @@ export function SalesInvoiceListView() {
         });
     }, [fetchDeleteData, fetchData, table.page, table.rowsPerPage, debouncedSearchTerm]);
 
+    const handleDownload = useCallback((row) => {
+        if (row?.invoicePdf) {
+            window.open(row.invoicePdf, '_blank');
+        } else {
+            toast.warning('PDF not available for this invoice');
+        }
+    }, []);
+
     return (
         <div>
             <DashboardContent maxWidth="2xl">
@@ -216,6 +224,7 @@ export function SalesInvoiceListView() {
                                             selected={selectedRows.includes(row.id)}
                                             onSelectRow={() => handleSelectRow(row.id)}
                                             onDeleteRow={() => handleDeleteRow(row.id)}
+                                            onDownload={handleDownload}
                                         />
                                     ))}
 

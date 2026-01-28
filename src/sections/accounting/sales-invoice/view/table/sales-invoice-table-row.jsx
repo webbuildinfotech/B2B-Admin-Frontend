@@ -10,6 +10,7 @@ import IconButton from '@mui/material/IconButton';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
 import TableCell from '@mui/material/TableCell';
+import Typography from '@mui/material/Typography';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/custom-dialog';
@@ -18,9 +19,10 @@ import { RouterLink } from 'src/routes/components';
 import { fCurrency, fAmountWithoutMinus } from 'src/utils/format-number';
 import { fDate } from 'src/utils/format-time';
 
-export function SalesInvoiceTableRow({ row, selected, onSelectRow, onDeleteRow }) {
+export function SalesInvoiceTableRow({ row, selected, onSelectRow, onDeleteRow, onDownload }) {
   const confirm = useBoolean();
   const popover = usePopover();
+  const hasPdf = !!row?.invoicePdf;
 
   const renderPrimary = (
     <TableRow hover selected={selected}>
@@ -39,6 +41,21 @@ export function SalesInvoiceTableRow({ row, selected, onSelectRow, onDeleteRow }
             </Link>
           </Stack>
         </Stack>
+      </TableCell>
+      <TableCell align="center">
+        {hasPdf && onDownload ? (
+          <Tooltip title="Download PDF">
+            <IconButton
+              color="primary"
+              size="small"
+              onClick={() => onDownload(row)}
+            >
+              <Iconify icon="solar:download-minimalistic-bold" />
+            </IconButton>
+          </Tooltip>
+        ) : (
+          <Typography variant="caption" color="text.disabled">-</Typography>
+        )}
       </TableCell>
       <TableCell>{row?.partyName || '-'}</TableCell>
       <TableCell>{fDate(row?.voucherDate) || '-'}</TableCell>
@@ -68,6 +85,25 @@ export function SalesInvoiceTableRow({ row, selected, onSelectRow, onDeleteRow }
         slotProps={{ arrow: { placement: 'right-top' } }}
       >
         <MenuList>
+          {hasPdf && onDownload && (
+            <MenuItem
+              onClick={() => {
+                onDownload(row);
+                popover.onClose();
+              }}
+            >
+              <Iconify icon="solar:download-minimalistic-bold" />
+              Download PDF
+            </MenuItem>
+          )}
+          <MenuItem
+            component={RouterLink}
+            to={`/sales-invoice/view/${row.id}`}
+            sx={{ color: 'green' }}
+          >
+            <Iconify icon="solar:eye-bold" />
+            View
+          </MenuItem>
           <MenuItem
             onClick={() => {
               confirm.onTrue();
@@ -77,14 +113,6 @@ export function SalesInvoiceTableRow({ row, selected, onSelectRow, onDeleteRow }
           >
             <Iconify icon="solar:trash-bin-trash-bold" />
             Delete
-          </MenuItem>
-          <MenuItem
-            component={RouterLink}
-            to={`/sales-invoice/view/${row.id}`}
-            sx={{ color: 'green' }}
-          >
-            <Iconify icon="solar:eye-bold" />
-            View
           </MenuItem>
         </MenuList>
       </CustomPopover>

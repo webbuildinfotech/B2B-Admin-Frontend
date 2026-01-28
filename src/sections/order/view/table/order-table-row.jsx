@@ -29,15 +29,8 @@ import { useDispatch } from 'react-redux';
 
 // ----------------------------------------------------------------------
 
-export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteRow, onDownload, onStatusUpdate }) {
-  // const isDownloadable = !!row.invoicePdf; // Check if pdfPath is available
+export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteRow, onStatusUpdate }) {
   const userRole = useUserRole();
-
-
-  const isDownloadable =
-    !!row.invoicePdf &&
-    (userRole === 'Admin' || (userRole === 'Vendor' && row.status === 'completed'));
-
   const confirm = useBoolean();
 
   const collapse = useBoolean();
@@ -125,33 +118,6 @@ export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
             sx={{ cursor: userRole === 'Admin' ? 'pointer' : 'not-allowed' }}
             onClick={userRole === 'Admin' ? handleOpen : undefined}
           />
-        </Tooltip>
-      </TableCell>
-
-      <TableCell align="center" sx={{ cursor: 'pointer' }}>
-        <Tooltip
-          title={
-            // isDownloadable ? "Download File" : "File not available"}
-          !row.invoicePdf
-          ? 'File not available'
-          : userRole === 'Vendor' && row.status !== 'completed'
-            ? row.status === 'cancelled' 
-              ? 'Order Cancelled'
-              : 'Order Not Completed'
-            : 'Download File'
-      }
-        >
-          <span>
-            {' '}
-            {/* Wrap in span to allow tooltip on disabled button */}
-            <IconButton
-              onClick={() => isDownloadable && onDownload(row.id)}
-              sx={{ color: 'primary.main' }}
-              disabled={!isDownloadable} // Disable if no pdfPath
-            >
-              <Iconify icon="eva:download-outline" />
-            </IconButton>
-          </span>
         </Tooltip>
       </TableCell>
 

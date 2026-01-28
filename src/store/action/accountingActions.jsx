@@ -525,6 +525,23 @@ export const deleteAllLedger = (ids) => async (dispatch) => {
 };
 
 // Sales Invoice
+
+export const syncSalesInvoices = () => async () => {
+    try {
+        const { data } = await axiosInstance.post('/items/sales-invoices/upload-all-invoices');
+        if (data?.message) {
+            toast.success(data.message);
+        } else {
+            toast.success('Invoices sync started.');
+        }
+        return true;
+    } catch (error) {
+        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred';
+        toast.error(errorMessage);
+        return false;
+    }
+};
+
 export const salesInvoiceList = (page, limit, search) => async (dispatch) => {
     try {
         dispatch(setLoading(SALES_INVOICE_LIST));

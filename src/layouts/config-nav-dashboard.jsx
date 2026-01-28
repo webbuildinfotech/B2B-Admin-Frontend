@@ -97,6 +97,7 @@ export const useNavData = () => {
       subheader: 'Reports',
       items: [
         { title: 'Orders Reports', path: paths.orders.root, icon: ICONS.orders },
+        { title: 'Sales Invoice', path: paths.salesInvoice.root, icon: ICONS.salesInvoice },
         {
           title: 'Accounting',
           path: paths.accounts.root,

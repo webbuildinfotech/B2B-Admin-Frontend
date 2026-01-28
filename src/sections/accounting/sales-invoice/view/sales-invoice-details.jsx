@@ -45,13 +45,24 @@ export function SalesInvoiceDetails() {
                     { name: 'View' },
                 ]}
                 action={
-                    <Button
-                        variant="outlined"
-                        startIcon={<Iconify icon="eva:arrow-back-fill" />}
-                        onClick={() => navigate(-1)}
-                    >
-                        Back
-                    </Button>
+                    <Stack direction="row" spacing={1}>
+                        {salesInvoice?.invoicePdf && (
+                            <Button
+                                variant="contained"
+                                startIcon={<Iconify icon="solar:download-minimalistic-bold" />}
+                                onClick={() => window.open(salesInvoice.invoicePdf, '_blank')}
+                            >
+                                Download PDF
+                            </Button>
+                        )}
+                        <Button
+                            variant="outlined"
+                            startIcon={<Iconify icon="eva:arrow-back-fill" />}
+                            onClick={() => navigate(-1)}
+                        >
+                            Back
+                        </Button>
+                    </Stack>
                 }
                 sx={{ mb: { xs: 3, md: 5 } }}
             />

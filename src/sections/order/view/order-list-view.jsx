@@ -40,7 +40,6 @@ import { useFetchOrderData } from '../components/fetch-order';
 import useUserRole from 'src/layouts/components/user-role';
 import { syncOrder } from 'src/store/action/orderActions';
 import { Typography } from '@mui/material';
-import { toast } from 'sonner';
 import { TableLoaderOverlay } from 'src/components/loader/table-loader';
 import { ORDER_LIST } from 'src/store/constants/actionTypes';
 // ----------------------------------------------------------------------
@@ -56,13 +55,13 @@ export function OrderListView() {
 
   const table = useTable({ defaultRowsPerPage: urlLimit, defaultCurrentPage: urlPage });
   const confirm = useBoolean();
+  const confirmSync = useBoolean();
   const userRole = useUserRole();
   const [selectedRows, setSelectedRows] = useState([]);
   const { fetchData, fetchDeleteData, deleteAllItems, fetchStatusCounts } = useFetchOrderData();
   const dispatch = useDispatch();
-  const confirmSync = useBoolean();
   const [deleting, setDeleting] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [syncLoading, setSyncLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState(urlSearch);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(urlSearch);
   const isFetchingData = useRef(false);
@@ -124,7 +123,6 @@ export function OrderListView() {
     { id: 'delivery', label: 'Delivery Type' },
     { id: 'createdAt', label: 'Order Date' },
     { id: 'status', label: 'Status' },
-    { id: 'invoices ', label: 'Invoices', align: 'center' },
     { id: 'actions', label: 'Actions', align: 'center' },
 
   ];
@@ -257,26 +255,17 @@ export function OrderListView() {
   );
 
   const handleSyncAPI = async () => {
-    setLoading(true);
+    setSyncLoading(true);
     try {
       await dispatch(syncOrder());
       const startDate = filters.state.startDate ? filters.state.startDate.toISOString() : null;
       const endDate = filters.state.endDate ? filters.state.endDate.toISOString() : null;
       await fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm, filters.state.status, startDate, endDate);
     } catch (error) {
-      console.error('Error syncing order invoice:', error);
+      console.error('Error syncing orders:', error);
     } finally {
-      setLoading(false);
+      setSyncLoading(false);
       confirmSync.onFalse();
-    }
-  };
-
-  const handleDownload = async (id) => {
-    const order = _orders.find((data) => data.id === id);
-    if (order && order.invoicePdf) {
-      window.open(order.invoicePdf, '_blank'); // Opens the PDF in a new tab
-    } else {
-      toast.warning('File Not found for this order', id);
     }
   };
 
@@ -302,16 +291,15 @@ export function OrderListView() {
             { name: 'List' },
           ]}
           sx={{ mb: { xs: 3, md: 5 } }}
-
           action={
-            userRole === 'Admin' && ( // Only show the button for Vendor role
+            userRole === 'Admin' && (
               <Button
-                onClick={confirmSync.onTrue} // Open the sync confirmation dialog
+                onClick={confirmSync.onTrue}
                 variant="contained"
                 startIcon={<Iconify icon="eva:sync-fill" />}
-                disabled={loading}
+                disabled={syncLoading}
               >
-                {loading ? 'Syncing...' : 'Sync Orders'}
+                {syncLoading ? 'Syncing...' : 'Sync Orders'}
               </Button>
             )
           }
@@ -415,7 +403,6 @@ export function OrderListView() {
                       onSelectRow={() => handleSelectRow(row.id)}
                       onDeleteRow={() => handleDeleteRow(row.id)}
                       onViewRow={() => handleViewRow(row.id)}
-                      onDownload={() => handleDownload(row.id)}
                       onStatusUpdate={handleRefreshAfterStatusUpdate}
                     />
                   ))}
@@ -443,26 +430,25 @@ export function OrderListView() {
         </Card>
       </DashboardContent>
 
-      {/* Sync Confirmation Dialog */}
       <ConfirmDialog
         open={confirmSync.value}
         onClose={confirmSync.onFalse}
         content={
           <Box>
-            <Typography gutterBottom>Are you sure you want to sync the Invoices?</Typography>
+            <Typography gutterBottom>Are you sure you want to sync orders with Tally?</Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              This action will update the Invoices data and may take a few moments.
+              This will post pending invoices to Tally. It may take a few moments.
             </Typography>
           </Box>
         }
         action={
           <Button
-            onClick={handleSyncAPI} // Trigger sync API call on confirmation
+            onClick={handleSyncAPI}
             variant="contained"
             color="primary"
-            disabled={loading} // Disable button while loading
+            disabled={syncLoading}
           >
-            {loading ? 'Syncing...' : 'Confirm Sync'}
+            {syncLoading ? 'Syncing...' : 'Confirm Sync'}
           </Button>
         }
       />
