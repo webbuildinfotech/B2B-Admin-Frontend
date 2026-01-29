@@ -4,7 +4,7 @@ import packageJson from '../package.json';
 export const CONFIG = {
   site: {
     name: 'Admin Panel',
-    serverUrl: import.meta.env.VITE_SERVER_URL || 'http://localhost:3000',
+    serverUrl: import.meta.env.DEV ? '/api' : (import.meta.env.VITE_SERVER_URL || 'http://localhost:3000'),
     assetURL: import.meta.env.VITE_ASSET_URL ?? '',
     basePath: import.meta.env.VITE_BASE_PATH ?? '',
     version: packageJson.version,

@@ -6,6 +6,7 @@ import react from '@vitejs/plugin-react-swc';
 // ----------------------------------------------------------------------
 
 const PORT = 3030;
+const BACKEND_PORT = 3000;
 
 const env = loadEnv('all', process.cwd());
 
@@ -35,6 +36,17 @@ export default defineConfig({
       },
     ],
   },
-  server: { port: PORT, host: true },
+  server: {
+    port: PORT,
+    host: true,
+    // Proxy API to backend so Admin + Vendor Web can run together (avoids browser connection limit to localhost:3000)
+    proxy: {
+      '/api': {
+        target: `http://localhost:${BACKEND_PORT}`,
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
   preview: { port: PORT, host: true },
 });
