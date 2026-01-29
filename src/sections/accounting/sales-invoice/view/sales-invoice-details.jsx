@@ -267,17 +267,15 @@ export function SalesInvoiceDetails() {
                                     <TableHead>
                                         <TableRow>
                                             <TableCell>Item Name</TableCell>
-                                            <TableCell>Order No</TableCell>
-                                            <TableCell>Order Due</TableCell>
-                                            <TableCell>Base Units</TableCell>
-                                            <TableCell align="right">Actual Qty</TableCell>
-                                            <TableCell align="right">Billed Qty</TableCell>
+                                               <TableCell>Base Units</TableCell>
+                                            <TableCell align="center">Actual Qty</TableCell>
+                                            <TableCell align="center">Billed Qty</TableCell>
 
-                                            <TableCell align="right">Rate</TableCell>
-                                            <TableCell align="right">Disc %</TableCell>
-                                            <TableCell align="right">GST %</TableCell>
+                                            <TableCell align="center">Rate</TableCell>
+                                            <TableCell align="center">Disc %</TableCell>
+                                            <TableCell align="center">GST %</TableCell>
 
-                                            <TableCell align="right">Amount</TableCell>
+                                            <TableCell align="center">Amount</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -297,17 +295,15 @@ export function SalesInvoiceDetails() {
                                                         )}
                                                     </Box>
                                                 </TableCell>
-                                                <TableCell>{item.orderNo ?? null}</TableCell>
-                                                <TableCell>{item.orderDue ? fDate(item.orderDue) : null}</TableCell>
-                                                <TableCell>{item.baseUnits ?? null}</TableCell>
+                                                   <TableCell>{item.baseUnits ?? null}</TableCell>
                                                 <TableCell align="center">{item.actualQty ?? null}</TableCell>
                                                 <TableCell align="center">{item.billedQty ?? null}</TableCell>
 
-                                                <TableCell align="right">{item.rate != null ? fCurrency(item.rate) : null}</TableCell>
+                                                <TableCell align="center">{item.rate != null ? fCurrency(item.rate) : null}</TableCell>
                                                 <TableCell align="center">{item.discPerc ?? null}</TableCell>
                                                 <TableCell align="center">{item.gstPer ? `${item.gstPer}%` : "0"}</TableCell>
 
-                                                <TableCell align="right">{item.amount != null ? fCurrency(item.amount) : null}</TableCell>
+                                                <TableCell align="center">{item.amount != null ? fCurrency(item.amount) : null}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -334,16 +330,14 @@ export function SalesInvoiceDetails() {
                                     <TableHead>
                                         <TableRow>
                                             <TableCell>Ledger Name</TableCell>
-                                            <TableCell align="right">Rate %</TableCell>
-                                            <TableCell align="right">Amount</TableCell>
+                                                 <TableCell align="right">Amount</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         {salesInvoice.ledgers.map((ledger, index) => (
                                             <TableRow key={ledger.id || index}>
                                                 <TableCell>{ledger.ledgerName ?? null}</TableCell>
-                                                <TableCell align="right">{ledger.ratePerc ?? null}</TableCell>
-                                                <TableCell align="right">{ledger.amount != null ? fCurrency(ledger.amount) : null}</TableCell>
+                                                      <TableCell align="right">{ledger.amount != null ? fCurrency(ledger.amount) : null}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
