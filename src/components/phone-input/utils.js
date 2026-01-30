@@ -16,11 +16,15 @@ export function getCountryCode(inputValue, countryCode) {
   return countryCode ?? 'IN';
 }
 
+// India fallback so flag icon always shows when default is IN
+const INDIA_FALLBACK = { code: 'IN', label: 'India', phone: '91' };
+
 // ----------------------------------------------------------------------
 
 export function getCountry(countryCode) {
-  const option = countries.filter((country) => country.code === countryCode)[0];
-  return option;
+  if (!countryCode) return INDIA_FALLBACK;
+  const option = countries.filter((country) => country.code && country.code === countryCode)[0];
+  return option || INDIA_FALLBACK;
 }
 
 export function applyFilter({ inputData, query }) {

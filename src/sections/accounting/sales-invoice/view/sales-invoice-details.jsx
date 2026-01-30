@@ -142,20 +142,13 @@ export function SalesInvoiceDetails() {
                                     {salesInvoice?.partyName ?? null}
                                 </Typography>
                             </Box>
-                            <Box display="flex" justifyContent="space-between">
-                                <Typography variant="body2" color="text.secondary">
-                                    Party Code:
-                                </Typography>
-                                <Typography variant="body2" fontWeight="medium">
-                                    {salesInvoice?.nxPartyCode && salesInvoice.nxPartyCode !== 'NULL' ? salesInvoice.nxPartyCode : null}
-                                </Typography>
-                            </Box>
+                           
                             <Box display="flex" justifyContent="space-between">
                                 <Typography variant="body2" color="text.secondary">
                                     Customer Name:
                                 </Typography>
                                 <Typography variant="body2" fontWeight="medium">
-                                    {salesInvoice?.customerName && salesInvoice.customerName !== 'NULL' ? salesInvoice.customerName : null}
+                                    {salesInvoice?.customerName && salesInvoice.customerName !== 'NULL' ? salesInvoice.customerName : "Not Available"}
                                 </Typography>
                             </Box>
                             <Box display="flex" justifyContent="space-between">
@@ -242,12 +235,12 @@ export function SalesInvoiceDetails() {
                             {salesInvoice?.paymentTerms && salesInvoice.paymentTerms.length > 0 ? (
                                 salesInvoice.paymentTerms.map((term, index) => (
                                     <Typography key={term.id || index} variant="body2">
-                                        {term.terms ?? null}
+                                        {term.terms && term.terms !== 'NULL' ? term.terms : "Not Available"}
                                     </Typography>
                                 ))
                             ) : (
                                 <Typography variant="body2" color="text.secondary">
-                                    {null}
+                                   Not Available
                                 </Typography>
                             )}
                         </Stack>

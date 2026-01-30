@@ -13,11 +13,10 @@ export function RHFPhoneInput({ name, helperText, ...other }) {
       control={control}
       render={({ field, fieldState: { error } }) => (
         <PhoneInput
-          international
           {...field}
           fullWidth
-          value={field.value}
-          onChange={(newValue) => setValue(name, newValue, { shouldValidate: true })}
+          value={field.value ?? ''}
+          onChange={(newValue) => setValue(name, newValue ?? '', { shouldValidate: true })}
           error={!!error}
           helperText={error ? error?.message : helperText}
           {...other}

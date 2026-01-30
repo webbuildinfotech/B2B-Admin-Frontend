@@ -18,6 +18,9 @@ import { SearchNotFound } from 'src/components/search-not-found';
 import { usePopover } from '../custom-popover';
 import { getCountry, applyFilter } from './utils';
 
+// Only valid countries (exclude empty/deleted options)
+const validCountries = countries.filter((c) => c.code && c.code.trim() !== '');
+
 // ----------------------------------------------------------------------
 
 export function CountryListPopover({ countryCode, onClickCountry }) {
@@ -32,7 +35,7 @@ export function CountryListPopover({ countryCode, onClickCountry }) {
   }, []);
 
   const dataFiltered = applyFilter({
-    inputData: countries,
+    inputData: validCountries,
     query: searchCountry,
   });
 

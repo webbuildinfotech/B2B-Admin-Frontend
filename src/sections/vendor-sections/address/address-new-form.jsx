@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { z as zod } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +14,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 
 import { Form, Field, schemaHelper } from 'src/components/hook-form';
+import axiosInstance from 'src/configs/axiosInstance';
 
 export const NewAddressSchema = zod.object({
   state: zod.string().min(1, { message: 'State is required!' }),
@@ -26,6 +27,8 @@ export const NewAddressSchema = zod.object({
 });
 
 export function AddressNewForm({ open, onClose, onCreate, onEdit, editData }) {
+  const [stateList, setStateList] = useState([]);
+
   const methods = useForm({
     mode: 'all',
     resolver: zodResolver(NewAddressSchema),
@@ -33,24 +36,46 @@ export function AddressNewForm({ open, onClose, onCreate, onEdit, editData }) {
       state: '',
       street_address: '',
       zip_code: '',
-      country: '',
-      mobile: '',
+      country: 'India',
+      mobile: '+91',
     },
   });
 
   const { reset, handleSubmit, formState: { isSubmitting } } = methods;
 
+  // Fetch states from backend only when user opens the state dropdown
+  const fetchStates = () => {
+    axiosInstance
+      .get('/states')
+      .then((res) => {
+        const data = res?.data?.data ?? res?.data ?? [];
+        setStateList(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setStateList([]));
+  };
+
+
+  // Normalize mobile to E.164 so phone input shows it (backend may store national e.g. "9562332123")
+  const normalizeMobile = (mobile) => {
+    if (!mobile || typeof mobile !== 'string') return '+91';
+    const trimmed = mobile.trim();
+    if (!trimmed) return '+91';
+    if (trimmed.startsWith('+')) return trimmed;
+    const digits = trimmed.replace(/\D/g, '');
+    if (digits.length === 0) return '+91';
+    if (digits.length <= 10) return `+91${digits}`;
+    return `+${digits}`;
+  };
 
   // Reset the form whenever `open` is true for a new address or `editData` changes
   useEffect(() => {
     if (open) {
-      // if (open) {
       reset({
         state: editData?.state || '',
         street_address: editData?.street_address || '',
         zip_code: editData?.zip_code || '',
-        mobile: editData?.mobile || '',
-        country: editData?.country || '',
+        mobile: normalizeMobile(editData?.mobile),
+        country: editData?.country || 'India',
       })
     }
   }, [open, editData, reset]);
@@ -83,7 +108,7 @@ export function AddressNewForm({ open, onClose, onCreate, onEdit, editData }) {
                 sm: 'repeat(1, 1fr)',
               }}
             >
-              <Field.Phone name="mobile" label="Mobile" country="IN" />
+              <Field.Phone name="mobile" label="Mobile" country="IN" disableSelect international />
             </Box>
             <Field.Text name="street_address" label="Address" />
             <Box
@@ -95,13 +120,22 @@ export function AddressNewForm({ open, onClose, onCreate, onEdit, editData }) {
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <Field.Text name="state" label="State" />
+              <Field.Autocomplete
+                name="state"
+                label="State"
+                placeholder="Search or choose state"
+                options={stateList}
+                onOpen={fetchStates}
+                getOptionLabel={(option) => (typeof option === 'string' ? option : option?.label ?? '')}
+                isOptionEqualToValue={(option, value) => option === value}
+              />
               <Field.Text name="zip_code" label="Zip Code" />
             </Box>
             <Field.CountrySelect
               name="country"
               label="Country"
-              placeholder="Choose a country" />
+              placeholder="Choose a country"
+              disabled />
           </Stack>
         </DialogContent>
         <DialogActions>
