@@ -68,6 +68,7 @@ export function ProductListView() {
     const confirm = useBoolean();
     const confirmSync = useBoolean();
     const [loading, setLoading] = useState(false);
+    const [syncStatus, setSyncStatus] = useState(null);
     const [selectedRows, setSelectedRows] = useState([]);
     const [deleting, setDeleting] = useState(false);
     const [subGroup1Options, setSubGroup1Options] = useState([]);
@@ -281,22 +282,38 @@ export function ProductListView() {
         [filters, table]
     );
 
-    // Function to trigger sync API after confirmation
+    // Function to trigger sync API after confirmation (background sync + status polling)
     const handleSyncAPI = useCallback(async () => {
-        setLoading(true); // Set loading to true while syncing
+        setLoading(true);
+        setSyncStatus(null);
+        confirmSync.onFalse(); // Close dialog immediately
+
         try {
-            const res = await dispatch(syncProduct()); // Call the sync API
-            if (res) {
-                const subGroup1 = Array.isArray(filters.state.subGroup1) ? filters.state.subGroup1 : [];
-                const subGroup2 = Array.isArray(filters.state.subGroup2) ? filters.state.subGroup2 : [];
-                fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm, subGroup1, subGroup2); // Fetch paginated data after syncing
+            const subGroup1 = Array.isArray(filters.state.subGroup1) ? filters.state.subGroup1 : [];
+            const subGroup2 = Array.isArray(filters.state.subGroup2) ? filters.state.subGroup2 : [];
+            const result = await dispatch(syncProduct(
+                (status) => {
+                    setSyncStatus(status);
+                    if (status.status === 'error') {
+                        setLoading(false);
+                        setSyncStatus(null);
+                    }
+                },
+                () => {
+                    // Auto-refresh list in background when sync succeeds
+                    setLoading(false);
+                    setSyncStatus(null);
+                    fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm, subGroup1, subGroup2);
+                }
+            ));
+            if (result === false) {
+                setLoading(false);
+                setSyncStatus(null);
             }
         } catch (error) {
-            setLoading(false); // Reset loading state
-            console.error("Failed to sync products", error);
-        } finally {
-            setLoading(false); // Reset loading state
-            confirmSync.onFalse(); // Close the confirmation dialog
+            console.error('Error syncing products:', error);
+            setLoading(false);
+            setSyncStatus(null);
         }
     }, [dispatch, fetchData, confirmSync, table.page, table.rowsPerPage, debouncedSearchTerm, filters.state.subGroup1, filters.state.subGroup2]);
 
@@ -315,13 +332,16 @@ export function ProductListView() {
                     ]}
                     action={
                         <Button
-                            // href={paths?.dashboard?.user?.new}
-                            onClick={confirmSync.onTrue} // Open the sync confirmation dialog
+                            onClick={confirmSync.onTrue}
                             variant="contained"
                             startIcon={<Iconify icon="eva:sync-fill" />}
                             disabled={loading}
                         >
-                            {loading ? 'Syncing...' : 'Sync Products'}
+                            {loading
+                                ? (syncStatus?.status === 'processing' && syncStatus?.totalRecords
+                                    ? `Syncing... ${syncStatus.processedRecords || 0}/${syncStatus.totalRecords}`
+                                    : 'Syncing...')
+                                : 'Sync Products'}
                         </Button>
                     }
                     sx={{ mb: { xs: 3, md: 5 } }}

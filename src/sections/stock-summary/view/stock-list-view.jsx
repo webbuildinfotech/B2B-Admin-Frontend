@@ -155,7 +155,7 @@ export function StockListView() {
                     setSyncStatus(status);
                 },
                 () => {
-                    // Completion callback
+                    // Auto-refresh list in background when sync succeeds
                     setLoading(false);
                     setSyncStatus(null);
                     confirmSync.onFalse();

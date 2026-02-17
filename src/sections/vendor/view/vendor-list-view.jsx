@@ -278,10 +278,10 @@ export function VendorListView() {
                     }
                 },
                 () => {
-                    // Fetch data when sync completes (or fails)
-                    fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm, filters.state.status);
+                    // Auto-refresh list in background when sync succeeds
                     setLoading(false);
                     setSyncStatus(null);
+                    fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm, filters.state.status);
                 }
             ));
             

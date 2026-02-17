@@ -122,20 +122,144 @@ export const itemGetByList = (id) => async (dispatch) => {
 
 
 
-export const syncProduct = () => async (dispatch) => {
+// Product sync with background process + status polling (same as vendor/stock)
+export const syncProduct = (onStatusUpdate, onComplete) => async (dispatch) => {
     try {
-        const response = await axiosInstance.post('/items/fetch');
-        if (response) {
-            toast.success(response.data.message);
+        const startResponse = await axiosInstance.post('/items/fetch', {}, {
+            timeout: 10000 // 10 seconds timeout for starting sync
+        });
 
+        if (startResponse && startResponse.status === 202) {
+            toast.info('Product sync started. Monitoring progress...', { duration: 3000 });
+
+            const pollInterval = 5000; // 5 seconds
+            const maxPollTime = 10 * 60 * 1000; // 10 minutes max
+            const startTime = Date.now();
+            let pollCount = 0;
+
+            const pollStatus = async () => {
+                try {
+                    const statusResponse = await axiosInstance.get('/items/sync-status', {
+                        timeout: 5000
+                    });
+
+                    const status = statusResponse.data;
+                    pollCount += 1;
+
+                    if (onStatusUpdate) {
+                        onStatusUpdate(status);
+                    }
+
+                    if (status.status === 'completed') {
+                        toast.success(status.message || 'Products synced successfully!');
+                        if (onComplete) onComplete();
+                        return true;
+                    }
+
+                    if (status.status === 'error') {
+                        toast.error(status.error || status.message || 'Product sync failed. Please try again.');
+                        if (onComplete) onComplete();
+                        return false;
+                    }
+
+                    if (status.status === 'processing') {
+                        if (status.totalRecords && status.processedRecords !== undefined) {
+                            const progress = Math.round((status.processedRecords / status.totalRecords) * 100);
+                            const progressMessage = status.message || `Processing... ${progress}%`;
+                            if (pollCount % 3 === 0) {
+                                toast.info(progressMessage, { duration: 2000 });
+                            }
+                        }
+                        if (Date.now() - startTime > maxPollTime) {
+                            toast.warning('Product sync is taking longer than expected. Please check back later or refresh the page.');
+                            if (onComplete) setTimeout(() => onComplete(), 5000);
+                            return false;
+                        }
+                        setTimeout(pollStatus, pollInterval);
+                        return null;
+                    }
+
+                    if (status.status === 'idle') {
+                        toast.info('Product sync completed. Refreshing data...');
+                        if (onComplete) onComplete();
+                        return true;
+                    }
+
+                    setTimeout(pollStatus, pollInterval);
+                    return null;
+                } catch (pollError) {
+                    console.warn('Product sync status check failed, retrying...', pollError);
+                    if (Date.now() - startTime > maxPollTime) {
+                        toast.warning('Unable to check product sync status. Please refresh the page to see updated data.');
+                        if (onComplete) setTimeout(() => onComplete(), 5000);
+                        return false;
+                    }
+                    setTimeout(pollStatus, pollInterval * 2);
+                    return null;
+                }
+            };
+
+            await pollStatus();
+            return true;
+        }
+
+        if (startResponse && startResponse.status >= 200 && startResponse.status < 300) {
+            toast.success(startResponse.data?.message || 'Products synced successfully!');
+            if (onComplete) onComplete();
+            return true;
         }
         return true;
     } catch (error) {
-        // Check if error response exists and handle error message
+        const isTimeoutError =
+            error?.code === 'ECONNABORTED' ||
+            error?.message?.includes('timeout') ||
+            error?.response?.status === 504 ||
+            error?.response?.status === 408;
+
+        if (isTimeoutError) {
+            toast.info('Product sync request sent. Please wait and refresh the page in a few minutes to see updated data.', {
+                duration: 8000,
+            });
+            try {
+                const statusResponse = await axiosInstance.get('/items/sync-status', { timeout: 5000 });
+                if (statusResponse.data.status === 'processing') {
+                    toast.info('Product sync is in progress. Monitoring...', { duration: 3000 });
+                    const pollInterval = 5000;
+                    const pollStatus = async () => {
+                        try {
+                            const status = await axiosInstance.get('/items/sync-status', { timeout: 5000 });
+                            if (status.data.status === 'completed') {
+                                toast.success('Product sync completed!');
+                                if (onComplete) onComplete();
+                                return;
+                            }
+                            if (status.data.status === 'error') {
+                                toast.error(status.data.error || 'Product sync failed');
+                                if (onComplete) onComplete();
+                                return;
+                            }
+                            setTimeout(pollStatus, pollInterval);
+                        } catch (e) {
+                            setTimeout(pollStatus, pollInterval);
+                        }
+                    };
+                    await pollStatus();
+                    return true;
+                }
+                if (statusResponse.data.status === 'completed' || statusResponse.data.status === 'idle') {
+                    toast.success('Product sync completed!');
+                    if (onComplete) onComplete();
+                    return true;
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
         const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
         toast.error(errorMessage);
+        if (onComplete) onComplete();
+        return false;
     }
-    return false; // Return false for any errors
 };
 
 
