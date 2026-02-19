@@ -145,34 +145,34 @@ export function StockListView() {
     }, [filters, table]);
 
     //----------------------------------------------------------------------------------------------------
+    // Like vendor: close modal immediately, sync runs in background
     const handleSyncAPI = useCallback(async () => {
         setLoading(true);
         setSyncStatus(null);
+        confirmSync.onFalse(); // Close modal immediately - sync runs in background
         try {
             const res = await dispatch(syncStock(
                 (status) => {
-                    // Status update callback
                     setSyncStatus(status);
+                    if (status.status === 'error') {
+                        setLoading(false);
+                        setSyncStatus(null);
+                    }
                 },
                 () => {
-                    // Auto-refresh list in background when sync succeeds
                     setLoading(false);
                     setSyncStatus(null);
-                    confirmSync.onFalse();
                     fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm);
                 }
             ));
             if (!res) {
-                // If sync failed, reset loading state
                 setLoading(false);
                 setSyncStatus(null);
-                confirmSync.onFalse();
             }
         } catch (error) {
             console.error("Failed to sync Stocks", error);
             setLoading(false);
             setSyncStatus(null);
-            confirmSync.onFalse();
         }
     }, [dispatch, fetchData, confirmSync, table.page, table.rowsPerPage, debouncedSearchTerm]);
 
