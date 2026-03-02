@@ -149,7 +149,7 @@ export const useNavData = () => {
           children: [
             { title: 'Gallery', path: paths.settings.gallery },
             { title: 'Profile', path: paths.settings.profile },
-            // { title: 'Basic Setting', path: paths.settings.sync }, // Disabled for now
+            { title: 'Basic Setting', path: paths.settings.sync },
             { title: 'Banner Setting', path: paths.settings.banner },
             { title: 'FAQs', path: paths.settings.faq },
           ],
@@ -200,7 +200,7 @@ export const useNavData = () => {
 
   const navData = useMemo(() => [
     ...commonItems,
-    ...(userRole === 'Admin' ? [...adminItems, ...reportsItem,  ...payments, ...settingsItems,] : []),
+    ...(userRole === 'Admin' ? [...adminItems, ...reportsItem,  ...payments, ...logsHistory, ...settingsItems,] : []),
     ...(userRole === 'Vendor' ? [...vendorItems, ...reportsVendorsItem, ...paymentsVendor, ...vendorSettingsItem] : []),
   ], [userRole]);
 

@@ -13,7 +13,6 @@ import { SettingsDrawer, defaultSettings, SettingsProvider } from 'src/component
 import { AuthProvider as JwtAuthProvider } from 'src/auth/context/jwt';
 import { CheckoutProvider } from './sections/vendor-sections/checkout/context';
 
-
 const AuthProvider = JwtAuthProvider
 
 
