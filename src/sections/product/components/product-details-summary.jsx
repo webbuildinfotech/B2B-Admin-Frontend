@@ -34,7 +34,7 @@ export function ProductDetailsSummary({ products, disableActions, ...other }) {
           </Grid>
           <Grid item xs={12} md={6}>
             <Typography variant="h5" gutterBottom>{products?.itemName}</Typography>
-            <Typography variant="h6" color="primary.main">{fCurrency(products?.sellingPrice)}</Typography>
+            <Typography variant="h6" color="primary.main">{fCurrency(products?.sellingPrice)}{products?.baseUnit}</Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
               {products?.description}
             </Typography>
@@ -151,9 +151,9 @@ export function ProductDetailsSummary({ products, disableActions, ...other }) {
                 <Typography variant="body2">
                   <strong>GST Rate:</strong> <span>{products?.gstRate}</span>
                 </Typography>
-                <Typography variant="body2">
+                {/* <Typography variant="body2">
                   <strong>Base Unit:</strong> <span>{products?.baseUnit || 'No Data Available'}</span>
-                </Typography>
+                </Typography> */}
                 <Typography variant="body2">
                   <strong>Alternate Unit:</strong> <span>{products?.alternateUnit || 'No Data Available'}</span>
                 </Typography>
