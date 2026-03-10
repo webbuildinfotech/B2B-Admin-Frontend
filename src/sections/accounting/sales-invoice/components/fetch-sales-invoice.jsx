@@ -9,8 +9,8 @@ export const useFetchSalesInvoice = () => {
     return result;
   };
 
-  const fetchByIdData = async (id) => {
-    await dispatch(salesInvoiceGetById(id));
+  const fetchByIdData = async (id, itemPage, itemLimit) => {
+    await dispatch(salesInvoiceGetById(id, itemPage, itemLimit));
   };
 
   const fetchDeleteData = async (id) => {

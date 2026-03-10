@@ -569,12 +569,20 @@ export const salesInvoiceList = (page, limit, search) => async (dispatch) => {
     }
 };
 
-export const salesInvoiceGetById = (id) => async (dispatch) => {
+export const salesInvoiceGetById = (id, itemPage, itemLimit) => async (dispatch) => {
     try {
-        const response = await axiosInstance.get(`/items/sales-invoices/${id}`);
+        const params = {};
+        if (itemPage != null && itemLimit != null) {
+            params.itemPage = itemPage;
+            params.itemLimit = itemLimit;
+        }
+        const response = await axiosInstance.get(`/items/sales-invoices/${id}`, { params });
         dispatch({
             type: SALES_INVOICE_GET_BY_LIST,
-            payload: response.data?.data,
+            payload: {
+                invoice: response.data?.data,
+                itemsMeta: response.data?.itemsMeta,
+            },
         });
         return true;
     } catch (error) {

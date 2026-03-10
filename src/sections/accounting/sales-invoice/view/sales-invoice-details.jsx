@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Unstable_Grid2';
@@ -11,6 +11,7 @@ import TableHead from '@mui/material/TableHead';
 import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
 import TableCell from '@mui/material/TableCell';
+import TablePagination from '@mui/material/TablePagination';
 import { fDate } from 'src/utils/format-time';
 import { fCurrency, fAmountWithoutMinus } from 'src/utils/format-number';
 import { Scrollbar } from 'src/components/scrollbar';
@@ -22,17 +23,31 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Iconify } from 'src/components/iconify';
 
+const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
+
 export function SalesInvoiceDetails() {
     const { fetchByIdData } = useFetchSalesInvoice();
     const { id } = useParams();
     const salesInvoice = useSelector((state) => state.accounting?.getBySalesInvoice);
+    const itemsMeta = useSelector((state) => state.accounting?.getBySalesInvoiceItemsMeta);
     const navigate = useNavigate();
 
+    const [itemPage, setItemPage] = useState(1);
+    const [itemLimit, setItemLimit] = useState(10);
+
+    const prevIdRef = useRef(id);
     useEffect(() => {
-        if (id) {
-            fetchByIdData(id);
+        if (!id) return;
+        const idChanged = prevIdRef.current !== id;
+        prevIdRef.current = id;
+        if (idChanged) {
+            setItemPage(1);
+            setItemLimit(10);
+            fetchByIdData(id, 1, 10);
+        } else {
+            fetchByIdData(id, itemPage, itemLimit);
         }
-    }, [id]);
+    }, [id, itemPage, itemLimit]);
 
 
     return (
@@ -255,53 +270,65 @@ export function SalesInvoiceDetails() {
                             Items
                         </Typography>
                         {salesInvoice?.items && salesInvoice.items.length > 0 ? (
-                            <Scrollbar>
-                                <Table>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell>Item Name</TableCell>
-                                               <TableCell>Base Units</TableCell>
-                                            <TableCell align="center">Actual Qty</TableCell>
-                                            <TableCell align="center">Billed Qty</TableCell>
-
-                                            <TableCell align="center">Rate</TableCell>
-                                            <TableCell align="center">Disc %</TableCell>
-                                            <TableCell align="center">GST %</TableCell>
-
-                                            <TableCell align="center">Amount</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {salesInvoice.items.map((item, index) => (
-                                            <TableRow key={item.id || index}>
-                                                <TableCell>
-                                                    <Box>
-                                                        <Typography variant="body2" fontWeight="medium">
-                                                            {item.itemName ?? null}
-                                                        </Typography>
-                                                        {item.descriptions && item.descriptions.length > 0 && (
-                                                            <Typography variant="caption" color="text.secondary">
-                                                                {item.descriptions.map((desc, idx) => (
-                                                                    <Box key={idx}>{desc.desc ?? null}</Box>
-                                                                ))}
-                                                            </Typography>
-                                                        )}
-                                                    </Box>
-                                                </TableCell>
-                                                   <TableCell>{item.baseUnits ?? null}</TableCell>
-                                                <TableCell align="center">{item.actualQty ?? null}</TableCell>
-                                                <TableCell align="center">{item.billedQty ?? null}</TableCell>
-
-                                                <TableCell align="center">{item.rate != null ? fCurrency(item.rate) : null}</TableCell>
-                                                <TableCell align="center">{item.discPerc ?? null}</TableCell>
-                                                <TableCell align="center">{item.gstPer ? `${item.gstPer}%` : "0"}</TableCell>
-
-                                                <TableCell align="center">{item.amount != null ? fCurrency(item.amount) : null}</TableCell>
+                            <Box>
+                                <Scrollbar>
+                                    <Table>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>Item Name</TableCell>
+                                                <TableCell>Base Units</TableCell>
+                                                <TableCell align="center">Actual Qty</TableCell>
+                                                <TableCell align="center">Billed Qty</TableCell>
+                                                <TableCell align="center">Rate</TableCell>
+                                                <TableCell align="center">Disc %</TableCell>
+                                                <TableCell align="center">GST %</TableCell>
+                                                <TableCell align="center">Amount</TableCell>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </Scrollbar>
+                                        </TableHead>
+                                        <TableBody>
+                                            {salesInvoice.items.map((item, index) => (
+                                                <TableRow key={item.id || index}>
+                                                    <TableCell>
+                                                        <Box>
+                                                            <Typography variant="body2" fontWeight="medium">
+                                                                {item.itemName ?? null}
+                                                            </Typography>
+                                                            {item.descriptions && item.descriptions.length > 0 && (
+                                                                <Typography variant="caption" color="text.secondary">
+                                                                    {item.descriptions.map((desc, idx) => (
+                                                                        <Box key={idx}>{desc.desc ?? null}</Box>
+                                                                    ))}
+                                                                </Typography>
+                                                            )}
+                                                        </Box>
+                                                    </TableCell>
+                                                    <TableCell>{item.baseUnits ?? null}</TableCell>
+                                                    <TableCell align="center">{item.actualQty ?? null}</TableCell>
+                                                    <TableCell align="center">{item.billedQty ?? null}</TableCell>
+                                                    <TableCell align="center">{item.rate != null ? fCurrency(item.rate) : null}</TableCell>
+                                                    <TableCell align="center">{item.discPerc ?? null}</TableCell>
+                                                    <TableCell align="center">{item.gstPer ? `${item.gstPer}%` : "0"}</TableCell>
+                                                    <TableCell align="center">{item.amount != null ? fCurrency(item.amount) : null}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </Scrollbar>
+                                {itemsMeta && itemsMeta.total > itemLimit && (
+                                    <TablePagination
+                                        component="div"
+                                        count={itemsMeta.total}
+                                        page={itemPage - 1}
+                                        onPageChange={(_, newPage) => setItemPage(newPage + 1)}
+                                        rowsPerPage={itemLimit}
+                                        onRowsPerPageChange={(e) => {
+                                            setItemLimit(parseInt(e.target.value, 10));
+                                            setItemPage(1);
+                                        }}
+                                        rowsPerPageOptions={ITEMS_PER_PAGE_OPTIONS}
+                                    />
+                                )}
+                            </Box>
                         ) : (
                             <Typography variant="body2" color="text.secondary">
                                 {null}

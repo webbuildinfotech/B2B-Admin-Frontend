@@ -19,6 +19,7 @@ const initialState = {
     },
     salesInvoice: [],
     getBySalesInvoice: null,
+    getBySalesInvoiceItemsMeta: null,
     salesInvoicePagination: {
         total: 0,
         page: 1,
@@ -98,7 +99,8 @@ const AccountingReducer = (state = initialState, { type, payload } = {}) => {
         case SALES_INVOICE_GET_BY_LIST:
             return {
                 ...state,
-                getBySalesInvoice: payload,
+                getBySalesInvoice: payload?.invoice ?? payload,
+                getBySalesInvoiceItemsMeta: payload?.itemsMeta ?? null,
             };
 
         default:

@@ -13,7 +13,7 @@ import { ProductDetailsCarousel } from './product-details-carousel';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableRow } from '@mui/material';
 
 export function ProductDetailsSummary({ products, disableActions, ...other }) {
-
+ 
   const dispatch = useDispatch();
   const { id } = useParams();
 
@@ -26,22 +26,27 @@ export function ProductDetailsSummary({ products, disableActions, ...other }) {
   return (
     <Form>
       <Stack spacing={4} sx={{ pt: 3, px: 3 }} {...other}>
-
         {/* Product Image and Basic Info */}
         <Grid container spacing={3} alignItems="center">
           <Grid item xs={12} md={6}>
             <ProductDetailsCarousel images={products?.productImages ?? []} />
           </Grid>
           <Grid item xs={12} md={6}>
-            <Typography variant="h5" gutterBottom>{products?.itemName}</Typography>
-            <Typography variant="h6" color="primary.main">{fCurrency(products?.sellingPrice)}{products?.baseUnit}</Typography>
+            <Typography variant="h5" gutterBottom>
+              {products?.itemName}
+            </Typography>
+            <Typography variant="h6" color="primary.main">
+              {fCurrency(products?.sellingPrice)} {products?.baseUnit?.toUpperCase() ?? products?.baseUnit}
+            </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
               {products?.description}
             </Typography>
 
             {/* Classification Table */}
             <Box mt={5}>
-              <Typography variant="subtitle1" gutterBottom>Classification</Typography>
+              <Typography variant="subtitle1" gutterBottom>
+                Classification
+              </Typography>
               <Divider sx={{ my: 2 }} />
               <TableContainer component={Paper} elevation={0}>
                 <Table size="small" aria-label="classification table">
@@ -73,10 +78,12 @@ export function ProductDetailsSummary({ products, disableActions, ...other }) {
 
         {/* Responsive Grid System */}
         <Grid container spacing={3}>
-
           <Grid item xs={12} sm={6} md={3}>
             <Box>
-              <Typography variant="body2"> <strong>Dimensional Files</strong></Typography>
+              <Typography variant="body2">
+                {' '}
+                <strong>Dimensional Files</strong>
+              </Typography>
               <Divider sx={{ my: 2 }} />
               {products?.dimensionalFiles?.length > 0 ? (
                 <Stack direction="column" spacing={0.5} sx={{ ml: 2, mt: 1 }}>
@@ -120,17 +127,21 @@ export function ProductDetailsSummary({ products, disableActions, ...other }) {
           {/* Box 1: Additional Information */}
           <Grid item xs={12} sm={6} md={3}>
             <Box>
-              <Typography variant="subtitle1" gutterBottom>Additional Information</Typography>
+              <Typography variant="subtitle1" gutterBottom>
+                Additional Information
+              </Typography>
               <Divider sx={{ my: 2 }} />
               <Stack spacing={1}>
                 <Typography variant="body2">
                   <strong>Alias:</strong> <span>{products?.alias || 'No Data Available'}</span>
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Part Number:</strong> <span>{products?.partNo || 'No Data Available'}</span>
+                  <strong>Part Number:</strong>{' '}
+                  <span>{products?.partNo || 'No Data Available'}</span>
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Selling Price Date:</strong> <span>{formatDateIndian(products?.sellingPriceDate) || 'No Data Available'}</span>
+                  <strong>Selling Price Date:</strong>{' '}
+                  <span>{formatDateIndian(products?.sellingPriceDate) || 'No Data Available'}</span>
                 </Typography>
               </Stack>
             </Box>
@@ -139,14 +150,20 @@ export function ProductDetailsSummary({ products, disableActions, ...other }) {
           {/* Box 2: Tax & Unit Details */}
           <Grid item xs={12} sm={6} md={3}>
             <Box>
-              <Typography variant="subtitle1" gutterBottom>Tax & Unit Details</Typography>
+              <Typography variant="subtitle1" gutterBottom>
+                Tax & Unit Details
+              </Typography>
               <Divider sx={{ my: 2 }} />
               <Stack spacing={1}>
                 <Typography variant="body2">
-                  <strong>GST Applicable:</strong> <span>{products?.gstApplicable || 'No Data Available'}</span>
+                  <strong>GST Applicable:</strong>{' '}
+                  <span>{products?.gstApplicable || 'No Data Available'}</span>
                 </Typography>
                 <Typography variant="body2">
-                  <strong>GST Applicable Date:</strong> <span>{formatDateIndian(products?.gstApplicableDate) || 'No Data Available'}</span>
+                  <strong>GST Applicable Date:</strong>{' '}
+                  <span>
+                    {formatDateIndian(products?.gstApplicableDate) || 'No Data Available'}
+                  </span>
                 </Typography>
                 <Typography variant="body2">
                   <strong>GST Rate:</strong> <span>{products?.gstRate}</span>
@@ -155,34 +172,37 @@ export function ProductDetailsSummary({ products, disableActions, ...other }) {
                   <strong>Base Unit:</strong> <span>{products?.baseUnit || 'No Data Available'}</span>
                 </Typography> */}
                 <Typography variant="body2">
-                  <strong>Alternate Unit:</strong> <span>{products?.alternateUnit || 'No Data Available'}</span>
+                  <strong>Alternate Unit:</strong>{' '}
+                  <span>{products?.alternateUnit || 'No Data Available'}</span>
                 </Typography>
               </Stack>
-
             </Box>
           </Grid>
 
           {/* Box 3: Conversion  */}
           <Grid item xs={12} sm={6} md={3}>
             <Box>
-              <Typography variant="subtitle1" gutterBottom>Conversion</Typography>
+              <Typography variant="subtitle1" gutterBottom>
+                Conversion
+              </Typography>
               <Divider sx={{ my: 2 }} />
               <Stack spacing={1}>
                 <Typography variant="body2">
-                  <strong>Taxability:</strong> <span>{products?.taxability || 'No Data Available'}</span>
+                  <strong>Taxability:</strong>{' '}
+                  <span>{products?.taxability || 'No Data Available'}</span>
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Conversion:</strong> <span>{products?.conversion || 'No Data Available'}</span>
+                  <strong>Conversion:</strong>{' '}
+                  <span>{products?.conversion || 'No Data Available'}</span>
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Denominator:</strong> <span>{products?.denominator || 'No Data Available'}</span>
+                  <strong>Denominator:</strong>{' '}
+                  <span>{products?.denominator || 'No Data Available'}</span>
                 </Typography>
               </Stack>
             </Box>
           </Grid>
-
         </Grid>
-
       </Stack>
       <Divider sx={{ my: 2 }} />
     </Form>
