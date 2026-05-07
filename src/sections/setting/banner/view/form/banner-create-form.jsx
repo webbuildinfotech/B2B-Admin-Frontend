@@ -218,6 +218,11 @@ export function BannerCreateForm() {
                             thumbnail
                             name="bannerImages" 
                             maxSize={3145728} 
+                            accept={{
+                                'image/webp': [],
+                                'image/png': [],
+                                'image/jpeg': [],
+                            }}
                             onRemove={handleRemoveFile}
                             onRemoveAll={handleRemoveAllFiles}
                         />

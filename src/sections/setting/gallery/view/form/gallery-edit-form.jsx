@@ -177,6 +177,11 @@ export function GalleryEditForm({ currentGallery }) {
                             thumbnail
                             name="galleryImages"
                             maxSize={3145728}
+                            accept={{
+                                'image/webp': [],
+                                'image/png': [],
+                                'image/jpeg': [],
+                            }}
                             onRemove={(file) => handleRemoveFile(file, 'galleryImages')}
                             onRemoveAll={handleRemoveAllFiles}
                         />

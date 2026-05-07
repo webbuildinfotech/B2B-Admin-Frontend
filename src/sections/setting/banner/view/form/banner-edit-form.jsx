@@ -212,6 +212,11 @@ export function BannerEditForm({ currentBanner }) {
             thumbnail
             name="bannerImages"
             maxSize={3145728}
+            accept={{
+              'image/webp': [],
+              'image/png': [],
+              'image/jpeg': [],
+            }}
             onRemove={(file) => handleRemoveFile(file, 'bannerImages')}
             onRemoveAll={() => handleRemoveAllFiles('bannerImages')}
           />

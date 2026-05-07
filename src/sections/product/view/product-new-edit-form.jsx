@@ -161,6 +161,11 @@ export default function ProductNewEditForm({ currentProduct }) {
                                     thumbnail
                                     name="productImages"
                                     maxSize={3145728}
+                                    accept={{
+                                        'image/webp': [],
+                                        'image/png': [],
+                                        'image/jpeg': [],
+                                    }}
                                     onRemove={(file) => handleRemoveFile(file, 'productImages')}
                                     onRemoveAll={() => handleRemoveAllFiles('productImages')}
                                 />
