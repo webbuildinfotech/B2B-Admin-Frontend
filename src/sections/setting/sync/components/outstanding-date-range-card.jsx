@@ -85,6 +85,29 @@ export function OutstandingDateRangeCard() {
         }
     };
 
+    const handleClear = async () => {
+        if (!outstandingSync) return;
+
+        setSaving(true);
+        try {
+            setFromDate('');
+            setToDate('');
+            await dispatch(
+                editSyncSetting(outstandingSync.id, {
+                    moduleName: outstandingSync.moduleName,
+                    isAutoSyncEnabled: outstandingSync.isAutoSyncEnabled,
+                    isManualSyncEnabled: outstandingSync.isManualSyncEnabled,
+                    fromDate: null,
+                    toDate: null,
+                })
+            );
+        } catch (error) {
+            console.error("Failed to clear outstanding date range:", error);
+        } finally {
+            setSaving(false);
+        }
+    };
+
     if (!outstandingSync) {
         return (
             <Card sx={{ p: 2, backgroundColor: 'background.neutral', minHeight: '350px', height: '100%' }}>
@@ -138,6 +161,16 @@ export function OutstandingDateRangeCard() {
                     disabled={saving}
                 >
                     {saving ? 'Saving...' : 'Save'}
+                </Button>
+                <Button
+                    variant="outlined"
+                    color="inherit"
+                    fullWidth
+                    onClick={handleClear}
+                    disabled={saving}
+                    sx={{ mt: 1 }}
+                >
+                    Clear (Use Financial Year)
                 </Button>
             </Box>
         </Card>

@@ -30,12 +30,16 @@ import {
 import { LedgerTableRow } from './table/ledger-table-row';
 import { useDispatch, useSelector } from 'react-redux';
 import useUserRole from 'src/layouts/components/user-role';
-import { Autocomplete, TextField, Typography } from '@mui/material';
+import { Autocomplete, Box as MuiBox, Stack, TextField, Typography } from '@mui/material';
 import { applyFilter } from '../utils/filterUtils';
 import { LedgerTableToolbar } from './ledger-table-toolbar';
 import { useFetchData } from '../components/fetch-ledger';
 import { LedgerTableFiltersResult } from './table/ledger-table-filters-result';
 import { syncLedger } from 'src/store/action/accountingActions';
+import {
+    editSyncSetting,
+    syncSettingList,
+} from 'src/store/action/settingActions';
 import { TableLoaderOverlay } from 'src/components/loader/table-loader';
 import { LEDGER_LIST } from 'src/store/constants/actionTypes';
 // ----------------------------------------------------------------------
@@ -58,12 +62,21 @@ export function LedgerListView() {
     const [selectedRows, setSelectedRows] = useState([]);
     const [loading, setLoading] = useState(false);
     const [syncStatus, setSyncStatus] = useState(null);
+    const [fromDate, setFromDate] = useState('');
+    const [toDate, setToDate] = useState('');
+    const [savingDateRange, setSavingDateRange] = useState(false);
 
     const { fetchData, deleteAllItems } = useFetchData();
     const dispatch = useDispatch();
     const _ledger = useSelector((state) => state.accounting?.ledger || []);
+    const syncSettings = useSelector((state) => state.setting?.syncData || []);
     const pagination = useSelector((state) => state.accounting?.ledgerPagination || { total: 0, page: 1, limit: 10, totalPages: 0 });
     const [tableData, setTableData] = useState(_ledger);
+    const ledgerSyncSetting = syncSettings.find(
+        (item) => item.moduleName === 'Ledger Statement'
+    );
+    const isDateRangePartial = (!!fromDate && !toDate) || (!fromDate && !!toDate);
+    const canSaveDateRange = !!ledgerSyncSetting && !savingDateRange && !isDateRangePartial;
 
     const TABLE_HEAD = [
         { id: 'party', label: 'Party' },
@@ -103,6 +116,25 @@ export function LedgerListView() {
             .finally(() => { isFetchingData.current = false; });
     }, [table.page, table.rowsPerPage, debouncedSearchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    useEffect(() => {
+        dispatch(syncSettingList());
+    }, [dispatch]);
+
+    useEffect(() => {
+        const formatDateForInput = (dateString) => {
+            if (!dateString || dateString.length !== 8) return '';
+            const year = dateString.substring(0, 4);
+            const month = dateString.substring(4, 6);
+            const day = dateString.substring(6, 8);
+            return `${year}-${month}-${day}`;
+        };
+
+        if (ledgerSyncSetting) {
+            setFromDate(formatDateForInput(ledgerSyncSetting.fromDate || ''));
+            setToDate(formatDateForInput(ledgerSyncSetting.toDate || ''));
+        }
+    }, [ledgerSyncSetting]);
+
     const handleSelectRow = useCallback((id) => {
         setSelectedRows((prev) =>
             prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [...prev, id]
@@ -128,32 +160,93 @@ export function LedgerListView() {
 
     const handleViewRow = useCallback((id) => id, []);
 
+    const formatDateForAPI = useCallback((dateString) => {
+        if (!dateString) return null;
+        return dateString.replace(/-/g, '');
+    }, []);
+
+    const handleSaveDateRange = useCallback(async () => {
+        if (!ledgerSyncSetting) return;
+        setSavingDateRange(true);
+        try {
+            await dispatch(
+                editSyncSetting(ledgerSyncSetting.id, {
+                    moduleName: ledgerSyncSetting.moduleName,
+                    isAutoSyncEnabled: ledgerSyncSetting.isAutoSyncEnabled,
+                    isManualSyncEnabled: ledgerSyncSetting.isManualSyncEnabled,
+                    fromDate: formatDateForAPI(fromDate),
+                    toDate: formatDateForAPI(toDate),
+                })
+            );
+            await dispatch(syncSettingList());
+        } finally {
+            setSavingDateRange(false);
+        }
+    }, [dispatch, formatDateForAPI, fromDate, toDate, ledgerSyncSetting]);
+
+    const handleClearDateRange = useCallback(async () => {
+        if (!ledgerSyncSetting) return;
+        setSavingDateRange(true);
+        try {
+            setFromDate('');
+            setToDate('');
+            await dispatch(
+                editSyncSetting(ledgerSyncSetting.id, {
+                    moduleName: ledgerSyncSetting.moduleName,
+                    isAutoSyncEnabled: ledgerSyncSetting.isAutoSyncEnabled,
+                    isManualSyncEnabled: ledgerSyncSetting.isManualSyncEnabled,
+                    fromDate: null,
+                    toDate: null,
+                })
+            );
+            await dispatch(syncSettingList());
+        } finally {
+            setSavingDateRange(false);
+        }
+    }, [dispatch, ledgerSyncSetting]);
+
     const handleSyncAPI = useCallback(async () => {
         setLoading(true);
         setSyncStatus(null);
         confirmSync.onFalse(); // Close dialog immediately
-        
+
         try {
             // Pass status update callback and completion callback
-            const result = await dispatch(syncLedger(
-                (status) => {
-                    // Update sync status for UI display
-                    setSyncStatus(status);
-                    
-                    // If error status detected, stop loading immediately
-                    if (status.status === 'error') {
+            const result = await dispatch(
+                syncLedger(
+                    (status) => {
+                        // Update sync status for UI display
+                        setSyncStatus(status);
+
+                        // If error status detected, stop loading immediately
+                        if (status.status === 'error') {
+                            setLoading(false);
+                            setSyncStatus(null);
+                        }
+                    },
+                    () => {
+                        // Fetch data when sync completes (or fails)
+                        fetchData(
+                            table.page + 1,
+                            table.rowsPerPage,
+                            debouncedSearchTerm
+                        );
                         setLoading(false);
                         setSyncStatus(null);
+
+                        // If date range is saved/filled, auto clear after sync
+                        const hasCustomRange =
+                            !!ledgerSyncSetting?.fromDate ||
+                            !!ledgerSyncSetting?.toDate ||
+                            !!fromDate ||
+                            !!toDate;
+                        if (hasCustomRange) {
+                            handleClearDateRange();
+                        }
                     }
-                },
-                () => {
-                    // Fetch data when sync completes (or fails)
-                    fetchData(table.page + 1, table.rowsPerPage, debouncedSearchTerm);
-                    setLoading(false);
-                    setSyncStatus(null);
-                }
-            ));
-            
+                )
+            );
+
             // If sync returns false, it means there was an error
             if (result === false) {
                 setLoading(false);
@@ -164,7 +257,18 @@ export function LedgerListView() {
             setLoading(false);
             setSyncStatus(null);
         }
-    }, [dispatch, fetchData, confirmSync, table.page, table.rowsPerPage, debouncedSearchTerm]);
+    }, [
+        dispatch,
+        fetchData,
+        confirmSync,
+        table.page,
+        table.rowsPerPage,
+        debouncedSearchTerm,
+        ledgerSyncSetting,
+        fromDate,
+        toDate,
+        handleClearDateRange,
+    ]);
 
     //---------------------------------------------------------
     return (
@@ -178,26 +282,117 @@ export function LedgerListView() {
                         { name: 'List' },
                     ]}
                     sx={{ mb: { xs: 3, md: 5 } }}
-
-                    action={
-                        userRole === 'Admin' && ( // Only show the button for Vendor role
-                            <Button
-                                onClick={confirmSync.onTrue} // Open the sync confirmation dialog
-                                variant="contained"
-                                startIcon={<Iconify icon="eva:sync-fill" />}
-                                disabled={loading}
-                            >
-                                {loading 
-                                    ? (syncStatus?.status === 'processing' && syncStatus?.totalRecords 
-                                        ? `Syncing... ${syncStatus.processedRecords || 0}/${syncStatus.totalRecords}` 
-                                        : 'Syncing...') 
-                                    : 'Sync Data'}
-                            </Button>
-                        )
-                    }
                 />
 
                 <Card>
+                    {userRole === 'Admin' && (
+                        <MuiBox sx={{ p: 2.5, pb: 1.5 }}>
+                            <Stack
+                                direction={{ xs: 'column', md: 'row' }}
+                                spacing={1.25}
+                                alignItems={{ xs: 'stretch', md: 'flex-end' }}
+                            >
+                                <MuiBox
+                                    sx={{
+                                        flex: 1,
+                                        p: 1.5,
+                                        borderRadius: 1.5,
+                                        border: (theme) => `1px solid ${theme.palette.divider}`,
+                                        bgcolor: 'background.paper',
+                                    }}
+                                >
+                                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                                        Date Range (Optional)
+                                    </Typography>
+                                    <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                        sx={{ display: 'block', mb: 1 }}
+                                    >
+                                        Leave blank to sync Financial Year (Apr–Mar). Saved range is used for next sync only and auto-cleared.
+                                    </Typography>
+
+                                    <Stack
+                                        direction={{ xs: 'column', md: 'row' }}
+                                        spacing={1}
+                                        alignItems={{ xs: 'stretch', md: 'flex-end' }}
+                                        sx={{ flexWrap: { md: 'nowrap' } }}
+                                    >
+                                        <TextField
+                                            label="From"
+                                            type="date"
+                                            size="small"
+                                            value={fromDate}
+                                            onChange={(e) => setFromDate(e.target.value)}
+                                            InputLabelProps={{ shrink: true }}
+                                            sx={{ flex: 1, minWidth: { sm: 180 } }}
+                                            error={isDateRangePartial}
+                                        />
+                                        <TextField
+                                            label="To"
+                                            type="date"
+                                            size="small"
+                                            value={toDate}
+                                            onChange={(e) => setToDate(e.target.value)}
+                                            InputLabelProps={{ shrink: true }}
+                                            sx={{ flex: 1, minWidth: { sm: 180 } }}
+                                            error={isDateRangePartial}
+                                        />
+
+                                        <Stack
+                                            direction="row"
+                                            spacing={1}
+                                            alignItems="center"
+                                            justifyContent={{ xs: 'flex-end', md: 'flex-start' }}
+                                            sx={{ flexShrink: 0, pt: { xs: 0.5, md: 0 } }}
+                                        >
+                                            <Button
+                                                variant="outlined"
+                                                size="small"
+                                                onClick={handleSaveDateRange}
+                                                disabled={!canSaveDateRange}
+                                                sx={{ height: 40, px: 2, whiteSpace: 'nowrap' }}
+                                            >
+                                                {savingDateRange ? 'Saving...' : 'Save'}
+                                            </Button>
+                                            <Button
+                                                variant="outlined"
+                                                color="inherit"
+                                                size="small"
+                                                onClick={handleClearDateRange}
+                                                disabled={savingDateRange || !ledgerSyncSetting}
+                                                sx={{ height: 40, px: 2, whiteSpace: 'nowrap' }}
+                                            >
+                                                Clear
+                                            </Button>
+                                            <Button
+                                                onClick={confirmSync.onTrue}
+                                                variant="contained"
+                                                startIcon={<Iconify icon="eva:sync-fill" />}
+                                                disabled={loading}
+                                                sx={{ height: 40, px: 2, whiteSpace: 'nowrap' }}
+                                            >
+                                                {loading
+                                                    ? (syncStatus?.status === 'processing' && syncStatus?.totalRecords
+                                                        ? `Syncing... ${syncStatus.processedRecords || 0}/${syncStatus.totalRecords}`
+                                                        : 'Syncing...')
+                                                    : 'Sync Data'}
+                                            </Button>
+                                        </Stack>
+                                    </Stack>
+                                    <Typography
+                                        variant="caption"
+                                        color={isDateRangePartial ? 'error.main' : 'text.secondary'}
+                                        sx={{ display: 'block', mt: 0.75 }}
+                                    >
+                                        {isDateRangePartial
+                                            ? 'Select both dates or press Clear.'
+                                            : 'Tip: Save a range → Sync Data → range will auto-clear after sync.'}
+                                    </Typography>
+                                </MuiBox>
+                            </Stack>
+                        </MuiBox>
+                    )}
 
                     <LedgerTableToolbar
                         filters={filters}
