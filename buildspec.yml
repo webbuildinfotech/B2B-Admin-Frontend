@@ -1,0 +1,23 @@
+version: 0.2
+ 
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - rm -rf node_modules package-lock.json
+      - npm install --legacy-peer-deps
+      - npm install @rollup/rollup-linux-x64-gnu --save-dev --legacy-peer-deps
+ 
+  build:
+    commands:
+      - npm run build
+ 
+  post_build:
+    commands:
+      - aws s3 sync dist/ s3://intecomart-admin-vendor-bucket --delete
+      - aws cloudfront create-invalidation --distribution-id E3SO8SIDFKAI5A --paths "/*"
+ 
+artifacts:
+  files:
+    - '**/*'
