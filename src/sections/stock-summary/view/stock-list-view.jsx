@@ -46,7 +46,7 @@ export function StockListView() {
     const urlPage = parseInt(searchParams.get('page') || '1', 10) - 1;
     const urlLimit = parseInt(searchParams.get('limit') || '5', 10);
     const urlSearch = searchParams.get('search') || '';
-
+    console.log("print the row");
     const table = useTable({ 
         defaultRowsPerPage: urlLimit, 
         defaultCurrentPage: urlPage 
