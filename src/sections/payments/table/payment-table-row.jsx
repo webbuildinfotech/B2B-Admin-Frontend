@@ -68,6 +68,7 @@ export function PaymentTableRow({ row, selected, onEditRow, onSelectRow, onDelet
                         </Stack>
                     </Stack>
                 </TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.bankName || '-'}</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.accountName || row.paypalEmail || row.upiId || ' - '}</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.accountNumber || '-'}</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.ifscCode || row.upiProvider || '-'}</TableCell>

@@ -11,22 +11,26 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useFetchData } from "../utils/fetch";
 import { createLogo } from "src/store/action/settingActions";
+import { DEFAULT_LOGO } from "src/components/logo/logo";
 
 export function Logo() {
     const dispatch = useDispatch();
     const { fetchData } = useFetchData();
-    const logoList = useSelector((state) => state.setting?.logo || []);
+    const logoList = useSelector((state) => state.setting?.logo || null);
     const [selectedFile, setSelectedFile] = useState(null);
     const [uploading, setUploading] = useState(false);
-    const [previewUrl, setPreviewUrl] = useState("");
+    const [previewUrl, setPreviewUrl] = useState(DEFAULT_LOGO);
 
     useEffect(() => {
         fetchData();
     }, []);
 
     useEffect(() => {
-        if (logoList?.logoImage && !selectedFile) {
+        if (selectedFile) return;
+        if (logoList?.logoImage) {
             setPreviewUrl(`${logoList.logoImage}?t=${new Date().getTime()}`);
+        } else {
+            setPreviewUrl(DEFAULT_LOGO);
         }
     }, [logoList, selectedFile]);
 
@@ -68,21 +72,22 @@ export function Logo() {
             </Typography>
             <Divider />
             <Box sx={{ textAlign: "center", mt: 2 }}>
-                {previewUrl ? (
-                    <img
-                        src={previewUrl}
-                        alt="Logo Preview"
-                        style={{
-                            maxWidth: "150px",
-                            height: "auto",
-                            borderRadius: "8px",
-                            border: "1px solid #ddd",
-                            padding: "4px",
-                        }}
-                    />
-                ) : (
-                    <Typography color="textSecondary">No logo uploaded</Typography>
-                )}
+                <img
+                    src={previewUrl || DEFAULT_LOGO}
+                    alt="Logo Preview"
+                    onError={(e) => {
+                        if (e.currentTarget.dataset.fallbackApplied === '1') return;
+                        e.currentTarget.dataset.fallbackApplied = '1';
+                        e.currentTarget.src = DEFAULT_LOGO;
+                    }}
+                    style={{
+                        maxWidth: "150px",
+                        height: "auto",
+                        borderRadius: "8px",
+                        border: "1px solid #ddd",
+                        padding: "4px",
+                    }}
+                />
             </Box>
             <Grid
                 container

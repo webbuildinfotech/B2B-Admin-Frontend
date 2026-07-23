@@ -157,6 +157,18 @@ export function PaymentViewUi() {
                             variant="caption"
                             sx={{ opacity: 0.8, mb: 0.5, display: 'block' }}
                           >
+                            Bank Name
+                          </Typography>
+                          <Typography variant="h6" fontWeight={600}>
+                            {payment.bankName || 'Not Available'}
+                          </Typography>
+                        </Box>
+
+                        <Box>
+                          <Typography
+                            variant="caption"
+                            sx={{ opacity: 0.8, mb: 0.5, display: 'block' }}
+                          >
                             Account Holder
                           </Typography>
                           <Typography variant="h6" fontWeight={500}>

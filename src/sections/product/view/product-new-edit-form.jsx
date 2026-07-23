@@ -7,9 +7,10 @@ import {
 } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { Field, Form } from 'src/components/hook-form';
-import { deleteProduct, editProduct } from 'src/store/action/productActions';
+import { deleteProduct, editProduct, updateTotalSalesAmount } from 'src/store/action/productActions';
 import { useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router';
+import { toast } from 'sonner';
 
 export default function ProductNewEditForm({ currentProduct }) {
     const dispatch = useDispatch();
@@ -25,6 +26,10 @@ export default function ProductNewEditForm({ currentProduct }) {
         id: currentProduct?.id || '',
         productImages: currentProduct?.productImages || '',
         dimensionalFiles: currentProduct?.dimensionalFiles || '',
+        totalSalesAmount:
+            currentProduct?.totalSalesAmount != null
+                ? Number(currentProduct.totalSalesAmount)
+                : 0,
     }), [currentProduct]);
 
     const methods = useForm({ defaultValues });
@@ -57,6 +62,25 @@ export default function ProductNewEditForm({ currentProduct }) {
         try {
             setLoading(true);
             const res = await dispatch(editProduct(currentProduct.id, formData));
+
+            // Update totalSalesAmount via dedicated bulk API (array format)
+            const salesAmount = Number(data.totalSalesAmount);
+            if (!Number.isNaN(salesAmount) && salesAmount >= 0) {
+                if (!currentProduct?.masterID && !currentProduct?.itemName) {
+                    toast.warning('masterID / itemName missing — totalSalesAmount not saved');
+                } else {
+                    await dispatch(
+                        updateTotalSalesAmount([
+                            {
+                                masterID: currentProduct.masterID,
+                                itemName: currentProduct.itemName,
+                                totalSalesAmount: salesAmount,
+                            },
+                        ]),
+                    );
+                }
+            }
+
             if (res) {
                 // Get return URL from location state (passed when navigating to edit)
                 const returnUrl = location.state?.returnUrl;
@@ -138,6 +162,31 @@ export default function ProductNewEditForm({ currentProduct }) {
     return (
         <Form methods={methods} onSubmit={onSubmit}>
             <Stack spacing={3}>
+                <Card>
+                    <Stack spacing={2} sx={{ p: 3 }}>
+                        <Typography variant="h6">Top Hot Products Ranking</Typography>
+                        <Divider sx={{ borderStyle: 'dashed' }} />
+                        <Grid container spacing={2}>
+                            <Grid item xs={12} md={4}>
+                                <Field.Text
+                                    name="totalSalesAmount"
+                                    label="Total Sales Amount"
+                                    type="number"
+                                    helperText="Higher amount = higher rank on Top Hot Products"
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                    Master ID: <strong>{currentProduct?.masterID || '—'}</strong>
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                    Item Name: <strong>{currentProduct?.itemName || '—'}</strong>
+                                </Typography>
+                            </Grid>
+                        </Grid>
+                    </Stack>
+                </Card>
+
                 <Card>
                     <Stack spacing={2} sx={{ p: 3 }}>
                         <Grid container spacing={4}>

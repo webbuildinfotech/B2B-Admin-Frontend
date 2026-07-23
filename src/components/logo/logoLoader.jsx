@@ -1,34 +1,30 @@
-import { useId, forwardRef } from 'react';
+import { forwardRef } from 'react';
 
 import Box from '@mui/material/Box';
 import NoSsr from '@mui/material/NoSsr';
-import { useTheme } from '@mui/material/styles';
 
 import { RouterLink } from 'src/routes/components';
 
 import { logoClasses } from './classes';
-import pngLogo from './assets/logo3.png'
+import { DEFAULT_LOGO } from './logo';
 
 // ----------------------------------------------------------------------
 
 export const LogoLoader = forwardRef(
   ({ width = 72, height = 72, disableLink = false, className, href = '/', sx, ...other }, ref) => {
-    const theme = useTheme();
-
-    const gradientId = useId();
-
-    const PRIMARY_LIGHT = theme.vars.palette.primary.light;
-
-    const PRIMARY_MAIN = theme.vars.palette.primary.main;
-
-    const isDark = theme.palette.mode === 'dark';
-
-    /*
-     * OR using local (public folder)
-     * const logo = ( <Box alt="logo" component="img" src={`${CONFIG.site.basePath}/logo/logo-single.svg`} width={width} height={height} /> );
-     */
     const logo = (
-      <img alt="logo" src={isDark ? pngLogo : pngLogo} width={width} height={height}/>
+      <img
+        alt="logo"
+        src={DEFAULT_LOGO}
+        width={width}
+        height={height}
+        style={{ objectFit: 'contain' }}
+        onError={(event) => {
+          if (event.currentTarget.dataset.fallbackApplied === '1') return;
+          event.currentTarget.dataset.fallbackApplied = '1';
+          event.currentTarget.src = DEFAULT_LOGO;
+        }}
+      />
     );
 
     return (
@@ -44,7 +40,9 @@ export const LogoLoader = forwardRef(
               verticalAlign: 'middle',
               ...sx,
             }}
-          />
+          >
+            <img alt="logo" src={DEFAULT_LOGO} width={width} height={height} style={{ objectFit: 'contain' }} />
+          </Box>
         }
       >
         <Box

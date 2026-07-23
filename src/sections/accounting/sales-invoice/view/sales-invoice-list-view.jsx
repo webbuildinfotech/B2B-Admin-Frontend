@@ -33,6 +33,7 @@ import { SalesInvoiceTableRow } from './table/sales-invoice-table-row';
 import { useFetchSalesInvoice } from '../components/fetch-sales-invoice';
 import { TableLoaderOverlay } from 'src/components/loader/table-loader';
 import { SALES_INVOICE_LIST } from 'src/store/constants/actionTypes';
+import useUserRole from 'src/layouts/components/user-role';
 
 export function SalesInvoiceListView() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -49,6 +50,8 @@ export function SalesInvoiceListView() {
     const confirm = useBoolean();
     const [selectedRows, setSelectedRows] = useState([]);
     const [deleting, setDeleting] = useState(false);
+    const userRole = useUserRole();
+    const isAdmin = userRole === 'Admin';
 
     const { fetchData, fetchDeleteData, deleteAllItems } = useFetchSalesInvoice();
     const dispatch = useDispatch();
@@ -186,21 +189,23 @@ export function SalesInvoiceListView() {
 
                     <Box sx={{ position: 'relative' }}>
                         <TableLoaderOverlay actionType={SALES_INVOICE_LIST} />
-                        <TableSelectedAction
-                            dense={table.dense}
-                            numSelected={selectedRows.length}
-                            rowCount={tableData.length}
-                            onSelectAllRows={(checked) => 
-                                setSelectedRows(checked ? tableData.map(row => row.id) : [])
-                            }
-                            action={
-                                <Tooltip title="Delete">
-                                    <IconButton color="primary" onClick={confirm.onTrue}>
-                                        <Iconify icon="solar:trash-bin-trash-bold" />
-                                    </IconButton>
-                                </Tooltip>
-                            }
-                        />
+                        {isAdmin && (
+                            <TableSelectedAction
+                                dense={table.dense}
+                                numSelected={selectedRows.length}
+                                rowCount={tableData.length}
+                                onSelectAllRows={(checked) => 
+                                    setSelectedRows(checked ? tableData.map(row => row.id) : [])
+                                }
+                                action={
+                                    <Tooltip title="Delete">
+                                        <IconButton color="primary" onClick={confirm.onTrue}>
+                                            <Iconify icon="solar:trash-bin-trash-bold" />
+                                        </IconButton>
+                                    </Tooltip>
+                                }
+                            />
+                        )}
 
                         <Scrollbar sx={{ minHeight: 444 }}>
                             <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 960 }}>
@@ -251,31 +256,33 @@ export function SalesInvoiceListView() {
                 </Card>
             </DashboardContent>
 
-            <ConfirmDialog
-                open={confirm.value}
-                onClose={confirm.onFalse}
-                title="Delete Sales Invoices?"
-                content={
-                    <Box>
-                        <Typography gutterBottom>
-                            Are you sure you want to delete the selected sales invoice(s)?
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                            This action cannot be undone.
-                        </Typography>
-                    </Box>
-                }
-                action={
-                    <Button
-                        variant="contained"
-                        color="error"
-                        onClick={handleDeleteSelectedRows}
-                        disabled={deleting}
-                    >
-                        {deleting ? 'Deleting...' : 'Delete'}
-                    </Button>
-                }
-            />
+            {isAdmin && (
+                <ConfirmDialog
+                    open={confirm.value}
+                    onClose={confirm.onFalse}
+                    title="Delete Sales Invoices?"
+                    content={
+                        <Box>
+                            <Typography gutterBottom>
+                                Are you sure you want to delete the selected sales invoice(s)?
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                This action cannot be undone.
+                            </Typography>
+                        </Box>
+                    }
+                    action={
+                        <Button
+                            variant="contained"
+                            color="error"
+                            onClick={handleDeleteSelectedRows}
+                            disabled={deleting}
+                        >
+                            {deleting ? 'Deleting...' : 'Delete'}
+                        </Button>
+                    }
+                />
+            )}
         </div>
     );
 }

@@ -519,17 +519,21 @@ export const fetchTallyById = (id) => async (dispatch) => {
 export const LogoList = () => async (dispatch) => {
     try {
         const response = await axiosInstance.get('/logo');
+        const payload = response?.data?.data ?? response?.data ?? null;
         dispatch({
             type: LOGO,
-            payload: response.data, // Assuming response contains the customers data
+            payload,
         });
-        return true;
+        return payload;
     } catch (error) {
-        // Check if error response exists and handle error message
-        const errorMessage = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
-        toast.error(errorMessage);
+        // No logo in DB / API down — UI falls back to default /logo.png (no toast)
+        console.warn('Logo API unavailable, using default logo');
+        dispatch({
+            type: LOGO,
+            payload: null,
+        });
+        return null;
     }
-    return false; // Return false for any errors
 };
 
 export const createLogo = (data) => async (dispatch) => {

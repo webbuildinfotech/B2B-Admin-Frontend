@@ -366,3 +366,35 @@ export const deleteAllItem = (ids) => async (dispatch) => {
     }
     return false; // Return false for any errors or unsuccessful attempts
 };
+
+/**
+ * Bulk update totalSalesAmount for Top Hot Products ranking.
+ * Payload: { data: [ { masterID, itemName, totalSalesAmount }, ... ] }
+ */
+export const updateTotalSalesAmount = (items) => async () => {
+    try {
+        const data = Array.isArray(items) ? items : [items];
+        const response = await axiosInstance.post('/items/update-total-sales-amount', { data });
+        if (response && response.status >= 200 && response.status < 300) {
+            const { updatedCount = 0, failedCount = 0 } = response.data || {};
+            if (failedCount > 0) {
+                toast.warning(
+                    response.data.message ||
+                        `Updated ${updatedCount}, failed ${failedCount}`,
+                );
+            } else {
+                toast.success(
+                    response.data.message ||
+                        `totalSalesAmount updated for ${updatedCount} product(s)`,
+                );
+            }
+            return response.data;
+        }
+    } catch (error) {
+        const errorMessage =
+            error?.response?.data?.message ||
+            'Failed to update totalSalesAmount. Please try again.';
+        toast.error(errorMessage);
+    }
+    return null;
+};

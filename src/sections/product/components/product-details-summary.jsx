@@ -143,6 +143,18 @@ export function ProductDetailsSummary({ products, disableActions, ...other }) {
                   <strong>Selling Price Date:</strong>{' '}
                   <span>{formatDateIndian(products?.sellingPriceDate) || 'No Data Available'}</span>
                 </Typography>
+                <Typography variant="body2">
+                  <strong>Total Sales Amount:</strong>{' '}
+                  <span>
+                    {products?.totalSalesAmount != null && Number(products.totalSalesAmount) > 0
+                      ? fCurrency(products.totalSalesAmount)
+                      : '—'}
+                  </span>
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Master ID:</strong>{' '}
+                  <span>{products?.masterID || 'No Data Available'}</span>
+                </Typography>
               </Stack>
             </Box>
           </Grid>

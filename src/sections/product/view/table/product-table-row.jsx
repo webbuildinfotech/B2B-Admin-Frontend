@@ -69,6 +69,11 @@ export function ProductTableRow({ row, selected, onEditRow, onSelectRow, onDelet
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>
                     {fCurrency(row?.sellingPrice) || 'not available'}
                 </TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                    {row?.totalSalesAmount != null && Number(row.totalSalesAmount) > 0
+                        ? fCurrency(row.totalSalesAmount)
+                        : '—'}
+                </TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDateIndian(row.sellingPriceDate) || 'not available'}</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.gstRate || 'not available'}</TableCell>
 

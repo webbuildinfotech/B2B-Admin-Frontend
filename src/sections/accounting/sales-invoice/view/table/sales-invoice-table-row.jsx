@@ -18,10 +18,13 @@ import { usePopover, CustomPopover } from 'src/components/custom-popover';
 import { RouterLink } from 'src/routes/components';
 import { fCurrency, fAmountWithoutMinus } from 'src/utils/format-number';
 import { fDate } from 'src/utils/format-time';
+import useUserRole from 'src/layouts/components/user-role';
 
 export function SalesInvoiceTableRow({ row, selected, onSelectRow, onDeleteRow, onDownload }) {
   const confirm = useBoolean();
   const popover = usePopover();
+  const userRole = useUserRole();
+  const isAdmin = userRole === 'Admin';
   const hasPdf = !!row?.invoicePdf;
 
   const renderPrimary = (
@@ -104,37 +107,41 @@ export function SalesInvoiceTableRow({ row, selected, onSelectRow, onDeleteRow, 
             <Iconify icon="solar:eye-bold" />
             View
           </MenuItem>
-          <MenuItem
-            onClick={() => {
-              confirm.onTrue();
-              popover.onClose();
-            }}
-            sx={{ color: 'error.main' }}
-          >
-            <Iconify icon="solar:trash-bin-trash-bold" />
-            Delete
-          </MenuItem>
+          {isAdmin && (
+            <MenuItem
+              onClick={() => {
+                confirm.onTrue();
+                popover.onClose();
+              }}
+              sx={{ color: 'error.main' }}
+            >
+              <Iconify icon="solar:trash-bin-trash-bold" />
+              Delete
+            </MenuItem>
+          )}
         </MenuList>
       </CustomPopover>
 
-      <ConfirmDialog
-        open={confirm.value}
-        onClose={confirm.onFalse}
-        title="Delete Sales Invoice"
-        content="Are you sure you want to delete this sales invoice?"
-        action={
-          <Button
-            variant="contained"
-            color="error"
-            onClick={() => {
-              onDeleteRow();
-              confirm.onFalse();
-            }}
-          >
-            Delete
-          </Button>
-        }
-      />
+      {isAdmin && (
+        <ConfirmDialog
+          open={confirm.value}
+          onClose={confirm.onFalse}
+          title="Delete Sales Invoice"
+          content="Are you sure you want to delete this sales invoice?"
+          action={
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => {
+                onDeleteRow();
+                confirm.onFalse();
+              }}
+            >
+              Delete
+            </Button>
+          }
+        />
+      )}
     </>
   );
 }

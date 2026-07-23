@@ -39,7 +39,7 @@ export function PaymentTableToolbar({ filters, onResetPage, onSearchChange, sear
                         fullWidth
                         value={searchTerm !== undefined ? searchTerm : filters.state.searchTerm}
                         onChange={handleFilterName}
-                        placeholder="Search by Account Name, Account Number, IFSC, UPI ID, PayPal Email..."
+                        placeholder="Search by Bank Name, Account Name, Account Number, IFSC, UPI ID, PayPal Email..."
                         InputProps={{
                             startAdornment: (
                                 <InputAdornment position="start">

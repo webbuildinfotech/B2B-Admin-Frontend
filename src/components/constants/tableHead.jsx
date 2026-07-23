@@ -36,6 +36,7 @@ export const TABLE_PRODUCT_HEAD = [
   { id: 'subGroup1', label: 'Sub-Group 1' },
   { id: 'subGroup2', label: 'Sub-Group 2' },
   { id: 'sellingPrice', label: 'Selling Price' },
+  { id: 'totalSalesAmount', label: 'Total Sales Amount' },
   { id: 'sellingPriceDate', label: 'Selling Price Date' },
   { id: 'gstRate', label: 'GST Rate' },
   { id: 'action', label: 'Actions' },
@@ -97,9 +98,10 @@ export const TABLE_GALLERY_HEAD = [
 
 export const TABLE_ACCOUNT_HEAD = [
   { id: 'type', label: 'Account Type' },
+  { id: 'bankName', label: 'Bank Name' },
   { id: 'accountName', label: 'Account Name / UPI-ID / Paypal ID' },
   { id: 'accountNumber', label: 'Account Number' },
-  { id: 'ifscCode', label: 'IFC CODE / Payment Type' },
+  { id: 'ifscCode', label: 'IFSC CODE / Payment Type' },
   { id: 'action', label: 'Actions' },
 ];
 

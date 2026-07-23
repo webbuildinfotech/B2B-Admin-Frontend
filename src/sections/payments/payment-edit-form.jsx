@@ -22,6 +22,13 @@ import { validateEmailDomain, validateUpiProvider } from 'src/utils/emailValidat
 
 // Define schemas for different payment methods
 const BankFormSchema = zod.object({
+    bankName: zod
+        .string()
+        .min(1, { message: 'Bank Name is required!' })
+        .min(2, { message: 'Bank Name must be at least 2 characters!' })
+        .max(100, { message: 'Bank Name must not exceed 100 characters!' })
+        .regex(/^[a-zA-Z0-9\s.&'-]+$/, { message: 'Bank Name contains invalid characters!' }),
+
     accountName: zod
         .string()
         .min(1, { message: 'Account Name is required!' })
@@ -92,6 +99,7 @@ export function PaymentEditForm({ payment }) {
 
     const paymentID = useParams()
     const defaultValues = {
+        bankName: payment?.bankName || '',
         accountName: payment?.accountName || '',
         accountNumber: payment?.accountNumber || '',
         ifscCode: payment?.ifscCode || '',
@@ -132,6 +140,7 @@ export function PaymentEditForm({ payment }) {
         // Add data to FormData based on activeTab
         if (activeTab === 'Bank') {
             formData.append('type', 'Bank');
+            formData.append('bankName', data.bankName);
             formData.append('accountName', data.accountName);
             formData.append('accountNumber', data.accountNumber);
             formData.append('ifscCode', data.ifscCode);
@@ -218,7 +227,8 @@ export function PaymentEditForm({ payment }) {
                     {/* Render Bank Form */}
                     {activeTab === 'Bank' && (
                         <>
-                            <Field.Text name="accountName" label="Account Name" />
+                            <Field.Text name="bankName" label="Bank Name" placeholder="e.g. HDFC Bank, SBI, ICICI" />
+                            <Field.Text name="accountName" label="Account Holder Name" />
                             <Field.Text name="accountNumber" label="Account Number" />
                             <Field.Text name="ifscCode" label="IFSC Code" />
                         </>
