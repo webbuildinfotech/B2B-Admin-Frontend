@@ -6,6 +6,7 @@ import { TallyView } from '../../tally/tally-view';
 import { paths } from 'src/routes/paths';
 import { Grid, Card, Tabs, Tab, Box } from '@mui/material';
 import TermEditForm from '../../terms-conditions/view/term-edit-form';
+import PrivacyEditForm from '../../privacy-policy/view/privacy-edit-form';
 import ContactEditForm from '../../Contact-us/view/contact-edit-form';
 import AboutUsEditForm from '../../about-us/view/about-us-edit-form';
 import FooterInfoEditForm from '../../footer-info/view/footer-info-edit-form';
@@ -30,7 +31,7 @@ export function MainSetting() {
                 sx={{mb: 3, padding: "10px 1px 0px 12px", background: "#fff" }}
             />
             
-            {/* Tabs Navigation for Terms, Contact, About Us */}
+            {/* Tabs Navigation for Terms, Privacy, Contact, About Us */}
             <Card sx={{ borderRadius: 0, boxShadow: 1 }}>
                 <Tabs
                     value={currentTab}
@@ -50,6 +51,7 @@ export function MainSetting() {
                 >
                     <Tab label="Logo & Path Settings" />
                     <Tab label="Terms & Conditions" />
+                    <Tab label="Privacy Policy" />
                     <Tab label="Contact Us" />
                     <Tab label="About Us" />
                     <Tab label="Footer Information" />
@@ -77,22 +79,29 @@ export function MainSetting() {
                 </Box>
             )}
 
-            {/* Tab Panel: Contact Us */}
+            {/* Tab Panel: Privacy Policy */}
             {currentTab === 2 && (
+                <Box sx={{ mt: 2 }}>
+                    <PrivacyEditForm />
+                </Box>
+            )}
+
+            {/* Tab Panel: Contact Us */}
+            {currentTab === 3 && (
                 <Box sx={{ mt: 2 }}>
                     <ContactEditForm />
                 </Box>
             )}
 
             {/* Tab Panel: About Us */}
-            {currentTab === 3 && (
+            {currentTab === 4 && (
                 <Box sx={{ mt: 2 }}>
                     <AboutUsEditForm />
                 </Box>
             )}
 
             {/* Tab Panel: Footer Information */}
-            {currentTab === 4 && (
+            {currentTab === 5 && (
                 <Box sx={{ mt: 2 }}>
                     <FooterInfoEditForm />
                 </Box>
