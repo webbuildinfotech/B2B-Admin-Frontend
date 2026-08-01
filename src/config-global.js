@@ -3,7 +3,9 @@ import packageJson from '../package.json';
 
 export const CONFIG = {
   site: {
-    name: 'Admin Panel',
+    name: 'Intecomart Admin',
+    defaultDescription:
+      'Intecomart Admin Panel — manage products, vendors, orders, accounting, and website settings.',
     serverUrl: import.meta.env.DEV ? '/api' : (import.meta.env.VITE_SERVER_URL || 'http://localhost:3000'),
     assetURL: import.meta.env.VITE_ASSET_URL ?? '',
     basePath: import.meta.env.VITE_BASE_PATH ?? '',

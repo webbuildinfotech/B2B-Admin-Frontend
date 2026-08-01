@@ -1,19 +1,14 @@
-
-import { Helmet } from 'react-helmet-async';
-import { CONFIG } from 'src/config-global';
+import { PageSeo } from 'src/components/seo';
 import AboutUsEditForm from 'src/sections/setting/about-us/view/about-us-edit-form';
 
-const metadata = { title: `About Us - ${CONFIG.site.name}` };
-
 export default function Page() {
-    return (
-        <>
-            <Helmet>
-                <title> {metadata.title}</title>
-            </Helmet>
-
-            <AboutUsEditForm />
-        </>
-    );
+  return (
+    <>
+      <PageSeo
+        title="About Us"
+        description="Edit Intecomart About Us content displayed on the website."
+      />
+      <AboutUsEditForm />
+    </>
+  );
 }
-

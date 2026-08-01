@@ -1,21 +1,14 @@
-import { Helmet } from 'react-helmet-async';
-import useUserRole from 'src/layouts/components/user-role';
+import { PageSeo } from 'src/components/seo';
 import { LedgerListView } from 'src/sections/accounting/ledger/view';
 
-
 export default function Page() {
-
-    const role = useUserRole()
-
-    const metadata = { title: `Ledger Statement` };
-
-    return (
-        <>
-            <Helmet>
-                <title> {metadata.title}</title>
-            </Helmet>
-
-            <LedgerListView />
-        </>
-    );
+  return (
+    <>
+      <PageSeo
+        title="Ledger Statement"
+        description="View Intecomart ledger statements and account transactions."
+      />
+      <LedgerListView />
+    </>
+  );
 }

@@ -1,20 +1,14 @@
-
-import { Helmet } from 'react-helmet-async';
-import useUserRole from "src/layouts/components/user-role";
+import { PageSeo } from 'src/components/seo';
 import { LogListView } from 'src/sections/logs-history/view';
 
 export default function Page() {
-
-    const role = useUserRole()
-
-    const metadata = { title: `Logs` };
-    return (
-        <>
-            <Helmet>
-                <title> {metadata.title}</title>
-            </Helmet>
-
-            <LogListView/>
-        </>
-    );
+  return (
+    <>
+      <PageSeo
+        title="Logs"
+        description="View Intecomart system logs and activity history."
+      />
+      <LogListView />
+    </>
+  );
 }

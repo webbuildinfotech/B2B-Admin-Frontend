@@ -1,18 +1,14 @@
-import { ProductListView } from "src/sections/product/view";
-import { Helmet } from 'react-helmet-async';
-import { CONFIG } from 'src/config-global';
-import { StockListView } from "src/sections/stock-summary/view";
-
-const metadata = { title: `Stock Summary` };
+import { PageSeo } from 'src/components/seo';
+import { StockListView } from 'src/sections/stock-summary/view';
 
 export default function Page() {
-    return (
-        <>
-            <Helmet>
-                <title> {metadata.title}</title>
-            </Helmet>
-
-            <StockListView />
-        </>
-    );
+  return (
+    <>
+      <PageSeo
+        title="Stock Summary"
+        description="View Intecomart stock summary and inventory levels."
+      />
+      <StockListView />
+    </>
+  );
 }

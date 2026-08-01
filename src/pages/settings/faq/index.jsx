@@ -1,17 +1,14 @@
-import { FAQsListView } from "src/sections/setting/FAQ/view";
-import { Helmet } from 'react-helmet-async';
-import { CONFIG } from 'src/config-global';
-
-
-const metadata = { title: `FAQ - ${CONFIG.site.name}` };
+import { PageSeo } from 'src/components/seo';
+import { FAQsListView } from 'src/sections/setting/FAQ/view';
 
 export default function Page() {
-    return (
-        <>
-            <Helmet>
-                <title> {metadata.title}</title>
-            </Helmet>
-            <FAQsListView />
-        </>
-    );
+  return (
+    <>
+      <PageSeo
+        title="FAQs"
+        description="Manage Intecomart frequently asked questions shown on the website."
+      />
+      <FAQsListView />
+    </>
+  );
 }

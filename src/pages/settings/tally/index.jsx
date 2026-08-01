@@ -1,17 +1,14 @@
-import { Helmet } from 'react-helmet-async';
-import { CONFIG } from 'src/config-global';
+import { PageSeo } from 'src/components/seo';
 import { TallyView } from 'src/sections/setting/tally/tally-view';
 
-const metadata = { title: `Tally - ${CONFIG.site.name}` };
-
 export default function Page() {
-    return (
-        <>
-            <Helmet>
-                <title> {metadata.title}</title>
-            </Helmet>
-
-            <TallyView/>
-        </>
-    );
+  return (
+    <>
+      <PageSeo
+        title="Tally"
+        description="Configure Intecomart Tally sync and accounting integration settings."
+      />
+      <TallyView />
+    </>
+  );
 }

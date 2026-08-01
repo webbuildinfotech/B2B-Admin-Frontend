@@ -1,19 +1,14 @@
-import { ProductListView } from "src/sections/product/view";
-import { Helmet } from 'react-helmet-async';
-import { CONFIG } from 'src/config-global';
-import useUserRole from "src/layouts/components/user-role";
+import { PageSeo } from 'src/components/seo';
+import { ProductListView } from 'src/sections/product/view';
 
 export default function Page() {
-
-    const role = useUserRole()
-
-    const metadata = { title: `Products` };
-    return (
-        <>
-            <Helmet>
-                <title> {metadata.title}</title>
-            </Helmet>
-            <ProductListView />
-        </>
-    );
+  return (
+    <>
+      <PageSeo
+        title="Products"
+        description="Manage Intecomart product catalog — add, edit, sync, and view industrial products."
+      />
+      <ProductListView />
+    </>
+  );
 }

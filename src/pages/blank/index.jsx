@@ -1,21 +1,15 @@
-import { Helmet } from 'react-helmet-async';
-
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
-import { CONFIG } from 'src/config-global';
-
-// ----------------------------------------------------------------------
-
-const metadata = { title: `Blank - ${CONFIG.site.name}` };
+import { PageSeo } from 'src/components/seo';
 
 export default function Page() {
   return (
     <>
-      <Helmet>
-        <title> {metadata.title}</title>
-      </Helmet>
-
+      <PageSeo
+        title="Blank"
+        description="Intecomart Admin blank page."
+      />
       <Container>
         <Typography variant="h4">Blank</Typography>
       </Container>

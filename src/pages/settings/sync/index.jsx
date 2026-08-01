@@ -1,19 +1,14 @@
-
-import { Helmet } from 'react-helmet-async';
-import { CONFIG } from 'src/config-global';
+import { PageSeo } from 'src/components/seo';
 import { MainSetting } from 'src/sections/setting/sync/view/main';
 
-
-const metadata = { title: `Sync - ${CONFIG.site.name}` };
-
 export default function Page() {
-    return (
-        <>
-            <Helmet>
-                <title> {metadata.title}</title>
-            </Helmet>
-
-            <MainSetting/>
-        </>
-    );
+  return (
+    <>
+      <PageSeo
+        title="Settings"
+        description="Intecomart basic settings — logo, terms, privacy policy, contact, about us, and footer information."
+      />
+      <MainSetting />
+    </>
+  );
 }

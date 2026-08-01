@@ -1,18 +1,14 @@
-import { Helmet } from 'react-helmet-async';
-import useUserRole from "src/layouts/components/user-role";
+import { PageSeo } from 'src/components/seo';
 import { PaymentView } from 'src/sections/payments/payment-view';
 
 export default function Page() {
-
-    const role = useUserRole()
-
-    const metadata = { title: `Payments` };
-    return (
-        <>
-            <Helmet>
-                <title> {metadata.title}</title>
-            </Helmet>
-            <PaymentView/>
-        </>
-    );
+  return (
+    <>
+      <PageSeo
+        title="Payments"
+        description="Track and manage Intecomart payments and payment history."
+      />
+      <PaymentView />
+    </>
+  );
 }

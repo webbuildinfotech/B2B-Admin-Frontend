@@ -1,19 +1,14 @@
-
-import { Helmet } from 'react-helmet-async';
-import useUserRole from 'src/layouts/components/user-role';
+import { PageSeo } from 'src/components/seo';
 import { CheckoutListView } from 'src/sections/vendor-sections/checkout/view/checkout-list';
 
 export default function Page() {
-
-    const role = useUserRole()
-
-    const metadata = { title: `Sales Order` };
-    return (
-        <>
-            <Helmet>
-                <title> {metadata.title}</title>
-            </Helmet>
-            <CheckoutListView/> 
-        </>
-    );
+  return (
+    <>
+      <PageSeo
+        title="Sales Order"
+        description="Manage Intecomart sales orders and checkout records."
+      />
+      <CheckoutListView />
+    </>
+  );
 }

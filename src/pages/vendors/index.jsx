@@ -1,21 +1,14 @@
-
-import { Helmet } from 'react-helmet-async';
-import { CONFIG } from 'src/config-global';
-import useUserRole from 'src/layouts/components/user-role';
+import { PageSeo } from 'src/components/seo';
 import { VendorListView } from 'src/sections/vendor/view';
 
-
 export default function Page() {
-    const role = useUserRole()
-    const metadata = { title: `Vendors` };
-    
-    return (
-        <>
-            <Helmet>
-                <title> {metadata.title}</title>
-            </Helmet>
-
-            <VendorListView />
-        </>
-    );
+  return (
+    <>
+      <PageSeo
+        title="Vendors"
+        description="Manage Intecomart vendors — view, approve, and update vendor accounts and details."
+      />
+      <VendorListView />
+    </>
+  );
 }

@@ -1,18 +1,17 @@
-
-import { Helmet } from 'react-helmet-async';
+import { PageSeo } from 'src/components/seo';
 import useUserRole from 'src/layouts/components/user-role';
 import { UserProfileView } from 'src/sections/vendor-sections/setting/profile/view';
 
-
 export default function Page() {
-    const role = useUserRole()
-    const metadata = { title: `Profile - ${role}` };
-    return (
-        <>
-            <Helmet>
-                <title> {metadata.title}</title>
-            </Helmet>
-            <UserProfileView/>
-        </>
-    );
+  const role = useUserRole();
+
+  return (
+    <>
+      <PageSeo
+        title={`Profile - ${role || 'User'}`}
+        description="View and update your Intecomart account profile settings."
+      />
+      <UserProfileView />
+    </>
+  );
 }

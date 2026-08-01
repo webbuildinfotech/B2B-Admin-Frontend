@@ -1,17 +1,14 @@
-import { Helmet } from 'react-helmet-async';
+import { PageSeo } from 'src/components/seo';
 import { SalesInvoiceListView } from 'src/sections/accounting/sales-invoice/view';
 
 export default function Page() {
-    const metadata = { title: `Sales Invoice` };
-
-    return (
-        <>
-            <Helmet>
-                <title> {metadata.title}</title>
-            </Helmet>
-
-            <SalesInvoiceListView />
-        </>
-    );
+  return (
+    <>
+      <PageSeo
+        title="Sales Invoice"
+        description="Manage Intecomart sales invoices and billing records."
+      />
+      <SalesInvoiceListView />
+    </>
+  );
 }
-

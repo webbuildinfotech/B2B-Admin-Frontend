@@ -1,18 +1,14 @@
-
-import { Helmet } from 'react-helmet-async';
-import { CONFIG } from 'src/config-global';
+import { PageSeo } from 'src/components/seo';
 import { BannerListView } from 'src/sections/setting/banner/view/banner-list-view';
 
-const metadata = { title: `Banner - ${CONFIG.site.name}` };
-
 export default function Page() {
-    return (
-        <>
-            <Helmet>
-                <title> {metadata.title}</title>
-            </Helmet>
-
-            <BannerListView />
-        </>
-    );
+  return (
+    <>
+      <PageSeo
+        title="Banners"
+        description="Manage Intecomart website banners and promotional images."
+      />
+      <BannerListView />
+    </>
+  );
 }
