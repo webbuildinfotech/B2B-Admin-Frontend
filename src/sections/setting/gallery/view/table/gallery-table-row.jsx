@@ -17,6 +17,7 @@ import { Link as RouterLink } from 'react-router-dom'; // Import Link from react
 
 import { Avatar } from '@mui/material';
 import { useFetchData } from '../../components/fetch';
+import { resolveMediaUrl } from 'src/utils/media-url';
 
 export function GalleryTableRow({ row, selected, onEditRow, onSelectRow, onDeleteRow }) {
     const confirm = useBoolean();
@@ -34,7 +35,7 @@ export function GalleryTableRow({ row, selected, onEditRow, onSelectRow, onDelet
                     <Avatar
                         variant="rounded"
                         alt={row.GalleryImages}
-                        src={row.GalleryImages ? row?.GalleryImages?.[0] : "No File"} // Get the first image link and trim whitespace
+                        src={row.GalleryImages?.[0] ? resolveMediaUrl(row.GalleryImages[0]) : "No File"}
                         sx={{ width: 100, height: 100 }} />
                 </TableCell>
 

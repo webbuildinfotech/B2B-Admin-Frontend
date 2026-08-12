@@ -17,6 +17,7 @@ import { Iconify } from 'src/components/iconify';
 import { Chip } from '@mui/material';
 import { AdminProfileEditForm } from '../admin-profile-edit-form';
 import useUserRole from 'src/layouts/components/user-role';
+import { resolveMediaUrl } from 'src/utils/media-url';
 
 export function UserProfileView() {
   const { authUser } = useSelector((state) => state.auth);
@@ -107,7 +108,7 @@ export function UserProfileView() {
           >
             <Avatar
               alt={authUser.name}
-              src={authUser.profile || undefined}
+              src={resolveMediaUrl(authUser.profile) || undefined}
               sx={{
                 width: { xs: 80, sm: 100, md: 120 },
                 height: { xs: 80, sm: 100, md: 120 },

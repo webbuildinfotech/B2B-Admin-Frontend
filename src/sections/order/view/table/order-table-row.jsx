@@ -23,6 +23,7 @@ import { usePopover, CustomPopover } from 'src/components/custom-popover';
 import { RouterLink } from 'src/routes/components';
 import { Chip, Tooltip, Typography } from '@mui/material';
 import useUserRole from 'src/layouts/components/user-role';
+import { resolveMediaUrl } from 'src/utils/media-url';
 import StatusChangeModal from '../../components/StatusChangeModal';
 import { handleStatusUpdate } from 'src/store/action/orderActions';
 import { useDispatch } from 'react-redux';
@@ -164,7 +165,7 @@ export function OrderTableRow({ row, selected, onViewRow, onSelectRow, onDeleteR
                 }}
               >
                 <Avatar
-                  src={item.product.productImages?.[0]}
+                  src={resolveMediaUrl(item.product.productImages?.[0])}
                   variant="rounded"
                   sx={{ width: 48, height: 48, mr: 2, flexShrink: 0 }}
                 />

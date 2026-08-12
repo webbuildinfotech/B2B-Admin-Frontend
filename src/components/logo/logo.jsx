@@ -9,6 +9,7 @@ import { logoClasses } from './classes';
 import { useFetchData } from 'src/sections/setting/logo/utils/fetch';
 import { useSelector } from 'react-redux';
 import { CONFIG } from 'src/config-global';
+import { resolveMediaUrl } from 'src/utils/media-url';
 
 /** Default logo from public/logo.png when API logo missing/broken */
 export const DEFAULT_LOGO = `${CONFIG.site.basePath || ''}/logo.png`;
@@ -17,7 +18,7 @@ const resolveLogoSrc = (logoState) => {
   if (!logoState || typeof logoState !== 'object') return DEFAULT_LOGO;
   const url = logoState.logoImage;
   if (typeof url !== 'string' || !url.trim()) return DEFAULT_LOGO;
-  return url.trim();
+  return resolveMediaUrl(url.trim());
 };
 
 // Global flag to prevent multiple logo fetches

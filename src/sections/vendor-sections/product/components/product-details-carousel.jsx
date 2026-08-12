@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import Box from '@mui/material/Box';
 
 import { Image } from 'src/components/image';
+import { resolveMediaUrl } from 'src/utils/media-url';
 import { Lightbox, useLightBox } from 'src/components/lightbox';
 import {
   Carousel,
@@ -21,7 +22,7 @@ export function ProductDetailsCarousel({ images }) {
     },
   });
 
-  const slides = images?.map((img) => ({ src: img })) || [];
+  const slides = images?.map((img) => ({ src: resolveMediaUrl(img) })) || [];
 
   const lightbox = useLightBox(slides);
 

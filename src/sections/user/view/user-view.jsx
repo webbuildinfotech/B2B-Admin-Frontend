@@ -16,6 +16,7 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import { resolveMediaUrl } from 'src/utils/media-url';
 
 // View Page Dialog for displaying user details
 export function UserViewDialog({ open, onClose, userView }) {
@@ -49,7 +50,7 @@ export function UserViewDialog({ open, onClose, userView }) {
                 >
                     <Avatar
                         alt={userView.firstName}
-                        src={userView.profileUrl || '/path-to-placeholder-image'}
+                        src={resolveMediaUrl(userView.profileUrl || userView.profile) || '/path-to-placeholder-image'}
                         sx={{
                             width: { xs: 80, sm: 100 },
                             height: { xs: 80, sm: 100 },

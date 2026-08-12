@@ -10,6 +10,7 @@ import {
   CarouselArrowNumberButtons,
 } from 'src/components/carousel';
 import { DUMMY_IMAGE } from 'src/components/constants';
+import { resolveMediaUrl } from 'src/utils/media-url';
 
 
 // ----------------------------------------------------------------------
@@ -22,7 +23,9 @@ export function ProductDetailsCarousel({ images }) {
   });
 
   // Use the dummy image if no images are provided
-  const slides = (images && images.length > 0 ? images : [DUMMY_IMAGE]).map((img) => ({ src: img }));
+  const slides = (images && images.length > 0 ? images : [DUMMY_IMAGE]).map((img) => ({
+    src: resolveMediaUrl(img) || DUMMY_IMAGE,
+  }));
 
   const lightbox = useLightBox(slides);
 

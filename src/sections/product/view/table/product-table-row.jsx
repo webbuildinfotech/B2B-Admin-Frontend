@@ -17,6 +17,7 @@ import { usePopover, CustomPopover } from 'src/components/custom-popover';
 import { useFetchProductData } from '../../components/fetch-product';
 import { Link as RouterLink, useLocation } from 'react-router-dom'; // Import Link from react-router-dom
 import { DUMMY_IMAGE } from 'src/components/constants';
+import { resolveMediaUrl } from 'src/utils/media-url';
 import { fCurrency, formatDateIndian } from 'src/utils/format-number';
 
 
@@ -40,7 +41,7 @@ export function ProductTableRow({ row, selected, onEditRow, onSelectRow, onDelet
                         <Avatar
                             variant="rounded"
                             alt={row?.productImages?.[0] || "Product Image"}
-                            src={row?.productImages && row?.productImages?.length ? row.productImages?.[0] : DUMMY_IMAGE}
+                            src={row?.productImages?.length ? resolveMediaUrl(row.productImages[0]) : DUMMY_IMAGE}
                             sx={{ width: 60, height: 60, mr: 2 }}
                         />
                         <Stack sx={{ typography: 'body2', flex: '1 1 auto', alignItems: 'flex-start' }}>

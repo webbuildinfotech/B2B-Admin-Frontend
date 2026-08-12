@@ -7,6 +7,7 @@ import TableCell from '@mui/material/TableCell';
 import { Link as RouterLink } from 'react-router-dom'; // Import Link from react-router-dom
 import { Checkbox } from '@mui/material';
 import { DUMMY_IMAGE } from 'src/components/constants';
+import { resolveMediaUrl } from 'src/utils/media-url';
 
 
 export function StockTableRow({ row, selected, onSelectRow }) {
@@ -22,7 +23,7 @@ export function StockTableRow({ row, selected, onSelectRow }) {
                     <Avatar
                         variant="rounded"
                         alt={row?.productImages?.[0] || "Product Image"}
-                        src={row?.productImages && row?.productImages?.length ? row.productImages?.[0] : DUMMY_IMAGE}
+                        src={row?.productImages?.length ? resolveMediaUrl(row.productImages[0]) : DUMMY_IMAGE}
                         sx={{ width: 60, height: 60, mr: 2 }}
                     />
                     <Stack sx={{ typography: 'body2', flex: '1 1 auto', alignItems: 'flex-start' }}>

@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useFetchData } from "../utils/fetch";
 import { createLogo } from "src/store/action/settingActions";
 import { DEFAULT_LOGO } from "src/components/logo/logo";
+import { resolveMediaUrl } from "src/utils/media-url";
 
 export function Logo() {
     const dispatch = useDispatch();
@@ -28,7 +29,7 @@ export function Logo() {
     useEffect(() => {
         if (selectedFile) return;
         if (logoList?.logoImage) {
-            setPreviewUrl(`${logoList.logoImage}?t=${new Date().getTime()}`);
+            setPreviewUrl(`${resolveMediaUrl(logoList.logoImage)}?t=${new Date().getTime()}`);
         } else {
             setPreviewUrl(DEFAULT_LOGO);
         }

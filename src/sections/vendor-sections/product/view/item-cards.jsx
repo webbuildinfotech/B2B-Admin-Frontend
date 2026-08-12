@@ -15,6 +15,7 @@ import { useDispatch } from 'react-redux';
 import { addToCart, cartList } from 'src/store/action/cartActions';
 import useCart from '../../checkout/components/useCart';
 import { Iconify } from 'src/components/iconify';
+import { resolveMediaUrl } from 'src/utils/media-url';
 
 // ----------------------------------------------------------------------
 
@@ -60,7 +61,7 @@ export function ItemCard({ product }) {
 
           <Avatar
             alt={product.itemName}
-            src={product.productImages?.[0] || '/path/to/placeholder/image.png'} // Placeholder for missing images
+            src={resolveMediaUrl(product.productImages?.[0]) || '/path/to/placeholder/image.png'}
             sx={{
               width: 64,
               height: 64,
@@ -75,7 +76,7 @@ export function ItemCard({ product }) {
 
           <Image
             alt={product.itemName}
-            src={product.productImages?.[0] || '/path/to/placeholder/image.png'} // Placeholder for missing images
+            src={resolveMediaUrl(product.productImages?.[0]) || '/path/to/placeholder/image.png'}
             slotProps={{
               overlay: {
                 background: (theme) => varAlpha(theme.vars.palette.grey['900Channel'], 0.48),

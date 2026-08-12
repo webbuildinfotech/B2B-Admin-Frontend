@@ -5,6 +5,7 @@ import Tooltip from '@mui/material/Tooltip';
 import { fileThumbnailClasses } from './classes';
 import { fileData, fileThumb, fileFormat } from './utils';
 import { RemoveButton, DownloadButton } from './action-buttons';
+import { resolveMediaUrl } from 'src/utils/media-url';
 
 // ----------------------------------------------------------------------
 
@@ -18,7 +19,7 @@ export function FileThumbnail({
   onDownload,
   ...other
 }) {
-  const previewUrl = typeof file === 'string' ? file : URL.createObjectURL(file);
+  const previewUrl = typeof file === 'string' ? resolveMediaUrl(file) : URL.createObjectURL(file);
 
   const { name, path } = fileData(file);
 

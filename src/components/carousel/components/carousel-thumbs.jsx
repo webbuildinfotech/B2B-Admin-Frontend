@@ -7,6 +7,7 @@ import ButtonBase from '@mui/material/ButtonBase';
 import { varAlpha } from 'src/theme/styles';
 
 import { carouselClasses } from '../classes';
+import { resolveMediaUrl } from 'src/utils/media-url';
 import { CarouselSlide } from './carousel-slide';
 import { StyledRoot, StyledContainer } from '../carousel';
 
@@ -94,7 +95,7 @@ export function CarouselThumb({ sx, src, index, selected, ...other }) {
       <Box
         component="img"
         alt={`carousel-thumb-${index}`}
-        src={src}
+        src={resolveMediaUrl(src)}
         className={carouselClasses.thumbImage}
         sx={{
           width: 1,

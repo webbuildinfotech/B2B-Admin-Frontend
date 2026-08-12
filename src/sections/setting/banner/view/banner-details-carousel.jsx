@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import Box from '@mui/material/Box';
 import { Image } from 'src/components/image';
+import { resolveMediaUrl } from 'src/utils/media-url';
 import { Lightbox, useLightBox } from 'src/components/lightbox';
 import {
   Carousel,
@@ -20,7 +21,7 @@ export function BannerDetailsCarousel({ images }) {
   
   // If no valid images, use dummy image
   const slides = validImages.length > 0 
-    ? validImages.map(img => ({ src: img }))
+    ? validImages.map(img => ({ src: resolveMediaUrl(img) }))
     : [{ src: DUMMY_IMAGE }];
 
   const carousel = useCarousel({

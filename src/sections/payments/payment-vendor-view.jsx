@@ -18,6 +18,7 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import AddIcon from '@mui/icons-material/Add';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import PaymentIcon from '@mui/icons-material/Payment';
+import { resolveMediaUrl } from 'src/utils/media-url';
 import QrCodeIcon from '@mui/icons-material/QrCode';
 import { Iconify } from 'src/components/iconify';
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -367,7 +368,7 @@ export function PaymentViewUi() {
                             </Typography>
                             <Box
                               component="img"
-                              src={payment.qrCodeImageUrl}
+                              src={resolveMediaUrl(payment.qrCodeImageUrl)}
                               alt="QR Code"
                               sx={{
                                 width: 100,

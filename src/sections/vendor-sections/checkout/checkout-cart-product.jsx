@@ -16,6 +16,7 @@ import { useDispatch } from 'react-redux';
 import { addQuantity, cartList, updateDiscount } from 'src/store/action/cartActions';
 import { Link } from 'react-router-dom';
 import { DUMMY_IMAGE } from 'src/components/constants';
+import { resolveMediaUrl } from 'src/utils/media-url';
 
 // ----------------------------------------------------------------------
 
@@ -235,7 +236,7 @@ export function CheckoutCartProduct({ productID, row, onDownload, onDelete }) {
             <Avatar
               variant="rounded"
               alt={row?.productImages?.[0] || "Product Image"}
-              src={row?.productImages && row?.productImages?.length ? row.productImages?.[0] : DUMMY_IMAGE}
+              src={row?.productImages?.length ? resolveMediaUrl(row.productImages[0]) : DUMMY_IMAGE}
             // sx={{ width: 64, height: 64 }}
             />
             <Stack spacing={0.5}>

@@ -17,6 +17,7 @@ import { useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom'; // Import Link from react-router-dom
 import { useFetchBannerData } from '../../components/fetch-banner';
 import { Avatar } from '@mui/material';
+import { resolveMediaUrl } from 'src/utils/media-url';
 
 export function BannerTableRow({ row, selected, onEditRow, onSelectRow, onDeleteRow }) {
     const confirm = useBoolean();
@@ -35,7 +36,7 @@ export function BannerTableRow({ row, selected, onEditRow, onSelectRow, onDelete
                     <Avatar
                         variant="rounded"
                         alt={row.BannerImages}
-                        src={row.BannerImages ? row?.BannerImages?.[0] : "No File"} // Get the first image link and trim whitespace
+                        src={row.BannerImages?.[0] ? resolveMediaUrl(row.BannerImages[0]) : "No File"}
                         sx={{ width: 100, height: 100 }} />
                 </TableCell>
 

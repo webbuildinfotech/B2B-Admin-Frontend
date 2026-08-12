@@ -18,6 +18,7 @@ import { useMockedUser } from 'src/auth/hooks';
 import { AccountButton } from './account-button';
 import { SignOutButton } from './sign-out-button';
 import { useSelector } from 'react-redux';
+import { resolveMediaUrl } from 'src/utils/media-url';
 
 export function AccountDrawer({ data = [], sx, ...other }) {
 
@@ -47,7 +48,7 @@ export function AccountDrawer({ data = [], sx, ...other }) {
     <AnimateAvatar
       width={96}
       slotProps={{
-        avatar: { src: user?.photoURL, alt: user?.displayName },
+        avatar: { src: resolveMediaUrl(authUser?.profile || user?.photoURL), alt: authUser?.name || user?.displayName },
         overlay: {
           border: 2,
           spacing: 3,
@@ -64,7 +65,7 @@ export function AccountDrawer({ data = [], sx, ...other }) {
       <AccountButton
         open={open}
         onClick={handleOpenDrawer}
-        photoURL={user?.photoURL}
+        photoURL={resolveMediaUrl(authUser?.profile || user?.photoURL)}
         displayName={authUser?.name}
         sx={sx}
         {...other}

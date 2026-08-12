@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router';
 import { galleryGetByList } from 'src/store/action/settingActions';
 import { GalleryDetailsCarousel } from '../gallery-details-carousel';
+import { resolveMediaUrl } from 'src/utils/media-url';
 import { fDate, fTime } from 'src/utils/format-time';
 
 export function GalleryView() {
@@ -129,7 +130,7 @@ export function GalleryView() {
                                     >
                                         <CardMedia
                                             component="img"
-                                            image={image}
+                                            image={resolveMediaUrl(image)}
                                             alt={`Gallery thumbnail ${index + 1}`}
                                             sx={{
                                                 objectFit: 'cover',

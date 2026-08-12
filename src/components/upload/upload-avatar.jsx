@@ -9,6 +9,7 @@ import { varAlpha } from 'src/theme/styles';
 import { Image } from '../image';
 import { Iconify } from '../iconify';
 import { RejectionFiles } from './components/rejection-files';
+import { resolveMediaUrl } from 'src/utils/media-url';
 
 // ----------------------------------------------------------------------
 
@@ -28,7 +29,7 @@ export function UploadAvatar({ sx, error, value, disabled, helperText, ...other 
 
   useEffect(() => {
     if (typeof value === 'string') {
-      setPreview(value);
+      setPreview(resolveMediaUrl(value));
     } else if (value instanceof File) {
       setPreview(URL.createObjectURL(value));
     }

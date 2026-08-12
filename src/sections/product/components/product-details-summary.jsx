@@ -10,6 +10,7 @@ import { fCurrency, formatDateIndian } from 'src/utils/format-number';
 import { Form } from 'src/components/hook-form';
 import { itemGetByList } from 'src/store/action/productActions';
 import { ProductDetailsCarousel } from './product-details-carousel';
+import { resolveMediaUrl } from 'src/utils/media-url';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableRow } from '@mui/material';
 
 export function ProductDetailsSummary({ products, disableActions, ...other }) {
@@ -99,13 +100,13 @@ export function ProductDetailsSummary({ products, disableActions, ...other }) {
                           />
                         ) : (
                           <img
-                            src={file}
+                            src={resolveMediaUrl(file)}
                             alt={`Dimensional File ${index + 1}`}
                             style={{ width: 60, height: 60, objectFit: 'cover' }}
                           />
                         )}
                         <a
-                          href={file}
+                          href={resolveMediaUrl(file)}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{ textDecoration: 'none', color: '#1976d2' }}

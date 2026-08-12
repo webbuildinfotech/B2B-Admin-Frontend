@@ -16,6 +16,7 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import AddIcon from '@mui/icons-material/Add';
 import { Field, Form, schemaHelper } from 'src/components/hook-form';
 import { deleteQRPayment, editPayment } from 'src/store/action/paymentActions';
+import { resolveMediaUrl } from 'src/utils/media-url';
 import { useDispatch } from 'react-redux';
 import { useNavigate, useParams, useLocation } from 'react-router';
 import { validateEmailDomain, validateUpiProvider } from 'src/utils/emailValidation';
@@ -302,8 +303,8 @@ export function PaymentEditForm({ payment }) {
                                     <Box sx={{ width: 100, height: 100, borderRadius: 1, overflow: 'hidden', mb: 1 }}>
                                         <img
                                             src={typeof methods.watch('qrCodeImageUrl') === 'string'
-                                                ? methods.watch('qrCodeImageUrl') // Show existing image URL
-                                                : URL.createObjectURL(methods.watch('qrCodeImageUrl'))} // Show new uploaded image
+                                                ? resolveMediaUrl(methods.watch('qrCodeImageUrl'))
+                                                : URL.createObjectURL(methods.watch('qrCodeImageUrl'))}
                                             alt="QR Code Preview"
                                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                         />

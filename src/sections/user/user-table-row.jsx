@@ -31,6 +31,7 @@ import { UserViewDialog } from './view/user-view';
 import { useFetchUserData } from './components';
 import { deleteAddress } from 'src/store/action/addressActions';
 import { AddressForm } from './address/address-form';
+import { resolveMediaUrl } from 'src/utils/media-url';
 
 export function UserTableRow({ row, selected, onEditRow, onSelectRow, onDeleteRow }) {
   const dispatch = useDispatch();
@@ -85,7 +86,7 @@ export function UserTableRow({ row, selected, onEditRow, onSelectRow, onDeleteRo
 
         <TableCell>
           <Stack spacing={2} direction="row" alignItems="center">
-            <Avatar alt={row.profile} src={row.avatarUrl} />
+            <Avatar alt={row.name || row.profile} src={resolveMediaUrl(row.profile || row.avatarUrl)} />
             <Stack sx={{ typography: 'body2', flex: '1 1 auto', alignItems: 'flex-start' }}>
               <Link color="inherit" onClick={quickEdit.onTrue} sx={{ cursor: 'pointer' }}>
                 {row.firstName} {row.lastName}

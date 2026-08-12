@@ -14,6 +14,7 @@ import { calculateGSTPercentages, calculateBaseAmountForGST } from 'src/utils/ca
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 import { DUMMY_IMAGE } from 'src/components/constants';
+import { resolveMediaUrl } from 'src/utils/media-url';
 
 // ----------------------------------------------------------------------
 
@@ -137,7 +138,7 @@ export function OrderDetailsItems({
             }}
           >
             <Avatar 
-              src={item.product?.productImages?.[0] || DUMMY_IMAGE} 
+              src={resolveMediaUrl(item.product?.productImages?.[0]) || DUMMY_IMAGE} 
               variant="rounded" 
               sx={{ width: 48, height: 48, mr: 2, flexShrink: 0 }} 
             />
